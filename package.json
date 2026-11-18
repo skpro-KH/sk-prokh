@@ -1,0 +1,13 @@
+{
+  "name": "sk-prokh",
+  "version": "3.3.0",
+  "private": true,
+  "description": "SK ProKH — Khmer video dubbing website with license keys and admin dashboard",
+  "scripts": { "deploy": "wrangler deploy", "dev": "wrangler dev" },
+  "devDependencies": { "wrangler": "^4.0.0" },
+  "cloudflare": {
+    "bindings": {
+      "SK": { "description": "Stores users and license-key settings for the /admin dashboard." }
+    }
+  }
+}
