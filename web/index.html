@@ -233,7 +233,8 @@ nav .pill{background:var(--rb)!important;background-size:200% 100%!important;ani
 input[type=range]{accent-color:#ff4d8d}#palBtn{display:none!important}
 .stage-wrap{border:2px solid transparent;background:linear-gradient(#050505,#050505) padding-box,var(--rb) border-box;background-size:100% 100%,200% 100%}
 /* live user count */
-#statPill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--rb) border-box;border:1.5px solid transparent}
+@media(max-width:479px){#tgBtn{font-size:0!important;padding:0 9px!important}#tgBtn svg{margin:0}.top{gap:6px}}
+#statPill{display:inline-flex;align-items:center;gap:6px;color:var(--fg);font-family:inherit;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--rb) border-box;border:1.5px solid transparent}
 #statPill .dot{width:8px;height:8px;border-radius:50%;background:#2ee56b;box-shadow:0 0 0 0 #2ee56b99;animation:stPu 1.8s infinite}@keyframes stPu{70%{box-shadow:0 0 0 7px #2ee56b00}}
 .stg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}.stg div{border-radius:16px;padding:14px;background:var(--card2);border:1px solid var(--line)}.stg b{display:block;font:30px/1.1 'Koulen',sans-serif;background:var(--rb);-webkit-background-clip:text;background-clip:text;color:transparent}.stg small{color:var(--mute);font-size:12px}
 /* ===== v3.4 PC: smaller video panel · wide, big, easy-to-click functions ===== */
@@ -492,7 +493,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC)document.documentElement.classList.add('pc');const APP_VER='3.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1656,7 +1657,7 @@ const WEBLIC=(WEBX||NATIVE)&&!/^(localhost|127\.)/.test(location.hostname)||!!wi
 async function hx(url,o={}){if(NATIVE&&DubNative.http){const id=ridH();const r=await Promise.race([new Promise(res=>{nHttp.set(id,res);DubNative.http(id,o.method||'GET',url,JSON.stringify(o.headers||{}),o.body||'')}),sleep(15000).then(()=>({err:'timeout'}))]);if(r.err)throw Error(r.err);return{status:r.status,text:r.text}}
  const r=await fetch(url,{method:o.method||'GET',headers:o.headers,body:o.body||undefined,signal:sigT(15000)});return{status:r.status,text:await r.text()}}
 const STATS={};
-function statShow(st){if(!st||st.total==null)return;Object.assign(STATS,st,{at:Date.now()});const p=$('#statPill');p.hidden=false;$('#stOn').textContent=`${kfmt(st.online||1)} online`}
+function statShow(st){if(!st||st.total==null)return;Object.assign(STATS,st,{at:Date.now()});const p=$('#statPill');p.hidden=false;$('#stOn').textContent=innerWidth<480?kfmt(st.online||1):`${kfmt(st.online||1)} online`}
 const kfmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'K':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
 async function licServer(k,r){if(!WEBLIC)return{ok:true};try{const res=await hx(STAT_HOST+'/api/hello',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,dev:await deviceShort(),ver:APP_VER,pc:PC||matchMedia('(min-width:1000px)').matches,app:NATIVE?(PC?'win':'apk'):'web',kid:r&&r.kid})});
  if(res.status===404)return{ok:true};const j=JSON.parse(res.text);if(j&&j.stats)statShow(j.stats);return j&&j.ok===false?{ok:false,err:j.err||'Key ត្រូវបានបិទ'}:{ok:true}}catch(e){return{ok:true}}}
