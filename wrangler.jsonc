@@ -1,11 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sk-prokh",
+  "name": "skprokh",
   "main": "src/worker.js",
   "compatibility_date": "2025-06-01",
   "workers_dev": true,
   "observability": { "enabled": true },
   "kv_namespaces": [
-    { "binding": "SK" }
+    { "binding": "SK", "id": "3aa8073a90344a1bb88e15a6637dfbbd" }
+  ],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "skprokh", "database_id": "9f43efce-e70b-4fc9-9105-2b66b479c90a" }
   ]
 }

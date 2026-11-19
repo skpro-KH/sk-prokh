@@ -40,6 +40,7 @@ input{background:#0d0b15;border:1px solid var(--line);color:var(--fg);border-rad
   <div id="nokv" class="card" hidden><h2>⚠ មិនទាន់ភ្ជាប់ KV</h2><div class="note">Cloudflare → Worker នេះ → Settings → Bindings → Add → KV namespace → Variable name: <b>SK</b> → Deploy។ បន្ទាប់មកចំនួនអ្នកប្រើនឹងចាប់ផ្ដើមរាប់។</div></div>
   <div class="tiles">
    <div class="tile" style="--c:#ff2d55"><div class="l">👥 អ្នកប្រើសរុប (ឧបករណ៍)</div><div class="v" id="tU">0</div><div class="s" id="tUs"></div></div>
+   <div class="tile" style="--c:#00d4ff"><div class="l">⚡ Online ឥឡូវ</div><div class="v" id="tO">0</div><div class="s">ប្រើក្នុង ៦ នាទីចុងក្រោយ</div></div>
    <div class="tile" style="--c:#2ee59d"><div class="l">🟢 សកម្ម ២៤ម៉ោង</div><div class="v" id="tD">0</div><div class="s">ចូលប្រើក្នុង ២៤ ម៉ោងចុងក្រោយ</div></div>
    <div class="tile" style="--c:#5b8cff"><div class="l">📅 សកម្ម ៧ថ្ងៃ</div><div class="v" id="tW">0</div><div class="s">ចូលប្រើក្នុង ៧ ថ្ងៃ</div></div>
    <div class="tile" style="--c:#ffd23f"><div class="l">✨ អ្នកប្រើថ្មីថ្ងៃនេះ</div><div class="v" id="tN">0</div><div class="s" id="tNs"></div></div>
@@ -66,8 +67,8 @@ async function load(){try{const j=await api('stats');if(j.error==='nokv'){$('#no
  catch(e){if(e.auth){sessionStorage.removeItem('skpw');$('#app').hidden=true;$('#login').hidden=false;$('#err').textContent='✕ '+e.message}else toast('✕ '+e.message)}}
 function count(el,v){const a=+el.textContent||0,t0=performance.now();const f=n=>{const k=Math.min(1,(n-t0)/600);el.textContent=Math.round(a+(v-a)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
 function render(){const now=D.now||Date.now(),dv=D.devs,ks=D.keys;const d1=dv.filter(d=>now-d.l<864e5).length,d7=dv.filter(d=>now-d.l<7*864e5).length,t0=new Date(now);t0.setHours(0,0,0,0);const nt=dv.filter(d=>d.f>=+t0).length;
- count($('#tU'),dv.length);count($('#tD'),d1);count($('#tW'),d7);count($('#tN'),nt);count($('#tK'),ks.length);
- const ph=dv.filter(d=>!d.pc).length;$('#tUs').textContent=`📱 ${ph} ទូរសព្ទ · 💻 ${dv.length-ph} PC`;$('#tKs').textContent=`${ks.filter(k=>k.blocked).length} បានបិទ`;
+ count($('#tU'),dv.length);count($('#tO'),dv.filter(d=>now-d.l<36e4).length);count($('#tD'),d1);count($('#tW'),d7);count($('#tN'),nt);count($('#tK'),ks.length);
+ const na=x=>dv.filter(d=>(d.a||(d.pc?'win':'web'))===x).length;$('#tUs').textContent=`📱 APK ${na('apk')} · 💻 PC ${na('win')} · 🌐 Web ${na('web')} · ▶ ${dv.reduce((a,d)=>a+(d.n||0),0)} ដងប្រើ`;$('#tKs').textContent=`${ks.filter(k=>k.blocked).length} បានបិទ`;
  const yd=new Date(+t0-864e5);$('#tNs').textContent='ម្សិលមិញ: '+dv.filter(d=>d.f>=+yd&&d.f<+t0).length;
  const B=[];for(let i=13;i>=0;i--){const a=+t0-i*864e5;B.push({a,n:dv.filter(d=>d.f>=a&&d.f<a+864e5).length})}const mx=Math.max(1,...B.map(b=>b.n));
  $('#bars').innerHTML=B.map(b=>`<div style="height:${Math.max(3,b.n/mx*100)}%"><span>${b.n||''}</span></div>`).join('');$('#bl').innerHTML=B.map(b=>`<span>${new Date(b.a).getDate()}</span>`).join('');
@@ -76,7 +77,7 @@ function render(){const now=D.now||Date.now(),dv=D.devs,ks=D.keys;const d1=dv.fi
   <td>${k.exp?day(k.exp-1):'♾'}</td><td>${ago(k.l)}</td><td>${k.blocked?'<span class="pill off">⛔ បិទ</span>':'<span class="pill on">✓ សកម្ម</span>'}</td>
   <td class="row"><button class="btn s ${k.blocked?'':'r'}" data-a="blk">${k.blocked?'បើកវិញ':'បិទ Key'}</button><button class="btn g s" data-a="rst" title="លុបឧបករណ៍ទាំងអស់ពី Key នេះ">↺</button></td></tr>`).join('')||'<tr><td colspan="8" class="note">— មិនទាន់មាន Key ណាត្រូវបានប្រើ —</td></tr>';
  const qd=$('#qd').value.trim().toLowerCase();$('#dt').innerHTML=dv.filter(d=>!qd||(d.id+' '+d.k+' '+d.c).toLowerCase().includes(qd)).sort((a,b)=>b.l-a.l).map(d=>`<tr data-d="${d.id}">
-  <td class="mono"><span class="dot ${now-d.l<36e5?'live':''}"></span>${d.id.match(/.{1,4}/g).join('-')}</td><td class="mono">${d.k}</td><td>${d.pc?'💻 PC':'📱 ទូរសព្ទ'}</td><td>${flag(d.c)}</td><td>${esc(d.v)}</td><td>${d.n||1}×</td><td>${day(d.f)}</td><td>${ago(d.l)}</td>
+  <td class="mono"><span class="dot ${now-d.l<36e4?'live':''}"></span>${d.id.match(/.{1,4}/g).join('-')}</td><td class="mono">${d.k}</td><td>${({apk:'📱 APK',win:'💻 Windows',web:'🌐 Web'})[d.a]||(d.pc?'💻 PC':'📱 ទូរសព្ទ')}</td><td>${flag(d.c)}</td><td>${esc(d.v)}</td><td>${d.n||1}×</td><td>${day(d.f)}</td><td>${ago(d.l)}</td>
   <td><button class="btn g s" data-a="fg" title="ដកឧបករណ៍នេះចេញពី Key (ទុកកន្លែងឲ្យឧបករណ៍ថ្មី)">✕</button></td></tr>`).join('')||'<tr><td colspan="9" class="note">— មិនទាន់មានអ្នកប្រើ —</td></tr>'}
 async function setKey(kid,o){try{const j=await api('key',{kid,...o});if(j.error)throw Error(j.error);const i=D.keys.findIndex(k=>k.id===kid);if(i>=0)D.keys[i]=j.key;else D.keys.push(j.key);render();toast('✓ បានរក្សាទុក')}catch(e){toast('✕ '+e.message)}}
 $('#kt').addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;const f=e.target.dataset.f;if(f==='max')setKey(tr.dataset.k,{max:+e.target.value});if(f==='note')setKey(tr.dataset.k,{note:e.target.value})});
