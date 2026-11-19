@@ -260,13 +260,16 @@ input[type=range]{accent-color:#ff4d8d}#palBtn{display:none!important}
 .dlq .fmt button i{font-style:normal;display:block;border:2px solid currentColor;border-radius:4px}.dlq .fmt button.on{background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--rb) border-box;border-color:transparent}
 .dlq .big2b{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dlq .big2b .btn{min-height:64px;font-size:16px;flex-direction:column;gap:2px}.dlq .big2b .btn small{font-size:11px;font-weight:600;opacity:.9}
 .dlq .lens{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.dlq .lens .chip{flex:1;text-align:center}
+.smb{width:100%;min-height:62px;font-size:17px}.smb.on{box-shadow:0 0 0 3px #2ee56b88,0 8px 26px rgba(46,229,107,.35)!important}
+.smst{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.smst div{border-radius:12px;padding:9px 10px;font-size:12.5px;font-weight:700;background:var(--card2);border:1px solid var(--line)}.smst div.ok{border-color:#2ee56b88;color:#2ee56b}
+.qk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.qk button{min-height:58px;font-size:15px}
 </style>
 </head>
 <body>
 <div id="splash"><div><div class="big" id="spBig"></div><div class="ln"></div><div class="sub">KHMER VIDEO DUB</div></div></div>
 <div id="lic"><div class="lm sk"><span>SK</span></div><h1>SK ProKH</h1><div class="by" id="licBy">BY: VORNVEASNA</div>
  <div id="licCard"><div id="licStat" hidden style="display:inline-flex;gap:6px;align-items:center;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:800;margin-bottom:10px;background:linear-gradient(#111,#111) padding-box,var(--rb) border-box;border:1.5px solid transparent"></div><div style="font-weight:700;font-size:16px;margin-bottom:4px">🔐 បញ្ចូល License Key</div><div class="note" style="color:#999;margin:0 0 10px">ត្រូវមាន License Key ពី Admin ដើម្បីប្រើ App</div>
-  <textarea id="licKey" placeholder="DUB-XXXXXX-XXXXXX-..."></textarea>
+  <textarea id="licKey" placeholder="SK-XXXXXX-XXXXXX-..."></textarea>
   <div class="row" style="margin-top:10px"><button class="btn g s" id="licPaste">📋 បិទភ្ជាប់</button><button class="btn" id="licGo">✓ ធ្វើឲ្យសកម្ម</button></div>
   <div id="licMsg"></div>
   <div class="note" style="color:#999;margin-top:14px">Device ID របស់អ្នក (ផ្ញើទៅ Admin ពេលទិញ Key):</div>
@@ -413,6 +416,9 @@ input[type=range]{accent-color:#ff4d8d}#palBtn{display:none!important}
         <div class="sl"><span>ទំហំ</span><input type="range" id="logoW" min=".06" max=".6" step=".01"><b id="logoWV"></b></div>
         <div class="sl"><span>ភាពថ្លា</span><input type="range" id="logoO" min=".1" max="1" step=".05"><b id="logoOV"></b></div>
         <label class="l">ចលនា Logo</label><div class="chips" id="logoAnim"></div></div>
+      <div class="card" id="smCard"><h3><span class="n">✨</span> Smart សម្អាតទាំងអស់</h3>
+        <div class="hint">🧹 <span>ចុចតែម្ដង៖ <b>កាត់សំឡេងនិយាយចិន</b> (ទុកភ្លេង & Sound) + <b>លុប Sub ចិន</b> លើរូបភាព ដោយ AI</span></div>
+        <button class="btn smb" id="smBtn"></button><div class="smst" id="smSt"></div></div>
       <div class="card" id="dlCard"><h3><span class="n">⬇</span> ទាញយករហ័ស</h3>
         <div class="hint">📱 <span>ជ្រើសផ្ទៃ ហើយចុច <b>ទាញវីដេអូពេញ</b> ឬ <b>ទាញជាខ្លីៗ</b> (Reels មិនលើស 90 វិនាទី)</span></div>
         <div class="dlq" data-dlq></div></div>
@@ -507,7 +513,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.5';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.6';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -547,7 +553,8 @@ function bgStart(m){clearTimeout(BG.stopT);BG.msg=m||BG.msg;if(BG.on||!(NATIVE&&
 function bgStop(){clearTimeout(BG.stopT);BG.stopT=setTimeout(()=>{if(!BG.on)return;BG.on=false;try{DubNative.bg(false,'')}catch(e){}
  if(bgHidden()&&DubNative.bgDone&&Date.now()-BG.t0>8000)try{DubNative.bgDone(busy.cancel?'បានបោះបង់':'✓ '+(BG.done||'រួចរាល់ — ចុចដើម្បីមើល'))}catch(e){}BG.done=''},1500)}
 const nextFrame=f=>{let d=false;const g=()=>{if(!d){d=true;f()}};requestAnimationFrame(g);setTimeout(g,bgHidden()?30:60)};
-const Q={auto:LS.get('qAuto',true),ids:[],run:false,found:false,cur:null,n:0};
+if(!LS.get('qMig35',false)){LS.set('qMig35',true);LS.set('qAuto',false);LS.set('ttAuto',false)}
+const Q={auto:LS.get('qAuto',false),ids:[],run:false,found:false,cur:null,n:0};
 const QST={wait:'⏳ រង់ចាំក្នុងជួរ',sub:'🔍 កំពុងអាន Sub...',tr:'🌐 កំពុងបកប្រែ...',tts:'🔊 កំពុងបង្កើតសំឡេង...',ok:'✅ រួចរាល់',bad:'⚠ មិនបាន'};
 const busy={cancel:false,ctrl:new AbortController(),get signal(){return this.ctrl.signal},on(m,p=null){this.cancel=false;this.ctrl=new AbortController();$('#busy').classList.add('on');bgStart(m);this.set(m,p)},
  set(m,p){if(m!=null)$('#busyT').textContent=m;if(BG.on&&Date.now()-BG.lastT>900){BG.lastT=Date.now();try{DubNative.bgProgress(String(m||BG.msg||'').replace(/\n/g,' · '),p==null?-1:Math.round(clamp(p,0,1)*100))}catch(e){}}const r=$('#ring');if(p==null){r.classList.add('ind');$('#ringC').style.strokeDashoffset=251.3*.72;$('#ringP').textContent=''}else{r.classList.remove('ind');$('#ringC').style.strokeDashoffset=251.3*(1-clamp(p,0,1));$('#ringP').textContent=Math.round(clamp(p,0,1)*100)+'%'}},
@@ -949,7 +956,7 @@ async function fastExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan;liveS
  let nextA=a,lastKey=-1e9,frames=0;const t0w=performance.now(),span=b-a;
  const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s=nextA,e=Math.min(b,s+10);const buf=await mixWindow(s,e,SR,D);const n=buf.length,data=new Float32Array(n*2);data.set(buf.getChannelData(0),0);data.set(buf.getChannelData(1),n);
    const ad=new AudioData({format:'f32-planar',sampleRate:SR,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round((s-a)*1e6),data});ae.encode(ad);ad.close();nextA=e}};
- const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`⚡ Export លឿន ${label?label+' · ':''}${Math.round(k*100)}%\n${fmt(t-a)} / ${fmt(span)} · លឿនជាងពេលពិត ×${x.toFixed(1)}`,k)};
+ const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`⚡ Export លឿន ${label?label+' · ':''}${Math.round(k*100)}%\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))}`,k)};
  const sleep0=()=>new Promise(r=>setTimeout(r,0));let off=0;
  try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),v=c.m.vix;
    let first=0;while(first<v.n&&v.pts[first]<ms-.001)first++;let ks=Math.min(first,v.n-1);while(ks>0&&!v.key[ks])ks--;let end=first;while(end<v.n&&v.pts[end]<me+.5)end++;
@@ -1375,7 +1382,7 @@ function renderSpeakers(){const b=$('#spkList');b.innerHTML=S.speakers.map((sp,i
    try{busy.on('♪ ...',null,false);const tl={id:'test'+sp.id,start:0,end:30,km:txt,sp:sp.id};await genLine(tl);busy.off();const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=Math.min(3,tl.norm||1)*.8;s.buffer=tl.buf;s.connect(g);g.connect(AC.destination);s.start()}catch(e){busy.off();toast('✕ '+e.message,5000)}};
   const d=el.querySelector('[data-a=del]');if(d)d.onclick=()=>{S.subs.forEach(s=>{if(s.sp===sp.id)s.sp=S.speakers.find(p=>p!==sp).id});S.speakers=S.speakers.filter(p=>p!==sp);save();renderSpeakers();subChanged()}})}
 $('#spkAdd').onclick=()=>{const n=S.speakers.length;S.speakers.push({id:'p'+uid(),name:'តួ '+(n+1),voice:n%2?'km-KH-SreymomNeural':'km-KH-PisethNeural',pitch:0,rate:0});save();renderSpeakers()};
-function setMode(v){S.mix.mode=v;MIX.dirty=true;save();modeNote();if(P.playing){pause();play()}document.querySelectorAll('.aiTr').forEach(c=>c.checked=v==='ai');$('#modeChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===v));if(v==='ai')aiBackground();else if(AIQ.p){AIQ.stop=true;sepKill()}}
+function setMode(v){setTimeout(()=>{try{smPaint()}catch(e){}},0);S.mix.mode=v;MIX.dirty=true;save();modeNote();if(P.playing){pause();play()}document.querySelectorAll('.aiTr').forEach(c=>c.checked=v==='ai');$('#modeChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===v));if(v==='ai')aiBackground();else if(AIQ.p){AIQ.stop=true;sepKill()}}
 chips($('#modeChips'),[['ai','🤖 AI ដកសំឡេងនិយាយ · ទុក Sound'],['full','🔊 សំឡេងដើម'],['karaoke','⚡ ដករហ័ស (stereo)'],['mute','🔇 បិទ']],()=>S.mix.mode,v=>{setMode(v);if(v==='ai'&&S.clips.length)toast('🤖 កំពុងកាត់សំឡេងដើមនៅខាងក្រោយ — បន្តធ្វើការផ្សេងបាន',3500)});
 document.querySelectorAll('.aiTr').forEach(c=>{c.checked=S.mix.mode==='ai';c.onchange=()=>{setMode(c.checked?'ai':'full');if(c.checked&&S.clips.length)toast('🤖 នឹងកាត់សំឡេងដើមចេញ ទុកតែភ្លេង & Sound — ធ្វើនៅខាងក្រោយ',3500)}});
 $('#aiPill').onclick=()=>toast('🤖 AI កំពុងកាត់សំឡេងដើមចេញនៅខាងក្រោយ — អ្នកអាចបកប្រែ បង្កើតសំឡេង បន្តបាន',4000);
@@ -1693,8 +1700,10 @@ const normDev=d=>String(d||'').toUpperCase().replace(/[^0-9A-F]/g,'');
 let DEV_SHORT='';
 async function deviceShort(){if(DEV_SHORT)return DEV_SHORT;let raw=NATIVE&&DubNative.deviceId?DubNative.deviceId():'';if(!raw){raw=LS.get('devRaw','');if(!raw){raw=muid();LS.set('devRaw',raw)}}
  const h=await sha('dubkhmer:'+raw);DEV_SHORT=[...h.subarray(0,6)].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase().match(/.{4}/g).join('-');return DEV_SHORT}
+/* key text → base32 body. Keys start with SK- (old ones DUB-); the body itself always starts with 'A' */
+const licBody=str=>String(str||'').toUpperCase().trim().replace(/^(SK|DUB)[-\s]*/,'').replace(/[^A-Z2-7]/g,'');
 async function checkLicense(str){try{if(!crypto.subtle)return{ok:false,err:'សូមប្រើ App ឬ link https'};
- const raw=String(str||'').toUpperCase().replace(/^\s*DUB-?/,'').replace(/[^A-Z2-7]/g,'');const u=b32d(raw);if(u.length<75)return{ok:false,err:'Key មិនត្រឹមត្រូវ (ខ្វះតួអក្សរ)'};
+ const raw=licBody(str);const u=b32d(raw);if(u.length<75)return{ok:false,err:'Key មិនត្រឹមត្រូវ (ខ្វះតួអក្សរ)'};
  const p=u.subarray(0,11),sig=u.subarray(11,75);if(p[0]!==1)return{ok:false,err:'Key មិនត្រឹមត្រូវ'};
  const key=await crypto.subtle.importKey('jwk',LIC_PUB,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
  if(!(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,sig,p)))return{ok:false,err:'Key មិនត្រឹមត្រូវ ឬត្រូវបានកែប្រែ'};
@@ -1713,7 +1722,7 @@ async function hx(url,o={}){if(NATIVE&&DubNative.http){const id=ridH();const r=a
 const STATS={};
 function statShow(st){if(!st||st.total==null)return;Object.assign(STATS,st,{at:Date.now()});const p=$('#statPill');p.hidden=false;const ls=$('#licStat');if(ls){ls.hidden=false;ls.innerHTML=`<span class="dot" style="width:8px;height:8px;border-radius:50%;background:#2ee56b"></span>${kfmt(st.online||0)} online · 👥 ${kfmt(st.total||0)} អ្នកប្រើ · ▶ ${kfmt(st.uses||0)} ដង`};$('#stOn').textContent=innerWidth<480?kfmt(st.online||1):`${kfmt(st.online||1)} online`}
 const kfmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'K':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
-async function licServer(k,r){if(!WEBLIC)return{ok:true};try{const res=await hx(STAT_HOST+'/api/hello',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k,dev:await deviceShort(),ver:APP_VER,pc:PC||matchMedia('(min-width:1000px)').matches,app:NATIVE?(PC?'win':'apk'):'web',kid:r&&r.kid})});
+async function licServer(k,r){if(!WEBLIC)return{ok:true};try{const res=await hx(STAT_HOST+'/api/hello',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),ver:APP_VER,pc:PC||matchMedia('(min-width:1000px)').matches,app:NATIVE?(PC?'win':'apk'):'web',kid:r&&r.kid})});
  if(res.status===404)return{ok:true};const j=JSON.parse(res.text);if(j&&j.stats)statShow(j.stats);return j&&j.ok===false?{ok:false,err:j.err||'Key ត្រូវបានបិទ'}:{ok:true}}catch(e){return{ok:true}}}
 async function statPing(){if(!WEBLIC||document.hidden)return;if(!LIC.ok)return statPub();try{const res=await hx(STAT_HOST+'/api/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dev:await deviceShort()})});if(res.status===200)statShow(JSON.parse(res.text).stats)}catch(e){}}
 async function statPub(){try{const r=await hx(STAT_HOST+'/api/stats');if(r.status===200)statShow(JSON.parse(r.text).stats)}catch(e){}}
@@ -1732,20 +1741,20 @@ setInterval(async()=>{if(!LIC.ok)return;const k=LS.get('licKey','');let r=await 
 /* ---- admin: tap "By: VornVeaSna" 7 times ---- */
 async function makeLicense(key,days,dev){const p=new Uint8Array(11);p[0]=1;const d=days?Math.floor((Date.now()-LIC_EPOCH)/864e5)+days:0xFFFF;p[1]=(d>>8)&255;p[2]=d&255;crypto.getRandomValues(p.subarray(3,7));
  if(normDev(dev)){const h=await sha('dev:'+normDev(dev));p.set(h.subarray(0,4),7)}const sig=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},key,p));
- const all=new Uint8Array(75);all.set(p);all.set(sig,11);return 'DUB-'+b32e(all).match(/.{1,6}/g).join('-')}
+ const all=new Uint8Array(75);all.set(p);all.set(sig,11);return 'SK-'+b32e(all).match(/.{1,6}/g).join('-')}
 let tapN=0,tapT=0;$('#srvLabel').onclick=()=>{const n=Date.now();if(n-tapT>2500)tapN=0;tapT=n;if(++tapN>=7){tapN=0;buzz(60);adminPanel()}};
 const ADM_BLOB={"s":"2gi1huC3zYUZnknkl2FezQ==","i":"ILOm68/uXspUcBzl","c":"zsMGXPtg+bc6ShwdDCpfDaXXRhiyD2Nv4UCwluFxlbzqIzTFZtS2RlWj95XrIx3aUQwyxFlEos4m8PQ=","n":300000};
 const ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function adminUnlock(input){const t=String(input||'').trim();if(!t)throw Error('សូមបញ្ចូល លេខសម្ងាត់ Admin');
  if(t[0]==='{'){const j=JSON.parse(t);if(!j.d)throw Error('JSON មិនមែន Private key');return j.d}
- if(/^DUB-?[A-Z2-7]{6}/i.test(t)&&t.replace(/[^A-Z0-9]/gi,'').length>60)throw Error('នេះជា License Key (សម្រាប់ចូលប្រើ App) — មិនមែនលេខសម្ងាត់ Admin ទេ។ សូមវាយ VVS-XXXX-XXXX-XXXX');
+ if(/^(DUB|SK)-?[A-Z2-7]{6}/i.test(t)&&t.replace(/[^A-Z0-9]/gi,'').length>60)throw Error('នេះជា License Key (សម្រាប់ចូលប្រើ App) — មិនមែនលេខសម្ងាត់ Admin ទេ។ សូមវាយ VVS-XXXX-XXXX-XXXX');
  const pw=t.toUpperCase().replace(/[^A-Z0-9]/g,'');const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
  const k=await crypto.subtle.deriveKey({name:'PBKDF2',salt:ub64(ADM_BLOB.s),iterations:ADM_BLOB.n,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
  try{return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub64(ADM_BLOB.i)},k,ub64(ADM_BLOB.c)))}catch(e){throw Error('លេខសម្ងាត់ Admin មិនត្រឹមត្រូវ')}}
 const admKey=d=>crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:LIC_PUB.x,y:LIC_PUB.y,d},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
 const devOk=d=>normDev(d).length===12;
 const fmtDev=d=>normDev(d).slice(0,12).match(/.{1,4}/g)?.join('-')||'';
-async function licInspect(str,dev){const raw=String(str||'').toUpperCase().replace(/^\s*DUB-?/,'').replace(/[^A-Z2-7]/g,''),u=b32d(raw);if(u.length<75)return'✕ Key ខ្វះតួអក្សរ';
+async function licInspect(str,dev){const raw=licBody(str),u=b32d(raw);if(u.length<75)return'✕ Key ខ្វះតួអក្សរ';
  const p=u.subarray(0,11),sig=u.subarray(11,75);const key=await crypto.subtle.importKey('jwk',LIC_PUB,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
  if(p[0]!==1||!(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,sig,p)))return'✕ Key ក្លែងក្លាយ ឬខុស';
  const day=(p[1]<<8)|p[2],exp=day===0xFFFF?0:LIC_EPOCH+(day+1)*864e5,dh=p.subarray(7,11),bound=dh.some(x=>x);let dv='🌐 គ្រប់ទូរសព្ទ';
@@ -1767,7 +1776,7 @@ function adminPanel(){document.body.classList.add('adm');let d=LS.get('adminD',n
   <div id="adNBox" style="display:none"><label class="l">ចំនួន Key</label><input id="adN" type="number" value="1" min="1" max="50"></div>
   <button class="btn" id="adGo" style="width:100%;margin-top:16px;padding:16px;font-size:17px">🔑 បង្កើត Key</button><div id="adOut"></div>
   <details style="margin-top:18px"><summary class="l" style="cursor:pointer">🔍 ពិនិត្យ Key (ផុតពេល? ទូរសព្ទណា?)</summary>
-   <textarea id="adChk" rows="2" placeholder="DUB-..." style="margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button class="btn g s" id="adChkGo">ពិនិត្យ</button></div><div class="note" id="adChkOut"></div></details>
+   <textarea id="adChk" rows="2" placeholder="SK-..." style="margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button class="btn g s" id="adChkGo">ពិនិត្យ</button></div><div class="note" id="adChkOut"></div></details>
   <div class="row" style="margin-top:14px"><button class="btn g s" id="adThis">📱 Device ID ទូរសព្ទនេះ</button><button class="btn g s" id="adForget">🚪 ចេញពី Admin</button></div></div>`,b=>{
   const q=s=>b.querySelector(s);
   const showMain=()=>{q('#adLock').style.display='none';q('#adMain').style.display=''};
@@ -2101,6 +2110,34 @@ $('#qAuto').checked=Q.auto;$('#qAuto').onchange=e=>{Q.auto=e.target.checked;LS.s
 $('#qAll').onclick=()=>{const t=S.clips.filter(c=>c.q!=='ok');if(!t.length)return toast('✓ វីដេអូទាំងអស់ Dub រួចហើយ');t.forEach(c=>{c.q='wait';if(!Q.ids.includes(c.id))Q.ids.push(c.id)});qRun()};
 
 
+
+
+/* ============ v3.6: 🔑 hidden quick key maker — hold the SK logo 1.5 s (nothing shows for normal users) ============ */
+function quickKey(){const d=LS.get('adminD',null)||(LS.get('adminKey',null)||{}).d||null;if(!d)return adminPanel();document.body.classList.add('adm');
+ sheet(`<h4>🔑 បង្កើត Key រហ័ស</h4><div class="note">ចុចរយៈពេល → Key បង្កើត & ចម្លងភ្លាម</div>
+  <label class="l">Device ID អ្នកទិញ <small>(ទុកទទេ = ប្រើបានគ្រប់ទូរសព្ទ)</small></label><div class="row"><input id="qkDev" placeholder="ABCD-1234-EF56" autocapitalize="characters" style="flex:1;font-family:monospace;letter-spacing:1px"><button class="btn g s" id="qkPaste">📋</button></div>
+  <div class="qk" style="margin-top:14px">${[[7,'7 ថ្ងៃ'],[30,'1 ខែ'],[90,'3 ខែ'],[180,'6 ខែ'],[365,'1 ឆ្នាំ'],[0,'♾ មួយជីវិត']].map(([v,n])=>`<button class="btn${v?' g':''}" data-qd="${v}">${n}</button>`).join('')}</div>
+  <div id="qkOut"></div><div class="row" style="margin-top:16px"><button class="btn g s" id="qkMore">⚙ ជម្រើសច្រើន</button></div>`,b=>{const q=x=>b.querySelector(x);
+  q('#qkPaste').onclick=async()=>{const t=await readClip();if(t)q('#qkDev').value=t.trim()};q('#qkMore').onclick=()=>{closeSheet();setTimeout(adminPanel,250)};
+  b.querySelectorAll('[data-qd]').forEach(x=>x.onclick=async()=>{try{const dd=+x.dataset.qd,dev=q('#qkDev').value.trim();if(dev&&!devOk(dev))throw Error('Device ID មិនត្រឹមត្រូវ (12 តួ)');
+   const key=await makeLicense(await admKey(d),dd,dev);const info=`⏳ ${dd?dd+' ថ្ងៃ':'♾ មួយជីវិត'} · ${dev?'📱 '+fmtDev(dev):'🌐 គ្រប់ទូរសព្ទ'}`;
+   const txt=`🔐 SK ProKH — License Key\n\n${key}\n\n${info}\nបើក App → ចុច 📋 បិទភ្ជាប់ → ✓ ធ្វើឲ្យសកម្ម\nBy: VornVeaSna · Telegram @${TG_USER}`;copyText(txt);buzz(30);toast('✓ Key បង្កើតរួច · បានចម្លង');
+   q('#qkOut').innerHTML=`<div class="item" style="margin-top:14px"><div class="t"><div class="note" style="margin:0 0 4px">${info}</div><div style="white-space:normal;word-break:break-all;font-size:12px;font-family:monospace;user-select:text">${key}</div></div></div><div class="row" style="margin-top:8px"><button class="btn" id="qkCopy">📋 ចម្លង</button><button class="btn g" id="qkShare">📤 ផ្ញើ</button></div>`;
+   q('#qkCopy').onclick=()=>{copyText(txt);toast('✓ បានចម្លង')};q('#qkShare').onclick=()=>{if(NATIVE&&DubNative.shareText)DubNative.shareText(txt);else if(navigator.share)navigator.share({text:txt}).catch(()=>{});else copyText(txt)}}catch(e){toast('✕ '+e.message,4000);buzz(80)}})})}
+function holdOpen(el,ms,fn){if(!el)return;let t=null;const go=e=>{clearTimeout(t);t=setTimeout(()=>{buzz(60);fn()},ms)},stop=()=>clearTimeout(t);
+ el.addEventListener('pointerdown',go);['pointerup','pointerleave','pointercancel'].forEach(k=>el.addEventListener(k,stop));el.addEventListener('contextmenu',e=>e.preventDefault())}
+holdOpen(document.querySelector('.logo .mk'),1500,quickKey);document.querySelectorAll('#lic .lm').forEach(el=>holdOpen(el,1500,quickKey));
+/* ============ v3.6: ✨ Smart clean — one tap: AI removes Chinese voice + erases Chinese subtitles ============ */
+const smartOn=()=>S.mix.mode==='ai'&&S.erase.on;
+function smPaint(){const on=smartOn(),b=$('#smBtn');if(!b)return;b.classList.toggle('on',on);b.textContent=on?'✅ Smart កំពុងបើក — ចុចដើម្បីបិទ':'✨ Smart · សម្អាតទាំងអស់';
+ $('#smSt').innerHTML=`<div class="${S.mix.mode==='ai'?'ok':''}">${S.mix.mode==='ai'?'✓':'○'} 🔇 កាត់សំឡេងនិយាយចិន</div><div class="${S.erase.on?'ok':''}">${S.erase.on?'✓':'○'} 🧠 លុប Sub ចិន</div>`;document.querySelectorAll('[data-sm]').forEach(x=>{x.classList.toggle('on',on);x.textContent=on?'✅ Smart សម្អាត · បើក':'✨ Smart សម្អាតទាំងអស់'})}
+async function smartClean(on){if(!on){setMode('full');await eraseToggle(false);smPaint();toast('បិទ Smart',2000);return}
+ if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');
+ if(!(await eraseToggle(true)))return smPaint();
+ if(S.erase.area!=='full'&&S.ocr.area!=='manual'&&!LS.get('smFound_'+S.clips[0].id,false)){busy.on('🔍 AI កំពុងរកកន្លែង Sub ចិន...',null);try{const b=await ocrFindRegion();if(b){delete b.found;S.ocrBox=b;save();renderBox();S.erase.area='sub'}else S.erase.area='full';LS.set('smFound_'+S.clips[0].id,true)}catch(e){S.erase.area='full'}finally{busy.off()}eSave()}
+ if(S.box.on){S.box.on=false;try{$('#bxOn').checked=false;renderBox()}catch(e){}save()}
+ setMode('ai');try{$('#erOn').checked=true}catch(e){}ER.mask=null;ER.mt=-9;draw();smPaint();buzz(30);toast('✨ Smart បើក៖ AI កាត់សំឡេងចិន + លុប Sub ចិន',3500)}
+$('#smBtn').onclick=()=>smartClean(!smartOn());smPaint();
 /* ============ v3.5: quick download (full / short clips) + Facebook Reels 9:16 ============ */
 const DLF=[['9:16','📱 Reels',9,16],['src','ដើម',4,3],['16:9','YouTube',16,9],['1:1','1:1',1,1]];
 function dlqHTML(){const L=+(S.out.clip||60);return`<div class="fmt">${DLF.map(([k,n,w,h])=>`<button data-f="${k}" class="${S.out.aspect===k?'on':''}"><i style="width:${w>h?26:Math.round(26*w/h)}px;height:${h>=w?26:Math.round(26*h/w)}px"></i>${n}</button>`).join('')}</div>
@@ -2115,7 +2152,7 @@ async function quickExport(mode){if(!S.clips.length)return toast('សូមដ�
  setTimeout(()=>$('#expOut')?.scrollIntoView({behavior:'smooth',block:'center'}),300)}
 var dlqPaint=null;try{dlqPaint=dlqBind($('#dlCard'))}catch(e){}
 /* after a dub finishes: a download panel slides up from the bottom */
-function dlSheet(){goPage('pg-exp');dlqPaint&&dlqPaint();sheet(`<h4>✅ Dub រួចរាល់ — ទាញយក</h4><div class="note">ជ្រើសផ្ទៃ (📱 Reels = 9:16) ហើយចុចទាញ។ ចង់មើលមុន? ចុច ✕ ហើយ ▶ លើវីដេអូ</div><div class="dlq" data-dlq></div>`,b=>dlqBind(b,()=>closeSheet()))}
+function dlSheet(){goPage('pg-exp');dlqPaint&&dlqPaint();sheet(`<h4>✅ Dub រួចរាល់ — ទាញយក</h4><div class="note">ជ្រើសផ្ទៃ (📱 Reels = 9:16) ហើយចុចទាញ។ ចង់មើលមុន? ចុច ✕ ហើយ ▶ លើវីដេអូ</div><button class="btn g smb" data-sm style="margin:4px 0 12px;min-height:50px"></button><div class="dlq" data-dlq></div>`,b=>{dlqBind(b,()=>closeSheet());b.querySelector("[data-sm]").onclick=()=>smartClean(!smartOn());smPaint()})}
 
 if(S.erase.on)setTimeout(()=>detInit().then(()=>draw()).catch(()=>{}),1500);
 try{posterInit()}catch(e){console.warn(e)}
