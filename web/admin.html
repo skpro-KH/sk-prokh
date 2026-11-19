@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="km"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>SK ProKH · Admin</title><link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;800&family=Koulen&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07060d;--card:#13111d;--line:#262236;--fg:#f4f2ff;--mute:#9a95b3;--acc:#ff2d55;--acc2:#ffd23f;--ok:#2ee59d;--bad:#ff4d6d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#3a0ca333,transparent),radial-gradient(900px 500px at 110% 0,#ff2d5522,transparent),var(--bg);color:var(--fg);font:15px/1.5 'Kantumruy Pro',system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}.mk{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font:24px 'Koulen',Impact;background:linear-gradient(135deg,#ff2d55,#b0127a 55%,#3a0ca3);box-shadow:0 6px 20px #ff2d5555}
+.mk span{background:linear-gradient(180deg,#fff7c2,#ffd23f 55%,#ff9500);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{margin:0;font:26px 'Koulen',Impact;letter-spacing:.5px}h1 b{color:var(--acc2);font-weight:400}.sp{flex:1}
+.btn{border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ff2d55,#c2187f);color:#fff;transition:transform .15s,filter .15s}.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.96)}
+.btn.g{background:#1d1a2b;border:1px solid var(--line)}.btn.s{padding:6px 11px;font-size:13px;border-radius:9px}.btn.r{background:#3a1020;color:#ff8fa3}
+.card{background:linear-gradient(180deg,#171425,#110f1b);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;animation:up .4s both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:linear-gradient(160deg,#1b1730,#120f1d);border:1px solid var(--line);border-radius:18px;padding:16px;position:relative;overflow:hidden;animation:up .4s both}
+.tile .l{color:var(--mute);font-size:13px}.tile .v{font:40px/1.1 'Koulen',Impact;margin-top:4px}.tile .s{font-size:12px;color:var(--mute)}
+.tile:before{content:'';position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:var(--c,#ff2d55);opacity:.14}
+h2{margin:0 0 12px;font-size:17px}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;padding:8px 6px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#141220}
+td{padding:9px 6px;border-bottom:1px solid #1c1929;vertical-align:middle}tr:hover td{background:#181527}
+.tw{max-height:520px;overflow:auto;border-radius:12px}
+.pill{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:700}.on{background:#2ee59d22;color:var(--ok)}.off{background:#ff4d6d22;color:var(--bad)}.dim{background:#ffffff12;color:var(--mute)}
+input{background:#0d0b15;border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:8px 10px;font:inherit}input.n{width:70px}input.w{width:100%}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+#login{max-width:380px;margin:12vh auto;text-align:center}#login input{width:100%;margin:14px 0;text-align:center;font-size:17px}
+.err{color:var(--bad);min-height:22px}.note{color:var(--mute);font-size:13px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:120px;padding-top:6px}.bars div{flex:1;background:linear-gradient(180deg,#ffd23f,#ff2d55);border-radius:6px 6px 2px 2px;min-height:3px;position:relative;transition:height .5s}
+.bars div span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;color:var(--fg)}.bl{display:flex;gap:5px}.bl span{flex:1;text-align:center;font-size:10px;color:var(--mute)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--mute)}.dot.live{background:var(--ok);box-shadow:0 0 0 0 #2ee59d88;animation:pu 1.6s infinite}
+@keyframes pu{70%{box-shadow:0 0 0 8px #2ee59d00}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#000;border-radius:12px;padding:10px 16px;font-weight:700;opacity:0;transition:.3s;pointer-events:none}.toast.show{opacity:1}
+</style></head><body>
+<div class="wrap">
+ <div id="login" class="card"><div class="mk" style="margin:0 auto 10px;width:64px;height:64px;font-size:32px"><span>SK</span></div><h1>SK <b>ProKH</b> · Admin</h1>
+  <div class="note">បញ្ចូលពាក្យសម្ងាត់ Admin</div><input id="pw" type="password" placeholder="••••-••••-••••-••••" autocomplete="current-password"><button class="btn" id="go" style="width:100%">🔐 ចូល</button><div class="err" id="err"></div></div>
+ <div id="app" hidden>
+  <div class="top"><div class="mk"><span>SK</span></div><div><h1>SK <b>ProKH</b> Admin</h1><div class="note"><span class="dot live"></span><span id="upd">—</span></div></div><div class="sp"></div>
+   <button class="btn g s" id="rf">⟳ ផ្ទុកឡើងវិញ</button><button class="btn g s" id="out">ចាកចេញ</button></div>
+  <div id="nokv" class="card" hidden><h2>⚠ មិនទាន់ភ្ជាប់ KV</h2><div class="note">Cloudflare → Worker នេះ → Settings → Bindings → Add → KV namespace → Variable name: <b>SK</b> → Deploy។ បន្ទាប់មកចំនួនអ្នកប្រើនឹងចាប់ផ្ដើមរាប់។</div></div>
+  <div class="tiles">
+   <div class="tile" style="--c:#ff2d55"><div class="l">👥 អ្នកប្រើសរុប (ឧបករណ៍)</div><div class="v" id="tU">0</div><div class="s" id="tUs"></div></div>
+   <div class="tile" style="--c:#2ee59d"><div class="l">🟢 សកម្ម ២៤ម៉ោង</div><div class="v" id="tD">0</div><div class="s">ចូលប្រើក្នុង ២៤ ម៉ោងចុងក្រោយ</div></div>
+   <div class="tile" style="--c:#5b8cff"><div class="l">📅 សកម្ម ៧ថ្ងៃ</div><div class="v" id="tW">0</div><div class="s">ចូលប្រើក្នុង ៧ ថ្ងៃ</div></div>
+   <div class="tile" style="--c:#ffd23f"><div class="l">✨ អ្នកប្រើថ្មីថ្ងៃនេះ</div><div class="v" id="tN">0</div><div class="s" id="tNs"></div></div>
+   <div class="tile" style="--c:#b06bff"><div class="l">🔑 Key កំពុងប្រើ</div><div class="v" id="tK">0</div><div class="s" id="tKs"></div></div>
+  </div>
+  <div class="card"><h2>📈 អ្នកប្រើថ្មី ១៤ ថ្ងៃចុងក្រោយ</h2><div class="bars" id="bars"></div><div class="bl" id="bl"></div></div>
+  <div class="card"><div class="row" style="margin-bottom:10px"><h2 style="margin:0">🔑 License Keys</h2><div class="sp"></div><input id="qk" placeholder="🔍 ស្វែងរក Key / ចំណាំ"></div>
+   <div class="note" style="margin-bottom:8px">Key បង្កើតក្នុង App (⚙ → Admin) ដូចមុន — Key នីមួយៗលេចនៅទីនេះពេលមានអ្នកចូលប្រើដំបូង។ <b>ឧបករណ៍អតិបរមា</b>: 0 = គ្មានកំណត់។</div>
+   <div class="tw"><table><thead><tr><th>Key ID</th><th>ចំណាំ</th><th>ឧបករណ៍</th><th>អតិបរមា</th><th>ផុតកំណត់</th><th>ប្រើចុងក្រោយ</th><th>ស្ថានភាព</th><th></th></tr></thead><tbody id="kt"></tbody></table></div></div>
+  <div class="card"><div class="row" style="margin-bottom:10px"><h2 style="margin:0">📱 អ្នកប្រើ / ឧបករណ៍</h2><div class="sp"></div><input id="qd" placeholder="🔍 Device / Key / ប្រទេស"></div>
+   <div class="tw"><table><thead><tr><th>Device ID</th><th>Key</th><th>ប្រភេទ</th><th>ប្រទេស</th><th>Version</th><th>ចូលប្រើ</th><th>លើកដំបូង</th><th>ចុងក្រោយ</th><th></th></tr></thead><tbody id="dt"></tbody></table></div></div>
+ </div>
+</div><div class="toast" id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);let PW=sessionStorage.getItem('skpw')||'',D=null;
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2500)};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ago=t=>{if(!t)return'—';const s=(Date.now()-t)/1e3;return s<60?'ឥឡូវ':s<3600?Math.floor(s/60)+' នាទីមុន':s<86400?Math.floor(s/3600)+' ម៉ោងមុន':Math.floor(s/86400)+' ថ្ងៃមុន'};
+const day=t=>t?new Date(t).toLocaleDateString('en-GB'):'—';
+const flag=c=>c&&c.length===2?String.fromCodePoint(...[...c.toUpperCase()].map(x=>127397+x.charCodeAt(0)))+' '+c:'—';
+async function api(path,body){const r=await fetch('/admin/api/'+path,{method:body?'POST':'GET',headers:{'X-Pass':PW,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({error:'HTTP '+r.status}));if(r.status===401)throw Object.assign(Error(j.error),{auth:1});return j}
+async function load(){try{const j=await api('stats');if(j.error==='nokv'){$('#nokv').hidden=false;D={devs:[],keys:[],now:Date.now()}}else if(j.error)throw Error(j.error);else{$('#nokv').hidden=true;D=j}
+  $('#login').hidden=true;$('#app').hidden=false;render();$('#upd').textContent='Live · '+new Date().toLocaleTimeString()}
+ catch(e){if(e.auth){sessionStorage.removeItem('skpw');$('#app').hidden=true;$('#login').hidden=false;$('#err').textContent='✕ '+e.message}else toast('✕ '+e.message)}}
+function count(el,v){const a=+el.textContent||0,t0=performance.now();const f=n=>{const k=Math.min(1,(n-t0)/600);el.textContent=Math.round(a+(v-a)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+function render(){const now=D.now||Date.now(),dv=D.devs,ks=D.keys;const d1=dv.filter(d=>now-d.l<864e5).length,d7=dv.filter(d=>now-d.l<7*864e5).length,t0=new Date(now);t0.setHours(0,0,0,0);const nt=dv.filter(d=>d.f>=+t0).length;
+ count($('#tU'),dv.length);count($('#tD'),d1);count($('#tW'),d7);count($('#tN'),nt);count($('#tK'),ks.length);
+ const ph=dv.filter(d=>!d.pc).length;$('#tUs').textContent=`📱 ${ph} ទូរសព្ទ · 💻 ${dv.length-ph} PC`;$('#tKs').textContent=`${ks.filter(k=>k.blocked).length} បានបិទ`;
+ const yd=new Date(+t0-864e5);$('#tNs').textContent='ម្សិលមិញ: '+dv.filter(d=>d.f>=+yd&&d.f<+t0).length;
+ const B=[];for(let i=13;i>=0;i--){const a=+t0-i*864e5;B.push({a,n:dv.filter(d=>d.f>=a&&d.f<a+864e5).length})}const mx=Math.max(1,...B.map(b=>b.n));
+ $('#bars').innerHTML=B.map(b=>`<div style="height:${Math.max(3,b.n/mx*100)}%"><span>${b.n||''}</span></div>`).join('');$('#bl').innerHTML=B.map(b=>`<span>${new Date(b.a).getDate()}</span>`).join('');
+ const qk=$('#qk').value.trim().toLowerCase();$('#kt').innerHTML=ks.filter(k=>!qk||(k.id+' '+(k.note||'')).toLowerCase().includes(qk)).sort((a,b)=>(b.l||0)-(a.l||0)).map(k=>`<tr data-k="${k.id}">
+  <td class="mono">${k.id}</td><td><input class="w" data-f="note" value="${esc(k.note)}" placeholder="ឈ្មោះអតិថិជន..."></td><td><b>${k.cnt||0}</b>${k.max?' / '+k.max:''}</td><td><input class="n" type="number" min="0" data-f="max" value="${k.max||0}"></td>
+  <td>${k.exp?day(k.exp-1):'♾'}</td><td>${ago(k.l)}</td><td>${k.blocked?'<span class="pill off">⛔ បិទ</span>':'<span class="pill on">✓ សកម្ម</span>'}</td>
+  <td class="row"><button class="btn s ${k.blocked?'':'r'}" data-a="blk">${k.blocked?'បើកវិញ':'បិទ Key'}</button><button class="btn g s" data-a="rst" title="លុបឧបករណ៍ទាំងអស់ពី Key នេះ">↺</button></td></tr>`).join('')||'<tr><td colspan="8" class="note">— មិនទាន់មាន Key ណាត្រូវបានប្រើ —</td></tr>';
+ const qd=$('#qd').value.trim().toLowerCase();$('#dt').innerHTML=dv.filter(d=>!qd||(d.id+' '+d.k+' '+d.c).toLowerCase().includes(qd)).sort((a,b)=>b.l-a.l).map(d=>`<tr data-d="${d.id}">
+  <td class="mono"><span class="dot ${now-d.l<36e5?'live':''}"></span>${d.id.match(/.{1,4}/g).join('-')}</td><td class="mono">${d.k}</td><td>${d.pc?'💻 PC':'📱 ទូរសព្ទ'}</td><td>${flag(d.c)}</td><td>${esc(d.v)}</td><td>${d.n||1}×</td><td>${day(d.f)}</td><td>${ago(d.l)}</td>
+  <td><button class="btn g s" data-a="fg" title="ដកឧបករណ៍នេះចេញពី Key (ទុកកន្លែងឲ្យឧបករណ៍ថ្មី)">✕</button></td></tr>`).join('')||'<tr><td colspan="9" class="note">— មិនទាន់មានអ្នកប្រើ —</td></tr>'}
+async function setKey(kid,o){try{const j=await api('key',{kid,...o});if(j.error)throw Error(j.error);const i=D.keys.findIndex(k=>k.id===kid);if(i>=0)D.keys[i]=j.key;else D.keys.push(j.key);render();toast('✓ បានរក្សាទុក')}catch(e){toast('✕ '+e.message)}}
+$('#kt').addEventListener('change',e=>{const tr=e.target.closest('tr');if(!tr)return;const f=e.target.dataset.f;if(f==='max')setKey(tr.dataset.k,{max:+e.target.value});if(f==='note')setKey(tr.dataset.k,{note:e.target.value})});
+$('#kt').addEventListener('click',e=>{const b=e.target.closest('[data-a]'),tr=e.target.closest('tr');if(!b||!tr)return;const k=D.keys.find(x=>x.id===tr.dataset.k);
+ if(b.dataset.a==='blk'){if(!k.blocked&&!confirm('បិទ Key '+k.id+'? អ្នកប្រើ Key នេះនឹងចូលមិនបាន'))return;setKey(k.id,{blocked:!k.blocked})}
+ if(b.dataset.a==='rst'){if(!confirm('លុបឧបករណ៍ទាំងអស់ពី Key '+k.id+'?'))return;setKey(k.id,{reset:true}).then(load)}});
+$('#dt').addEventListener('click',async e=>{const b=e.target.closest('[data-a=fg]'),tr=e.target.closest('tr');if(!b)return;if(!confirm('ដកឧបករណ៍នេះចេញ?'))return;try{await api('forget',{dev:tr.dataset.d});toast('✓ បានដក');load()}catch(x){toast('✕ '+x.message)}});
+$('#qk').oninput=render;$('#qd').oninput=render;$('#rf').onclick=load;$('#out').onclick=()=>{sessionStorage.removeItem('skpw');PW='';location.reload()};
+$('#go').onclick=()=>{PW=$('#pw').value.trim();if(!PW)return;sessionStorage.setItem('skpw',PW);$('#err').textContent='កំពុងពិនិត្យ...';load()};$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#go').click()};
+if(PW)load();setInterval(()=>{if(!$('#app').hidden&&!document.hidden&&!document.activeElement.matches('input'))load()},30000);
+</script></body></html>
