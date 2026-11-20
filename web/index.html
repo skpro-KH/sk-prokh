@@ -523,7 +523,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.8';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.9';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -935,7 +935,7 @@ async function fastPlan(){if(!window.VideoEncoder||!window.VideoDecoder||!window
  for(const m of new Set(S.clips.map(c=>c.m))){const v=await mp4VIndex(m);if(!v)return null;const cfg={codec:v.codec,codedWidth:v.w,codedHeight:v.h};if(v.desc)cfg.description=v.desc;
   try{if(!(await VideoDecoder.isConfigSupported(cfg)).supported)return null}catch(e){return null}m.vcfg=cfg}
  const W=cv.width&~1,H=cv.height&~1,px=W*H,br=px>=1920*1080*.9?9e6:px>=1280*720*.9?5.5e6:3e6;let venc=null;
- for(const codec of['avc1.640028','avc1.4d0028','avc1.42e028','avc1.640033'])for(const hw of['prefer-hardware','no-preference']){if(venc)break;const c={codec,width:W,height:H,bitrate:br,framerate:30,hardwareAcceleration:hw,avc:{format:'avc'},latencyMode:'quality'};try{if((await VideoEncoder.isConfigSupported(c)).supported)venc=c}catch(e){}}
+ for(const codec of['avc1.640028','avc1.4d0028','avc1.42e028','avc1.640033'])for(const hw of['prefer-hardware','no-preference']){if(venc)break;const c={codec,width:W,height:H,bitrate:br,framerate:30,hardwareAcceleration:hw,avc:{format:'avc'},latencyMode:PC?'quality':'realtime'};try{if((await VideoEncoder.isConfigSupported(c)).supported)venc=c}catch(e){}}
  if(!venc)return null;let aenc=null,acodec='';
  for(const[c,sr,mc]of[['mp4a.40.2',44100,'aac'],['mp4a.40.2',48000,'aac'],['opus',48000,'opus']]){const x={codec:c,sampleRate:sr,numberOfChannels:2,bitrate:192000};try{if((await AudioEncoder.isConfigSupported(x)).supported){aenc=x;acodec=mc;break}}catch(e){}}
  if(!aenc)return null;return{W,H,venc,aenc,acodec}}
@@ -983,7 +983,7 @@ async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;li
  try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),v=c.m.vix;
    let first=0;while(first<v.n&&v.pts[first]<ms-.001)first++;let ks=Math.min(first,v.n-1);while(ks>0&&!v.key[ks])ks--;let end=first;while(end<v.n&&v.pts[end]<me+.5)end++;
    const q=[];const dec=new VideoDecoder({output:f=>{decN++;q.push(f)},error:e=>err=e});dec.configure(sw?{...c.m.vcfg,hardwareAcceleration:'prefer-software'}:c.m.vcfg);
-   const draw1=async f0=>{const pt=f0.timestamp/1e6;if(pt<ms-.001||pt>=me-.0005){f0.close();return}const t=off+(pt-c.in);await pumpA(t);P.cur=ci;P.t=t;const f=await frameSafe(f0);if(S.erase.on&&detReady()&&(ER.frame++%4===0||ER.ci!==ci)){try{await eraseDetect(f,c.m,t,ci)}catch(e){}}DRAWSRC=f;draw();DRAWSRC=null;if(f!==f0){try{f.close&&f.close()}catch(e){}}f0.close();
+   const draw1=async f0=>{const pt=f0.timestamp/1e6;if(pt<ms-.001||pt>=me-.0005){f0.close();return}const t=off+(pt-c.in);await pumpA(t);P.cur=ci;P.t=t;const f=await frameSafe(f0);if(S.erase.on&&detReady()&&(ER.frame++%(PC?4:6)===0||ER.ci!==ci)){try{await eraseDetect(f,c.m,t,ci)}catch(e){}}DRAWSRC=f;draw();DRAWSRC=null;if(f!==f0){try{f.close&&f.close()}catch(e){}}f0.close();
     const vf=new VideoFrame(cv,{timestamp:Math.round((t-a)*1e6)});const kf=t-lastKey>=2;if(kf)lastKey=t;venc2.encode(vf,{keyFrame:kf});vf.close();if(++frames%15===0)prog(t);
     while(venc2.encodeQueueSize>6)await new Promise(r=>setTimeout(r,1))};
    for(let i=ks;i<end;){if(busy.cancel||err)break;let j=i+1,e=v.offs[i]+v.sizes[i];while(j<end&&v.offs[j]===e&&e-v.offs[i]<4e6){e+=v.sizes[j];j++}
@@ -1032,7 +1032,7 @@ $('#scrub').onpointerdown=e=>{const r=$('#scrub').getBoundingClientRect();const 
 /* ============ rendering ============ */
 function outSize(){const m=S.clips[0]?.m;const sw=m?.w||720,sh=m?.h||1280,r=+S.out.res;let w,h;
  switch(S.out.aspect){case'16:9':w=16;h=9;break;case'9:16':w=9;h=16;break;case'1:1':w=h=1;break;case'4:5':w=4;h=5;break;default:w=sw;h=sh}const k=r/Math.min(w,h);return[Math.round(w*k/2)*2,Math.round(h*k/2)*2]}
-function layout(){const[W,H]=outSize();if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}renderBox();draw()}
+function layout(){const[W0,H0]=outSize();const k=(!PC&&!P.exporting)?Math.min(1,900/Math.max(W0,H0)):1;const W=Math.round(W0*k/2)*2,H=Math.round(H0*k/2)*2;if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}renderBox();draw()}
 const contain=(vw,vh,W,H)=>{const k=Math.min(W/vw,H/vh);return{w:vw*k,h:vh*k,x:(W-vw*k)/2,y:(H-vh*k)/2}};
 const cover=(vw,vh,W,H)=>{const k=Math.max(W/vw,H/vh);return{w:vw*k,h:vh*k,x:(W-vw*k)/2,y:(H-vh*k)/2}};
 const HAS_FILTER='filter' in ctx;const pixC=document.createElement('canvas'),pixX=pixC.getContext('2d');
@@ -1047,7 +1047,7 @@ function eraseRegion(m){if(S.erase.area==='full')return{x:0,y:0,w:m.w,h:m.h};let
 /* one detection at a time (the AI session cannot run twice at once) */
 let ER_LOCK=Promise.resolve();
 function eraseDetect(el,m,t,ci){const run=ER_LOCK.then(()=>eraseDetect0(el,m,t,ci));ER_LOCK=run.catch(()=>{});return run}
-async function eraseDetect0(el,m,t,ci){const R=eraseRegion(m),k=Math.min(1,(P.exporting?512:640)/Math.max(R.w,R.h)),w=Math.max(32,Math.round(R.w*k/32)*32),h=Math.max(32,Math.round(R.h*k/32)*32);
+async function eraseDetect0(el,m,t,ci){const R=eraseRegion(m),k=Math.min(1,(P.exporting?(PC?512:448):(PC?640:448))/Math.max(R.w,R.h)),w=Math.max(32,Math.round(R.w*k/32)*32),h=Math.max(32,Math.round(R.h*k/32)*32);
  const A=ER.D;if(A.width!==w||A.height!==h){A.width=w;A.height=h}const ax=A.getContext('2d',{willReadFrequently:true});ax.drawImage(el,R.x,R.y,R.w,R.h,0,0,w,h);const d=ax.getImageData(0,0,w,h).data,N=w*h;
  const inp=new Float32Array(3*N),mean=[.485,.456,.406],std=[.229,.224,.225];for(let i=0,j=0;j<N;i+=4,j++)for(let q=0;q<3;q++)inp[q*N+j]=(d[i+q]/255-mean[q])/std[q];
  const PR=(await OCR.det.run({[OCR.det.inputNames[0]]:new ort.Tensor('float32',inp,[1,3,h,w])}))[OCR.det.outputNames[0]].data;
@@ -1377,12 +1377,25 @@ let TR_ORDER=[trGtx,trEdge,trDict];
 async function trFree(lines,depth=0){const errs=[];for(const f of TR_ORDER){try{const o=await f(lines);if(o.length===lines.length&&o.some(Boolean)){if(f!==TR_ORDER[0])TR_ORDER=[f,...TR_ORDER.filter(x=>x!==f)];return o}}catch(e){if(busy.cancel)throw e;errs.push(e.message)}}
  if(lines.length>1&&depth===0){const out=[];for(const l of lines)out.push((await trFree([l],1))[0]);return out}
  throw Error('បកប្រែមិនបាន — សូមពិនិត្យ internet ('+errs.join(' · ')+')')}
+
+/* v3.9: make sure every line is Khmer — lines that come back English/Chinese are translated again another way */
+const kmShare=t=>{t=String(t||'');const km=(t.match(/[ក-៿]/g)||[]).length,lat=(t.match(/[A-Za-z]/g)||[]).length,cj=(t.match(/[㐀-鿿]/g)||[]).length;return km/Math.max(1,km+lat*.8+cj*2)};
+const notKm=t=>{t=cleanTags(String(t||''));if(!t.trim())return true;return kmShare(t)<.6};
+async function trOne(src){const tries=[[trEdge,[src]],[trGtx,[src]],[trDict,[src]]];let best='',bs=-1;
+ for(const[f,a]of tries){try{const o=(await f(a))[0]||'';const sc=kmShare(o);if(sc>bs){bs=sc;best=o}if(sc>=.85)break}catch(e){if(busy.cancel)throw e}}
+ if(bs<.6){/* through English first, then to Khmer */try{const r=await xfetch('https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl='+slCode()+'&tl=en&q='+encodeURIComponent(src),{headers:UAH});if(r.ok){const en=JSON.parse(r.text)[0].map(x=>x[0]).join('');const k=(await trGtx([en]))[0]||'';if(kmShare(k)>bs){bs=kmShare(k);best=k}}}catch(e){}}
+ return best}
+async function kmOnly(list){const bad=list.filter(s=>s.src&&notKm(s.km));if(!bad.length)return 0;let n=0;
+ await pool(bad,6,async s=>{if(busy.cancel)return;const o=await trOne(prepSrc(s.src)||s.src);if(o&&kmShare(o)>kmShare(s.km))s.km=postKm(o,s);n++;busy.set(`🇰🇭 កំពុងកែឲ្យជាខ្មែរសុទ្ធ ${n}/${bad.length}`,n/bad.length)});
+ /* still not Khmer: strip leftover Latin words so the voice never reads English */
+ for(const s of bad)if(notKm(s.km)){const t=cleanTags(s.km).replace(/[A-Za-z][A-Za-z'’-]*/g,' ').replace(/\s+/g,' ').trim();if(/[ក-៿]/.test(t))s.km=t}
+ return bad.length}
 async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&K('kGem');if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
  try{if(useG){for(let i=0;i<list.length;i+=40){if(busy.cancel)break;const b=list.slice(i,i+40);
     const d=await gemini([{text:`Translate each subtitle line into Khmer for VOICE DUBBING.${S.tr.short!==false?' Keep every line SHORT, simple, natural SPOKEN Khmer that is easy to hear — drop filler words.':''} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
     const arr=d.lines||Object.values(d)[0];b.forEach((s,k)=>{if(arr[k]!=null)s.km=postKm(arr[k],s)});done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)}}
   else{const B=50,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));await pool(bs,12,async b=>{const res=await trFree(b.map(s=>prepSrc(s.src)||s.src));b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)})}
-  subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('Gemini មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
+  if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('Gemini មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
 $('#trBtn').onclick=()=>{aiBackground();translate(S.subs)};
 $('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short!==false;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
 $('#autoBtn').onclick=async()=>{buzz();if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');
@@ -1497,14 +1510,14 @@ async function exportRange(a,b,mime,label){const fps=30,stream=new MediaStream([
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
  if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))return;pause();if(!(await ensureAI()))return;ensureAC();await AC.resume();if(MIX.dirty)await buildMix();layout();
  const R=partRanges(),title0=S.title;let wl=null;try{wl=await navigator.wakeLock?.request('screen')}catch(e){}if(NATIVE)DubNative.keepAwake(true);
- P.exporting=true;renderBox();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
+ P.exporting=true;layout();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
  try{for(let k=0;k<R.length;k++){if(busy.cancel)break;const lbl=R.length>1?`ភាគ ${k+1}`:'';
    TITLE_T0=R[k][0];let f=null;if(plan===undefined)plan=await fastPlan().catch(()=>null);
    if(plan){try{f=await fastExport(R[k][0],R[k][1],lbl,plan,S.fastSW);if(!f)break}catch(e){console.warn(e);if(busy.cancel)break;
      if(!S.fastSW){try{busy.set('🔁 កំពុងសាកម្ដងទៀត (វិធីសុវត្ថិភាព)...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,true);if(f){S.fastSW=true;LS.set('fastSW',true)}}catch(e2){console.warn(e2)}}
      if(!f&&!busy.cancel){plan=null;toast('⚡ Export លឿនមិនបាន — ប្រើវិធីថតផ្ទាល់ (កុំបិទអេក្រង់): '+String(e.message||e).slice(0,70),5000)}}}
    if(!f){f=await exportRange(R[k][0],R[k][1],mime,lbl);if(!f)break}files.push(f);lastFile=f;if(NATIVE&&R.length>1){busy.set(`💾 កំពុងរក្សាទុក ${lbl}...`,null);try{f.uri=await nativeSave(f)}catch(e){}busy.set('⚡ Export...',null)}}}
- finally{S.title=title0;TITLE_T0=0;draw();P.exporting=false;renderBox();busy.off();try{wl&&wl.release()}catch(e){}if(NATIVE)DubNative.keepAwake(false)}
+ finally{S.title=title0;TITLE_T0=0;P.exporting=false;layout();busy.off();try{wl&&wl.release()}catch(e){}if(NATIVE)DubNative.keepAwake(false)}
  if(!files.length)return toast('បានបោះបង់');BG.done=files.length>1?`Export រួច ${files.length} ភាគ`:'Export រួចរាល់';lastFile=files[files.length-1];
  if(NATIVE){busy.on('💾 កំពុងរក្សាទុក...',null);try{for(const f of files)if(!f.uri)f.uri=await nativeSave(f)}catch(e){toast('✕ រក្សាទុកមិនបាន: '+e.message,5000)}busy.off()}
  const secs=Math.round((Date.now()-tStart)/1000),tot=files.reduce((x,f)=>x+f.size,0)/1e6,where=PC?(S.out.dir||'Videos\\SK ProKH'):NATIVE?'Movies/SK ProKH/'+(S.out.sub||''):'Downloads';
@@ -1750,15 +1763,19 @@ const WEBLIC=(WEBX||NATIVE)&&!/^(localhost|127\.)/.test(location.hostname)||!!wi
 async function hx(url,o={}){if(NATIVE&&DubNative.http){const id=ridH();const r=await Promise.race([new Promise(res=>{nHttp.set(id,res);DubNative.http(id,o.method||'GET',url,JSON.stringify(o.headers||{}),o.body||'')}),sleep(15000).then(()=>({err:'timeout'}))]);if(r.err)throw Error(r.err);return{status:r.status,text:r.text}}
  const r=await fetch(url,{method:o.method||'GET',headers:o.headers,body:o.body||undefined,signal:sigT(15000)});return{status:r.status,text:await r.text()}}
 const STATS={};
-function statShow(st){if(!st||st.total==null)return;Object.assign(STATS,st,{at:Date.now()});const p=$('#statPill');p.hidden=false;const ls=$('#licStat');if(ls){ls.hidden=false;ls.innerHTML=`<span class="dot" style="width:8px;height:8px;border-radius:50%;background:#2ee56b"></span>${kfmt(st.online||0)} online · 👥 ${kfmt(st.total||0)} អ្នកប្រើ · ▶ ${kfmt(st.uses||0)} ដង`};$('#stOn').textContent=innerWidth<480?kfmt(st.online||1):`${kfmt(st.online||1)} online`}
+function statShow(st){if(!st||st.total==null)return;Object.assign(STATS,st,{at:Date.now()});LS.set('statLast',{total:st.total,online:st.online,uses:st.uses,today:st.today});const p=$('#statPill');p.hidden=false;const ls=$('#licStat');if(ls){ls.hidden=false;ls.innerHTML=`<span class="dot" style="width:8px;height:8px;border-radius:50%;background:#2ee56b"></span>${st.online==null?'':kfmt(st.online||0)+' online · '}👥 ${kfmt(st.total||0)} អ្នកប្រើ${st.uses==null?'':' · ▶ '+kfmt(st.uses||0)+' ដង'}`};$('#stOn').textContent=st.online==null?`👥 ${kfmt(st.total)}`:innerWidth<480?kfmt(st.online||1):`${kfmt(st.online||1)} online`;p.querySelector('.dot').style.display=st.online==null?'none':''}
 const kfmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'K':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
 async function licServer(k,r){if(!WEBLIC)return{ok:true};try{const res=await hx(STAT_HOST+'/api/hello',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),ver:APP_VER,pc:PC||matchMedia('(min-width:1000px)').matches,app:NATIVE?(PC?'win':'apk'):'web',kid:r&&r.kid})});
  if(res.status===404)return{ok:true};const j=JSON.parse(res.text);if(j&&j.stats)statShow(j.stats);return j&&j.ok===false?{ok:false,err:j.err||'Key ត្រូវបានបិទ'}:{ok:true}}catch(e){return{ok:true}}}
-async function statPing(){if(!WEBLIC||document.hidden)return;if(!LIC.ok)return statPub();try{const res=await hx(STAT_HOST+'/api/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dev:await deviceShort()})});if(res.status===200)statShow(JSON.parse(res.text).stats)}catch(e){}}
-async function statPub(){try{const r=await hx(STAT_HOST+'/api/stats');if(r.status===200)statShow(JSON.parse(r.text).stats)}catch(e){}}
-if(WEBLIC)setTimeout(statPub,300);setInterval(()=>{LIC.ok?statPing():statPub()},120000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(STATS.at||0)>60000)statPing()});
+async function statPing(){if(!WEBLIC||document.hidden)return;if(!LIC.ok)return statPub();try{const res=await hx(STAT_HOST+'/api/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dev:await deviceShort()})});if(res.status===200)statShow(JSON.parse(res.text).stats);else statPub()}catch(e){statPub()}}
+/* user count: our server when it has stats; otherwise a free public counter (each phone/PC counted once). Last number is kept so it shows instantly */
+const CNT_KEY='skprokh-users-k7q2x9';
+async function cntPub(){try{const hit=!LS.get('cntHit',false);const r=await hx(`https://countapi.mileshilliard.com/api/v1/${hit?'hit':'get'}/${CNT_KEY}`);if(r.status!==200)return;const v=+(JSON.parse(r.text).value||0);if(!(v>0))return;if(hit)LS.set('cntHit',true);if(!STATS.online)statShow({total:v,online:null,uses:null})}catch(e){}}
+async function statPub(){try{const r=await hx(STAT_HOST+'/api/stats');if(r.status===200){statShow(JSON.parse(r.text).stats);return}}catch(e){}cntPub()}
+{const c=LS.get('statLast',null);if(c&&c.total>0)setTimeout(()=>statShow({...c,online:c.online??null}),0)}
+setTimeout(statPub,300);setInterval(()=>{LIC.ok?statPing():statPub()},120000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(STATS.at||0)>60000)statPing()});
 $('#statPill').onclick=async()=>{await statPing();const t=STATS;sheet(`<h4>👥 អ្នកប្រើ SK ProKH</h4><div class="note">ទិន្នន័យផ្ទាល់ (Live) · ធ្វើបច្ចុប្បន្នភាពរៀងរាល់ ២ នាទី</div>
- <div class="stg"><div><b>${kfmt(t.online||0)}</b><small>🟢 កំពុងប្រើឥឡូវ</small></div><div><b>${kfmt(t.today||0)}</b><small>📅 ប្រើថ្ងៃនេះ</small></div><div><b>${kfmt(t.total||0)}</b><small>👥 អ្នកប្រើសរុប</small></div><div><b>${kfmt(t.uses||0)}</b><small>▶ ចំនួនដងប្រើសរុប</small></div></div>`)};
+ <div class="stg">${t.online==null?'':`<div><b>${kfmt(t.online||0)}</b><small>🟢 កំពុងប្រើឥឡូវ</small></div><div><b>${kfmt(t.today||0)}</b><small>📅 ប្រើថ្ងៃនេះ</small></div>`}<div><b>${kfmt(t.total||0)}</b><small>👥 អ្នកប្រើសរុប</small></div>${t.uses==null?'':`<div><b>${kfmt(t.uses||0)}</b><small>▶ ចំនួនដងប្រើសរុប</small></div>`}</div>`)};
 async function licInit(){$('#licDev').textContent=await deviceShort();const k=LS.get('licKey','');let r=k?await checkLicense(k):{ok:false};if(r.ok){const sv=await licServer(k,r);if(!sv.ok)r={ok:false,err:sv.err}}
  if(r.ok){LIC.ok=true;LIC.info=r;$('#lic').classList.remove('on');return true}LIC.ok=false;$('#lic').classList.add('on');if(k&&r.err)$('#licMsg').textContent='⚠ '+r.err;return false}
 $('#licGo').onclick=async()=>{buzz();const k=$('#licKey').value.trim();if(!k)return $('#licMsg').textContent='សូមបញ្ចូល License Key';$('#licMsg').textContent='កំពុងពិនិត្យ...';let r=await checkLicense(k);if(r.ok){const sv=await licServer(k,r);if(!sv.ok)r={ok:false,err:sv.err}}
@@ -2124,7 +2141,7 @@ async function dubClip(c){const ci=S.clips.indexOf(c);if(ci<0)return;const off=o
   if(cast==='full'){neu.forEach(s=>{const g=s.f0>=163?'f':'m';const sp=S.speakers.find(p=>(g==='f')===(p.voice===SRM));s.sp=(sp||spFor(g)).id})}else castSimple(0)}
  c.q='tr';qPaint();const todo=neu.filter(s=>s.src&&!s.km);let done=0;
  if(todo.length){const B=50,bs=[];for(let i=0;i<todo.length;i+=B)bs.push(todo.slice(i,i+B));
-  await pool(bs,12,async b=>{let res;try{res=await trFree(b.map(s=>prepSrc(s.src)||s.src))}catch(e){if(busy.cancel)return;throw e}b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;busy.set(`${tag} · 🌐 បកប្រែ ${done}/${todo.length}`,done/todo.length)})}
+  await pool(bs,12,async b=>{let res;try{res=await trFree(b.map(s=>prepSrc(s.src)||s.src))}catch(e){if(busy.cancel)return;throw e}b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;busy.set(`${tag} · 🌐 បកប្រែ ${done}/${todo.length}`,done/todo.length)});await kmOnly(todo)}
  if(busy.cancel)return;subChanged();renderSpeakers();
  /* voices — merge very short pieces first so speech flows */
  c.q='tts';qPaint();joinShort();const list=S.subs.filter(s=>!hasBuf(s));let n=0,bad=0;
