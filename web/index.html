@@ -432,7 +432,8 @@ body.land .ctrl{position:absolute;left:0;right:0;bottom:0;padding:8px 16px calc(
       <div class="card" id="dlCard"><h3><span class="n">⬇</span> ទាញយករហ័ស</h3>
         <div class="hint">📱 <span>ជ្រើសផ្ទៃ ហើយចុច <b>ទាញវីដេអូពេញ</b> ឬ <b>ទាញជាខ្លីៗ</b> (Reels មិនលើស 90 វិនាទី)</span></div>
         <div class="dlq" data-dlq></div></div>
-      <div class="card" id="expCard"><h3><span class="n">⤓</span> Export វីដេអូ</h3>
+      <div class="card" id="libCard"><h3><span class="n">✅</span> វីដេអូបកប្រែរួច <span class="chip" id="libN" style="margin-left:auto;pointer-events:none">0</span></h3><div class="note">វីដេអូដែលទាញរួច រក្សាទុកក្នុងទូរសព្ទ (Movies/SK ProKH) ហើយនៅក្នុងបញ្ជីនេះ</div><div id="libList"></div></div>
+      <div class="card" id="expCard"><h3><span class="n">⤓</span> ទាញយក (ការកំណត់លម្អិត)</h3>
         <div class="hint">🧭 <span>ជ្រើស <b>① គុណភាព → ② ទំហំឯកសារ → ③ កាត់ភាគ → ④ កន្លែងទុក</b> រួចចុចប៊ូតុងធំខាងក្រោម</span></div>
         <label class="l">① គុណភាពរូបភាព</label><div class="chips" id="resChips"></div>
         <label class="l">② ទំហំឯកសារ</label><div class="chips" id="szChips"></div>
@@ -474,7 +475,7 @@ body.land .ctrl{position:absolute;left:0;right:0;bottom:0;padding:8px 16px calc(
   <button class="on" data-p="pg-vid"><i>🎬</i>វីដេអូ</button>
   <button data-p="pg-sub"><i>💬</i>Sub</button>
   <button data-p="pg-voice"><i>🔊</i>សំឡេង</button>
-  <button data-p="pg-exp"><i>⤓</i>Export</button>
+  <button data-p="pg-exp"><i>⬇</i>ទាញយក</button>
   <button data-p="pg-poster" id="navPoster" style="display:none"><i>🖼</i>Poster</button>
 </nav>
 <div id="back"></div><div id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
@@ -523,7 +524,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='3.9';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.0';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -969,6 +970,48 @@ async function frameSafe(f){if(document.hidden&&!PC){try{return await viaCopy(f)
  try{const b=await createImageBitmap(f);if(lumaOf(b)>60){FS.mode='bitmap';LS.set('frameMode','bitmap');return b}b.close&&b.close()}catch(e){}
  try{const c=await viaCopy(f);if(lumaOf(c)>60){FS.mode='copy';LS.set('frameMode','copy');return c}}catch(e){}
  return f}
+/* ============ v4.0: 📱 phone-encoder export (Android) — draw each frame like the preview, phone's own H.264/AAC encoder makes the MP4 ============ */
+const NENC=NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStart);
+function u8b64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.max(16,Math.round(W0/16)*16),H=Math.max(16,Math.round(H0/16)*16),FPS=30,SR=44100,RT=expRates(b-a);
+ const id=DubNative.encStart(W,H,FPS,Math.round(Math.max(1.2e6,RT.v)),SR,2,128000);if(!id||id.startsWith('ERR'))throw Error('Encoder: '+(id||'none'));
+ liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};
+ let nextA=a,frames=0,lastPts=-1,rate=.5,stalls=0,errMsg='';const span=b-a,t0w=performance.now();
+ const fail=()=>{const q=DubNative.encQueued(id);if(q===-2){errMsg=DubNative.encError(id);return true}return false};
+ const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s=nextA,e=Math.min(b,s+4);const buf=await mixWindow(s,e,SR,D);const n=buf.length,l=buf.getChannelData(0),r=buf.getChannelData(1),i16=new Int16Array(n*2);
+   for(let i=0;i<n;i++){let x=l[i];i16[2*i]=x>1?32767:x<-1?-32768:x*32767;x=r[i];i16[2*i+1]=x>1?32767:x<-1?-32768:x*32767}DubNative.encAudio(id,u8b64(new Uint8Array(i16.buffer)));nextA=e}};
+ const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`📱 កំពុងបង្កើតវីដេអូ ${label?label+' · ':''}${Math.round(k*100)}%\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))}\nសូមទុក App បើក (កុំបិទអេក្រង់)`,k)};
+ let off=0;
+ try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),el=c.m.el,o0=off;
+   await setClip(ci,ms);el.muted=true;P.cur=ci;
+   await new Promise((res,rej)=>{let done=false,inFl=false,lastCb=performance.now(),last=-1;
+    const end=()=>{if(done)return;done=true;clearInterval(wd);el.pause();el.playbackRate=1;res()};
+    const onF=(now,md)=>{if(done)return;lastCb=performance.now();const pt=md&&md.mediaTime!=null?md.mediaTime:el.currentTime;
+     if(busy.cancel||pt>=me-.0005||el.ended){end();return}
+     if(!inFl&&pt>last+.001){inFl=true;last=pt;const t=o0+(pt-c.in);P.t=t;draw();const url=cv.toDataURL('image/jpeg',.9);const pts=Math.round((t-a)*1e6);
+      if(pts>lastPts){lastPts=pts;frames++;DubNative.encFrame(id,url.slice(url.indexOf(',')+1),pts)}
+      (async()=>{await pumpA(t+1.5);if(fail()){done=true;clearInterval(wd);el.pause();rej(Error(errMsg));return}prog(t);
+       let q=DubNative.encQueued(id);if(q>3){el.pause();stalls++;while(q>1&&!busy.cancel){await sleep(25);q=DubNative.encQueued(id)}if(!done)el.play().catch(()=>{})}
+       inFl=false})().catch(e=>{done=true;clearInterval(wd);rej(e)})}
+     el.requestVideoFrameCallback(onF)};
+    /* if the phone pauses the video (screen off etc.) start it again */
+    const wd=setInterval(()=>{if(done)return;if(el.currentTime>=me-.03){end();return}if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},700);
+    el.playbackRate=rate;el.requestVideoFrameCallback(onF);el.play().catch(e=>rej(e))});
+   if(busy.cancel)break;off+=d;if(off>=b)break}
+  if(busy.cancel){DubNative.encCancel(id);return null}
+  await pumpA(b);busy.set('📱 កំពុងបញ្ចប់វីដេអូ...',null);
+  const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===id)res(r)};DubNative.encFinish(id,name,S.out.sub||'')});
+  if(!o.ok)throw Error(o.err||'encoder');if(frames<Math.min(10,span*3))throw Error('frames '+frames);
+  return{native:true,name,size:o.size,uri:o.uri||'',url:o.url,type:'video/mp4',frames}}
+ catch(e){try{DubNative.encCancel(id)}catch(x){}throw e}}
+/* 📚 finished videos kept in a list inside the app */
+const LIB={get:()=>LS.get('lib',[]),add(f){const l=LIB.get().filter(x=>x.uri!==f.uri);l.unshift({name:f.name,uri:f.uri||'',url:f.url||'',size:f.size||0,at:Date.now()});LS.set('lib',l.slice(0,60));libPaint()}};
+function libPaint(){const box=$('#libList');if(!box)return;const l=LIB.get();$('#libN').textContent=l.length;
+ box.innerHTML=l.length?l.map((x,i)=>`<div class="item" style="margin-top:8px"><div class="t" style="flex:1;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎬 ${esc(x.name)}</b><div class="note" style="margin:2px 0 0">${(x.size/1e6).toFixed(1)} MB · ${new Date(x.at).toLocaleString()}</div></div>
+  ${x.uri?`<button class="btn g s" data-lo="${i}">▶</button><button class="btn s" data-ls="${i}">📤</button>`:''}<button class="btn g s" data-lx="${i}">🗑</button></div>`).join(''):'<div class="note" style="text-align:center;padding:18px 0">មិនទាន់មានវីដេអូបកប្រែរួច</div>';
+ box.querySelectorAll('[data-lo]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.lo];if(NATIVE)DubNative.open(x.uri,'video/mp4')});
+ box.querySelectorAll('[data-ls]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.ls];if(NATIVE)DubNative.share(x.uri,'video/mp4')});
+ box.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{const n=LIB.get();n.splice(+b.dataset.lx,1);LS.set('lib',n);libPaint()})}
 async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;liveSched();const sched=LIVE.sched,iv=LIVE.iv,L=liveLevels();
  const D={sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};const SR=aenc.sampleRate;
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
@@ -1190,13 +1233,13 @@ $('#srtOut').onclick=()=>{sortSubs();shareOrDownload(new File([S.subs.map((s,i)=
 $('#subClear').onclick=async()=>{if(await ask('លុប Subtitle ទាំងអស់?','លុប')){S.subs=[];subChanged()}};
 
 /* ============ listen (ASR) ============ */
-const LANGS=[['auto','🔍 ស្វ័យប្រវត្តិ'],['zh','中文'],['en','English'],['ko','한국어'],['ja','日本語'],['th','ไทย'],['vi','Tiếng Việt'],['id','Indonesia'],['hi','हिन्दी'],['fr','Français'],['es','Español'],['ru','Русский']];
+const LANGS=[['auto','🔍 ស្វ័យប្រវត្តិ'],['zh','中文'],['en','English'],['ko','한국어'],['ja','日本語'],['vi','Tiếng Việt'],['id','Indonesia'],['hi','हिन्दी'],['fr','Français'],['es','Español'],['ru','Русский']];
 $('#asrLang').innerHTML=LANGS.map(([v,n])=>`<option value="${v}">${n}</option>`).join('');$('#asrLang').value=S.asr.lang;$('#asrLang').onchange=e=>{S.asr.lang=e.target.value;save()};
 chips($('#asrChips'),[['ocr','🔤 អាន Sub លើវីដេអូ'],['auto','🎧 ស្ដាប់សំឡេង'],['gemini','🔑 Gemini']],()=>S.asr.eng==='whisper'?'auto':S.asr.eng,v=>{S.asr.eng=v;save();renderAsrNote()});
 chips($('#wmChips'),[['onnx-community/whisper-tiny','លឿន (tiny)'],['onnx-community/whisper-base','ល្អ (base)'],['onnx-community/whisper-small','ច្បាស់ (small)']],()=>S.asr.wm,v=>{S.asr.wm=v;save()});
 const asrEngine=()=>S.asr.eng==='ocr'?'ocr':S.asr.eng==='auto'?(K('kGem')?'gemini':'whisper'):S.asr.eng;
 function renderAsrNote(){const e=asrEngine();$('#wmBox').style.display=e==='whisper'?'':'none';$('#ocrOpts').style.display=e==='ocr'?'':'none';OCRUI.edit=e==='ocr'&&$('#pg-sub').classList.contains('on');renderBox();
- if(e==='ocr'){$('#asrNote').innerHTML='✓ <b>ល្អបំផុតសម្រាប់រឿងចិន/ថៃ ដែលមាន Subtitle លើវីដេអូ</b> — អានអក្សរដោយ AI ក្នុងទូរសព្ទ (គ្មាន API key) ត្រឹមត្រូវជាងការស្ដាប់។ អូសប្រអប់លឿង <b>📖 SUB</b> លើវីដេអូ ឲ្យគ្រប Subtitle។';return}
+ if(e==='ocr'){$('#asrNote').innerHTML='✓ <b>ល្អបំផុតសម្រាប់រឿងចិន ដែលមាន Subtitle លើវីដេអូ</b> — អានអក្សរដោយ AI ក្នុងទូរសព្ទ (គ្មាន API key) ត្រឹមត្រូវជាងការស្ដាប់។ អូសប្រអប់លឿង <b>📖 SUB</b> លើវីដេអូ ឲ្យគ្រប Subtitle។';return}
  $('#asrNote').innerHTML=e==='gemini'?(K('kGem')?'✓ ប្រើ Gemini: ស្ដាប់ បកប្រែ និងស្គាល់តួអង្គ ក្នុងមួយជំហាន។ បើ Gemini មានបញ្ហា វានឹងប្ដូរទៅ "គ្មាន key" ដោយខ្លួនឯង។':'⚠ មិនទាន់មាន Gemini key — ប្រើ ✨ ស្វ័យប្រវត្តិ ឬ 📱 គ្មាន key វិញ')
   :'✓ <b>គ្មាន API key</b> — ស្ដាប់ក្នុងទូរសព្ទផ្ទាល់ (ទាញ model ម្ដងតែប៉ុណ្ណោះ) · បកប្រែដោយ Google ឥតគិតថ្លៃ · <b>ស្គាល់ប្រុស/ស្រី ដោយខ្លួនឯង</b> ដាក់សំឡេង ពិសិដ្ឋ/ស្រីមុំ។'}
 async function seqAudio16k(){const parts=[];let off=0;for(const c of S.clips){const d=c.out-c.in;let data;try{data=(await readPCM(c.m,c.in,d,16000,1))[0]}catch(e){toast('✕ '+e.message,5000);data=new Float32Array(Math.max(1,Math.ceil(d*16000)))}parts.push({off,data});off+=d}return parts}
@@ -1434,7 +1477,7 @@ chips($('#aiqChips'),[['fast','⚡ លឿន'],['clean','✨ ស្អាត'],[
  S.mix.aiq=v;save();sepKill();aiConf();AICACHE.clear();S.media.forEach(m=>{m.sepDone=new Set();m.aiLoaded=false});MIX.dirty=true;aiqUI();const miss=await aiModelsMissing();
  if(miss.length)toast(`⬇ នឹងទាញម៉ូដែល ${miss.reduce((x,k)=>x+AIM[k].mb,0)}MB ម្ដងគត់ ពេលចាប់ផ្ដើមកាត់សំឡេង`,4000);if(S.mix.mode==='ai')aiBackground()});aiqUI();aiConf();
 $('#aiSubOnly').checked=S.mix.aiSubOnly===true;$('#aiSubOnly').onchange=e=>{S.mix.aiSubOnly=e.target.checked;save()};
-function modeNote(){$('#aiOpts').style.display=S.mix.mode==='ai'?'':'none';$('#modeNote').innerHTML=S.mix.mode==='ai'?'🤖 AI លើទូរសព្ទ (គ្មាន API · គ្មាន Internet) ដកតែសំឡេងនិយាយចិន/ថៃ/កូរ៉េ... ចេញ ទុក<b>ភ្លេង · Sound effect · សំឡេងផ្ទៃក្រោយ</b>។ ធ្វើតែម្ដងសម្រាប់វីដេអូនីមួយ (~1-3 ដងនៃប្រវែងវីដេអូ) — អាចចេញពី App បាន។':S.mix.mode==='karaoke'?'ដកសំឡេងនិយាយកណ្ដាលចេញរហ័ស (ល្អតែវីដេអូ stereo) — មិនស្អាតដូច 🤖 AI ទេ។':S.mix.mode==='full'?'សំឡេងដើមនឹងបន្ថយដោយស្វ័យប្រវត្តិពេល Dub ខ្មែរនិយាយ។':'បិទសំឡេងដើមទាំងស្រុង — ឮតែ Dub ខ្មែរ។'}
+function modeNote(){$('#aiOpts').style.display=S.mix.mode==='ai'?'':'none';$('#modeNote').innerHTML=S.mix.mode==='ai'?'🤖 AI លើទូរសព្ទ (គ្មាន API · គ្មាន Internet) ដកតែសំឡេងនិយាយចិន/កូរ៉េ... ចេញ ទុក<b>ភ្លេង · Sound effect · សំឡេងផ្ទៃក្រោយ</b>។ ធ្វើតែម្ដងសម្រាប់វីដេអូនីមួយ (~1-3 ដងនៃប្រវែងវីដេអូ) — អាចចេញពី App បាន។':S.mix.mode==='karaoke'?'ដកសំឡេងនិយាយកណ្ដាលចេញរហ័ស (ល្អតែវីដេអូ stereo) — មិនស្អាតដូច 🤖 AI ទេ។':S.mix.mode==='full'?'សំឡេងដើមនឹងបន្ថយដោយស្វ័យប្រវត្តិពេល Dub ខ្មែរនិយាយ។':'បិទសំឡេងដើមទាំងស្រុង — ឮតែ Dub ខ្មែរ។'}
 [['mxOrig','orig',v=>Math.round(v*100)+'%'],['mxDub','dub',v=>Math.round(v*100)+'%'],['mxDuck','duck',v=>Math.round(v*100)+'%'],['mxRate','maxRate',v=>'+'+v+'%']].forEach(([id,k,f])=>{const el=$('#'+id);el.value=S.mix[k];$('#'+id+'V').textContent=f(S.mix[k]);
  el.oninput=()=>{S.mix[k]=+el.value;$('#'+id+'V').textContent=f(S.mix[k])};el.onchange=()=>{MIX.dirty=true;save();if(k==='maxRate')renderSubs()}});
 [['mxSmart','smart'],['mxJit','jit'],['mxEmo','emo'],['mxJoin','join'],['mxClear','clear']].forEach(([id,k])=>{$('#'+id).checked=S.mix[k]!==false&&(k!=='jit'||S.mix[k]);$('#'+id).onchange=e=>{S.mix[k]=e.target.checked;MIX.dirty=true;save();renderSubs()}});
@@ -1512,18 +1555,20 @@ $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដា�
  const R=partRanges(),title0=S.title;let wl=null;try{wl=await navigator.wakeLock?.request('screen')}catch(e){}if(NATIVE)DubNative.keepAwake(true);
  P.exporting=true;layout();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
  try{for(let k=0;k<R.length;k++){if(busy.cancel)break;const lbl=R.length>1?`ភាគ ${k+1}`:'';
-   TITLE_T0=R[k][0];let f=null;if(plan===undefined)plan=await fastPlan().catch(()=>null);
-   if(plan){try{f=await fastExport(R[k][0],R[k][1],lbl,plan,S.fastSW);if(!f)break}catch(e){console.warn(e);if(busy.cancel)break;
+   TITLE_T0=R[k][0];let f=null;
+   if(NENC&&S.nenc!==false){try{f=await nativeExport(R[k][0],R[k][1],lbl,outFileName(lbl||'','mp4'));if(!f&&busy.cancel)break}catch(e){console.warn('nativeExport',e);if(busy.cancel)break;toast('📱 '+String(e.message||e).slice(0,80)+' — ប្ដូរវិធីផ្សេង',4000)}}
+   if(!f&&plan===undefined)plan=await fastPlan().catch(()=>null);
+   if(!f&&plan){try{f=await fastExport(R[k][0],R[k][1],lbl,plan,S.fastSW);if(!f)break}catch(e){console.warn(e);if(busy.cancel)break;
      if(!S.fastSW){try{busy.set('🔁 កំពុងសាកម្ដងទៀត (វិធីសុវត្ថិភាព)...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,true);if(f){S.fastSW=true;LS.set('fastSW',true)}}catch(e2){console.warn(e2)}}
      if(!f&&!busy.cancel){plan=null;toast('⚡ Export លឿនមិនបាន — ប្រើវិធីថតផ្ទាល់ (កុំបិទអេក្រង់): '+String(e.message||e).slice(0,70),5000)}}}
-   if(!f){f=await exportRange(R[k][0],R[k][1],mime,lbl);if(!f)break}files.push(f);lastFile=f;if(NATIVE&&R.length>1){busy.set(`💾 កំពុងរក្សាទុក ${lbl}...`,null);try{f.uri=await nativeSave(f)}catch(e){}busy.set('⚡ Export...',null)}}}
+   if(!f){f=await exportRange(R[k][0],R[k][1],mime,lbl);if(!f)break}files.push(f);if(f.native)LIB.add(f);lastFile=f;if(NATIVE&&R.length>1){busy.set(`💾 កំពុងរក្សាទុក ${lbl}...`,null);try{f.uri=await nativeSave(f)}catch(e){}busy.set('⚡ Export...',null)}}}
  finally{S.title=title0;TITLE_T0=0;P.exporting=false;layout();busy.off();try{wl&&wl.release()}catch(e){}if(NATIVE)DubNative.keepAwake(false)}
  if(!files.length)return toast('បានបោះបង់');BG.done=files.length>1?`Export រួច ${files.length} ភាគ`:'Export រួចរាល់';lastFile=files[files.length-1];
- if(NATIVE){busy.on('💾 កំពុងរក្សាទុក...',null);try{for(const f of files)if(!f.uri)f.uri=await nativeSave(f)}catch(e){toast('✕ រក្សាទុកមិនបាន: '+e.message,5000)}busy.off()}
+ if(NATIVE){busy.on('💾 កំពុងរក្សាទុក...',null);try{for(const f of files)if(!f.uri&&!f.native){f.uri=await nativeSave(f);LIB.add(f)}}catch(e){toast('✕ រក្សាទុកមិនបាន: '+e.message,5000)}busy.off()}
  const secs=Math.round((Date.now()-tStart)/1000),tot=files.reduce((x,f)=>x+f.size,0)/1e6,where=PC?(S.out.dir||'Videos\\SK ProKH'):NATIVE?'Movies/SK ProKH/'+(S.out.sub||''):'Downloads';
- $('#expOut').innerHTML=`<div class="card" style="margin-top:14px;border-color:var(--acc)"><div class="okbadge">✅ Export រួចរាល់ · ${files.length>1?files.length+' ភាគ · ':''}${tot<10?tot.toFixed(1):Math.round(tot)} MB · ${secs} វិនាទី</div>
+ $('#expOut').innerHTML=`<div class="card" style="margin-top:14px;border-color:var(--acc)"><div class="okbadge">✅ ទាញយករួចរាល់ · ${files.length>1?files.length+' ភាគ · ':''}${tot<10?tot.toFixed(1):Math.round(tot)} MB · ${secs} វិនាទី</div>
   <div class="note">📁 រក្សាទុកក្នុង <b>${esc(where)}</b></div>`+files.map((f,k)=>`<div class="prev" style="margin-top:12px"><div class="row" style="justify-content:space-between"><b>🎬 ${esc(f.name)}</b><span class="note" style="margin:0">${(f.size/1e6).toFixed(1)} MB</span></div>
-  <video controls playsinline preload="metadata" src="${URL.createObjectURL(f)}"></video><div class="row" style="margin-top:8px">${NATIVE?`<button class="btn g" data-open="${k}">▶ បើក</button><button class="btn" data-sh="${k}">${PC?'📂 បើក Folder':'📤 ចែករំលែក'}</button>`:`<button class="btn" data-sh="${k}">⤓ ទាញយក</button>`}</div></div>`).join('')+`</div>`;
+  <video controls playsinline preload="metadata" src="${f.native?f.url:URL.createObjectURL(f)}"></video><div class="row" style="margin-top:8px">${NATIVE?`<button class="btn g" data-open="${k}">▶ បើក</button><button class="btn" data-sh="${k}">${PC?'📂 បើក Folder':'📤 ចែករំលែក'}</button>`:`<button class="btn" data-sh="${k}">⤓ ទាញយក</button>`}</div></div>`).join('')+`</div>`;
  $('#expOut').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{const f=files[+b.dataset.open];if(f.uri)DubNative.open(f.uri,f.type||'video/mp4')});
  $('#expOut').querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{const f=files[+b.dataset.sh];if(NATIVE&&f.uri)DubNative.share(f.uri,f.type||'video/mp4');else shareOrDownload(f)});
  $('#expOut').scrollIntoView({behavior:'smooth',block:'start'});toast(`🎉 Export រួចរាល់!`,4000);buzz(60)};
@@ -1541,7 +1586,7 @@ window.__dubShared=async()=>{if(!NATIVE||!DubNative.sharedCount)return;const n=D
  for(let i=0;i<n;i++){try{busy.on('📥 កំពុងបើកវីដេអូដែលបានចែករំលែក...',null,false);const r=await fetch('/shared/'+i);const b=await r.blob();files.push(new File([b],DubNative.sharedName(i)||('video'+i+'.mp4'),{type:b.type||'video/mp4'}))}catch(e){}}
  DubNative.sharedClear();busy.off();if(files.length){goPage('pg-vid');await addFiles(files);toast('✓ បានបើកវីដេអូ — ចុច 💬 ⚡ Dub')}};
 if(LS.get('seenVer','')!==APP_VER){LS.set('seenVer',APP_VER);setTimeout(()=>{if(S.asr.eng==='gemini'&&!K('kGem')){S.asr.eng='auto';save();renderAsrNote()}
- if(0)sheet(`<h4>🎉 SK ProKH v${APP_VER} — អ្វីថ្មី</h4><div class="note" style="font-size:14px;line-height:2">✓ 🌈 <b>រចនា Rainbow ថ្មី</b> · ប៊ូតុងធំ ងាយចុច<br>✓ 👥 <b>មើលចំនួនអ្នកប្រើ</b> — Online ឥឡូវ · សរុប · ចំនួនដងប្រើ (ចុចលើ 🟢 ខាងលើ)<br>✓ 🇨🇳 <b>ទាញពី Douyin 抖音</b> លឿន គ្មាន Watermark · Kuaishou 快手 · 小红书 · Weibo<br>✓ 🆕 <b>ឈ្មោះថ្មី SK ProKH</b> · Logo ថ្មី<br>✓ ⚡ <b>Dub តាមជួរ</b> — ដាក់វីដេអូ វាបកប្រែភ្លាម · ថែមវីដេអូក្រោយ វាបន្តតាមក្រោយ<br>✓ 👨👩 <b>រើសពិសិដ្ឋ ឬ ស្រីមុំ</b> — តួតែម្នាក់ក៏បាន · ចុច 👨/👩 លើបន្ទាត់ Sub ដើម្បីប្ដូរ<br>✓ 🌐 បកប្រែ & បង្កើតសំឡេង <b>លឿនជាងមុន</b><br>✓ 🔊 សំឡេងនិយាយ <b>រលូន មិនដាច់</b><br>✓ 🔍 <b>អាន Sub: ស្កេនពេញអេក្រង់</b> រកកន្លែង Sub ដោយខ្លួនឯង · Blur ដាច់ដោយឡែក<br>✓ 💎 <b>កាត់សំឡេងនិយាយស្អាតបំផុត</b> — AI 2 ម៉ូដែល ទុកតែភ្លេង & Sound<br>✓ ⚡ <b>ទាញ Link លឿនជាងមុន</b><br>✓ 📁 <b>Export: ជ្រើសកន្លែងទុក · ឈ្មោះឯកសារ · ទំហំ MB</b> · មើលវីដេអូភ្លាម<br>✓ T <b>រចនាចំណងជើង</b> 7 បែប · 8 ពណ៌ · 7 ចលនា<br>✓ 💎 <b>UI ដិត ស្អាត មានចលនា</b> · ❓ របៀបប្រើ 4 ជំហាន<br>✓ ⚡ <b>Export លឿនច្រើនដង</b> (GPU)<br>✓ 🖥 <b>PC អេក្រង់ពេញ</b> — វីដេអូធំ · Panel ស្អាត<br>✓ 🎨 <b>ពណ៌ UI 10 ពណ៌ · ផ្ទៃ 5 ពណ៌</b><br>✓ ⧬ <b>PC: Clone សំឡេងតួពិតពីរឿង</b><br>✓ 🎬 <b>វីដេអូវែងៗ (30-60 នាទី) ដើររលូន</b> — លែងខ្មៅ លែងទាក់ ចាក់ភ្លាម<br>✓ 👨👩 <b>សាមញ្ញ: ពិសិដ្ឋ & ស្រីមុំ</b> — ដក Clone ចេញ<br>✓ 🤖 <b>កាត់សំឡេងដើមតាមដែលកំពុងមើល</b> · ចាំទុក មិនធ្វើម្ដងទៀត<br>✓ ✂️ <b>បកប្រែខ្លីៗ ងាយស្ដាប់</b><br>✓ 📥 <b>ទាញពី Link ផ្សេងៗ</b> — Facebook · Douyin · Kuaishou · X · Instagram ... លឿនជាងមុន<br>✓ ✂️ <b>កាត់ជាភាគ</b> — Export 1/2/3/5 នាទី ឬ 2-5 ភាគ កាត់ចំកន្លែងស្ងាត់<br>✓ 🤖 <b>ប៊ូតុងកាត់សំឡេងដើម</b> ពេលបកប្រែ — ធ្វើនៅខាងក្រោយព្រមគ្នា<br>✓ 🔆 <b>សំឡេងខ្មែរច្បាស់ជាងមុន</b> · បកប្រែលឿនជាងមុន<br>✓ 🤖 <b>AI ដកសំឡេងនិយាយចិន</b> — ទុកតែភ្លេង & Sound · លើទូរសព្ទ គ្មាន API<br>✓ 🗣 <b>និយាយរលូន មិនដាច់ៗ</b> — រួមបន្ទាត់ខ្លីៗ · ប្រើពេលទំនេររវាងបន្ទាត់ · មិនលឿនពេក<br>✓ 📱 <b>ដំណើរការពេលចេញពី App</b> — បង្ហាញដំណើរការក្នុង Notification<br>✓ 🇰🇭 <b>ខ្មែរនិយាយធម្មជាតិ</b> — បាទ/ចាស តាមប្រុស/ស្រី<br>✓ 👫 <b>របៀប ពិសិដ្ឋ & ស្រីមុំ</b> — ប្រុសនិយាយដោយពិសិដ្ឋ ស្រីនិយាយដោយស្រីមុំ (សាមញ្ញ)<br>✓ 🎭 <b>ស្គាល់តួ</b> — តួឯកប្រុស/ស្រី · តួឆ្នាស់ · ក្មេង · ពូ · មីង · តា · យាយ<br>✓ 🗣 <b>របៀបនិយាយ 24 បែប</b> — ខឹង · ខ្សឹប · យំ · ភ័យ · ស្រវឹង · រ៉ូបូត · បិសាច ...<br>✓ 👥 <b>សំឡេងតួ 17 ប្រភេទ</b> · កំណត់របៀបនិយាយតាមបន្ទាត់<br>✓ 🔤 <b>អាន Subtitle ច្បាស់ជាងមុន</b> — អាន 3 ដង/បន្ទាត់ · 1x ល្អបំផុត · លុបឈ្មោះ Channel<br>✓ 📒 <b>បកប្រែល្អជាងមុន</b> — ឈ្មោះដូចគ្នាជានិច្ច · សព្វនាមតាមតួ<br>✓ 📥 <b>TikTok រឹងមាំជាងមុន</b> — សាកច្រើនវិធី · ប្រភពបម្រុង 3 ក្នុងពេលតែមួយ · លែងទទួលវីដេអូ Logo ក្លែង · បើមិនបាន មានវិធី Gallery ដែលដំណើរការជានិច្ច<br>✓ 🔐 <b>Admin ងាយស្រួល</b> — 1 Key = 1 ទូរសព្ទ · កំណត់ថ្ងៃខ្លួនឯង<br>✓ 🔊 <b>ជួសជុលសំឡេង</b> — បន្ទាត់មួយខុស លែងបញ្ឈប់ទាំងអស់ · សាកឡើងវិញដោយខ្លួនឯង · បកប្រែបន្ទាត់ដែលនៅសល់<br>✓ 📥 <b>ទាញ TikTok ថ្មី</b> — បើកតាម Browser ក្នុង App ទាញផ្ទាល់ពី TikTok · លឿន ៤ ដង<br>✓ ⚡ Dub ដោយខ្លួនឯង ភ្លាមក្រោយទាញ<br>✓ 📥 ទាញវីដេអូពី TikTok ដោយ link · Share → SK ProKH<br>✓ 🏷 ចលនា Logo ៨ បែប<br>✓ ✈ Telegram @wang_linkh<br>✓ 🌐 <b>ជួសជុលការបកប្រែ</b> — បកប្រែតាម Android ផ្ទាល់ + មានម៉ាស៊ីនបម្រុង ៣ (Google · Microsoft)<br>✓ 🔤 <b>អាន Subtitle លើវីដេអូ</b> (រឿងចិន/ថៃ) ដោយ AI ក្នុងទូរសព្ទ — ត្រឹមត្រូវ គ្មាន API<br>✓ 🎭 <b>ធ្វើឲ្យស្រដៀងសំឡេងតួពិត</b> (គ្មាន API) · ⧬ Clone ពិត តាមកុំព្យូទ័រ<br>✓ ✦ ផល្ល័រ ពណ៌ Zoom ត្រឡប់វីដេអូ<br>✓ 🏷 ដាក់ Logo / Watermark<br>✓ 🗑 លុបទាំងអស់ · គម្រោងថ្មី<br>✓ ⏹ ចុចបោះបង់បានគ្រប់ពេល<br>✓ ⚡ បើកវីដេអូ បកប្រែ និងបង្កើតសំឡេង លឿនជាងមុន</div><div class="row" style="margin-top:14px"><button class="btn" onclick="closeSheet()">យល់ហើយ</button></div>`)},1900)}
+ if(0)sheet(`<h4>🎉 SK ProKH v${APP_VER} — អ្វីថ្មី</h4><div class="note" style="font-size:14px;line-height:2">✓ 🌈 <b>រចនា Rainbow ថ្មី</b> · ប៊ូតុងធំ ងាយចុច<br>✓ 👥 <b>មើលចំនួនអ្នកប្រើ</b> — Online ឥឡូវ · សរុប · ចំនួនដងប្រើ (ចុចលើ 🟢 ខាងលើ)<br>✓ 🇨🇳 <b>ទាញពី Douyin 抖音</b> លឿន គ្មាន Watermark · Kuaishou 快手 · 小红书 · Weibo<br>✓ 🆕 <b>ឈ្មោះថ្មី SK ProKH</b> · Logo ថ្មី<br>✓ ⚡ <b>Dub តាមជួរ</b> — ដាក់វីដេអូ វាបកប្រែភ្លាម · ថែមវីដេអូក្រោយ វាបន្តតាមក្រោយ<br>✓ 👨👩 <b>រើសពិសិដ្ឋ ឬ ស្រីមុំ</b> — តួតែម្នាក់ក៏បាន · ចុច 👨/👩 លើបន្ទាត់ Sub ដើម្បីប្ដូរ<br>✓ 🌐 បកប្រែ & បង្កើតសំឡេង <b>លឿនជាងមុន</b><br>✓ 🔊 សំឡេងនិយាយ <b>រលូន មិនដាច់</b><br>✓ 🔍 <b>អាន Sub: ស្កេនពេញអេក្រង់</b> រកកន្លែង Sub ដោយខ្លួនឯង · Blur ដាច់ដោយឡែក<br>✓ 💎 <b>កាត់សំឡេងនិយាយស្អាតបំផុត</b> — AI 2 ម៉ូដែល ទុកតែភ្លេង & Sound<br>✓ ⚡ <b>ទាញ Link លឿនជាងមុន</b><br>✓ 📁 <b>Export: ជ្រើសកន្លែងទុក · ឈ្មោះឯកសារ · ទំហំ MB</b> · មើលវីដេអូភ្លាម<br>✓ T <b>រចនាចំណងជើង</b> 7 បែប · 8 ពណ៌ · 7 ចលនា<br>✓ 💎 <b>UI ដិត ស្អាត មានចលនា</b> · ❓ របៀបប្រើ 4 ជំហាន<br>✓ ⚡ <b>Export លឿនច្រើនដង</b> (GPU)<br>✓ 🖥 <b>PC អេក្រង់ពេញ</b> — វីដេអូធំ · Panel ស្អាត<br>✓ 🎨 <b>ពណ៌ UI 10 ពណ៌ · ផ្ទៃ 5 ពណ៌</b><br>✓ ⧬ <b>PC: Clone សំឡេងតួពិតពីរឿង</b><br>✓ 🎬 <b>វីដេអូវែងៗ (30-60 នាទី) ដើររលូន</b> — លែងខ្មៅ លែងទាក់ ចាក់ភ្លាម<br>✓ 👨👩 <b>សាមញ្ញ: ពិសិដ្ឋ & ស្រីមុំ</b> — ដក Clone ចេញ<br>✓ 🤖 <b>កាត់សំឡេងដើមតាមដែលកំពុងមើល</b> · ចាំទុក មិនធ្វើម្ដងទៀត<br>✓ ✂️ <b>បកប្រែខ្លីៗ ងាយស្ដាប់</b><br>✓ 📥 <b>ទាញពី Link ផ្សេងៗ</b> — Facebook · Douyin · Kuaishou · X · Instagram ... លឿនជាងមុន<br>✓ ✂️ <b>កាត់ជាភាគ</b> — Export 1/2/3/5 នាទី ឬ 2-5 ភាគ កាត់ចំកន្លែងស្ងាត់<br>✓ 🤖 <b>ប៊ូតុងកាត់សំឡេងដើម</b> ពេលបកប្រែ — ធ្វើនៅខាងក្រោយព្រមគ្នា<br>✓ 🔆 <b>សំឡេងខ្មែរច្បាស់ជាងមុន</b> · បកប្រែលឿនជាងមុន<br>✓ 🤖 <b>AI ដកសំឡេងនិយាយចិន</b> — ទុកតែភ្លេង & Sound · លើទូរសព្ទ គ្មាន API<br>✓ 🗣 <b>និយាយរលូន មិនដាច់ៗ</b> — រួមបន្ទាត់ខ្លីៗ · ប្រើពេលទំនេររវាងបន្ទាត់ · មិនលឿនពេក<br>✓ 📱 <b>ដំណើរការពេលចេញពី App</b> — បង្ហាញដំណើរការក្នុង Notification<br>✓ 🇰🇭 <b>ខ្មែរនិយាយធម្មជាតិ</b> — បាទ/ចាស តាមប្រុស/ស្រី<br>✓ 👫 <b>របៀប ពិសិដ្ឋ & ស្រីមុំ</b> — ប្រុសនិយាយដោយពិសិដ្ឋ ស្រីនិយាយដោយស្រីមុំ (សាមញ្ញ)<br>✓ 🎭 <b>ស្គាល់តួ</b> — តួឯកប្រុស/ស្រី · តួឆ្នាស់ · ក្មេង · ពូ · មីង · តា · យាយ<br>✓ 🗣 <b>របៀបនិយាយ 24 បែប</b> — ខឹង · ខ្សឹប · យំ · ភ័យ · ស្រវឹង · រ៉ូបូត · បិសាច ...<br>✓ 👥 <b>សំឡេងតួ 17 ប្រភេទ</b> · កំណត់របៀបនិយាយតាមបន្ទាត់<br>✓ 🔤 <b>អាន Subtitle ច្បាស់ជាងមុន</b> — អាន 3 ដង/បន្ទាត់ · 1x ល្អបំផុត · លុបឈ្មោះ Channel<br>✓ 📒 <b>បកប្រែល្អជាងមុន</b> — ឈ្មោះដូចគ្នាជានិច្ច · សព្វនាមតាមតួ<br>✓ 📥 <b>TikTok រឹងមាំជាងមុន</b> — សាកច្រើនវិធី · ប្រភពបម្រុង 3 ក្នុងពេលតែមួយ · លែងទទួលវីដេអូ Logo ក្លែង · បើមិនបាន មានវិធី Gallery ដែលដំណើរការជានិច្ច<br>✓ 🔐 <b>Admin ងាយស្រួល</b> — 1 Key = 1 ទូរសព្ទ · កំណត់ថ្ងៃខ្លួនឯង<br>✓ 🔊 <b>ជួសជុលសំឡេង</b> — បន្ទាត់មួយខុស លែងបញ្ឈប់ទាំងអស់ · សាកឡើងវិញដោយខ្លួនឯង · បកប្រែបន្ទាត់ដែលនៅសល់<br>✓ 📥 <b>ទាញ TikTok ថ្មី</b> — បើកតាម Browser ក្នុង App ទាញផ្ទាល់ពី TikTok · លឿន ៤ ដង<br>✓ ⚡ Dub ដោយខ្លួនឯង ភ្លាមក្រោយទាញ<br>✓ 📥 ទាញវីដេអូពី TikTok ដោយ link · Share → SK ProKH<br>✓ 🏷 ចលនា Logo ៨ បែប<br>✓ ✈ Telegram @wang_linkh<br>✓ 🌐 <b>ជួសជុលការបកប្រែ</b> — បកប្រែតាម Android ផ្ទាល់ + មានម៉ាស៊ីនបម្រុង ៣ (Google · Microsoft)<br>✓ 🔤 <b>អាន Subtitle លើវីដេអូ</b> (រឿងចិន) ដោយ AI ក្នុងទូរសព្ទ — ត្រឹមត្រូវ គ្មាន API<br>✓ 🎭 <b>ធ្វើឲ្យស្រដៀងសំឡេងតួពិត</b> (គ្មាន API) · ⧬ Clone ពិត តាមកុំព្យូទ័រ<br>✓ ✦ ផល្ល័រ ពណ៌ Zoom ត្រឡប់វីដេអូ<br>✓ 🏷 ដាក់ Logo / Watermark<br>✓ 🗑 លុបទាំងអស់ · គម្រោងថ្មី<br>✓ ⏹ ចុចបោះបង់បានគ្រប់ពេល<br>✓ ⚡ បើកវីដេអូ បកប្រែ និងបង្កើតសំឡេង លឿនជាងមុន</div><div class="row" style="margin-top:14px"><button class="btn" onclick="closeSheet()">យល់ហើយ</button></div>`)},1900)}
 /* ============ OCR: read burned-in subtitles (on-device PaddleOCR PP-OCRv4, no API key) ============ */
 const OCR={sess:null,dict:null,inName:'',outName:''};
 const ORT_CDN='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/',MODEL_CDN='https://cdn.jsdelivr.net/npm/@gutenye/ocr-models@1.4.2/assets/';
@@ -2208,6 +2253,7 @@ var dlqPaint=null;try{dlqPaint=dlqBind($('#dlCard'))}catch(e){}
 function dlSheet(){goPage('pg-exp');dlqPaint&&dlqPaint();sheet(`<h4>✅ Dub រួចរាល់ — ទាញយក</h4><div class="note">ជ្រើសផ្ទៃ (📱 Reels = 9:16) ហើយចុចទាញ។ ចង់មើលមុន? ចុច ✕ ហើយ ▶ លើវីដេអូ</div><button class="btn g smb" data-sm style="margin:4px 0 12px;min-height:50px"></button><div class="dlq" data-dlq></div>`,b=>{dlqBind(b,()=>closeSheet());b.querySelector("[data-sm]").onclick=()=>smartClean(!smartOn());smPaint()})}
 
 if(S.erase.on)setTimeout(()=>detInit().then(()=>draw()).catch(()=>{}),1500);
+try{libPaint()}catch(e){}
 try{posterInit()}catch(e){console.warn(e)}
 </script>
 </body>
