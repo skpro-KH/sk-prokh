@@ -290,6 +290,10 @@ nav .pill{background:var(--purp)!important}nav button.on{color:#fff!important;te
 input[type=range]{accent-color:#f5c542}
 .dlq .fmt button.on{background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--gold) border-box!important}
 #statPill{background:linear-gradient(var(--card2),var(--card2)) padding-box,var(--gold) border-box!important}
+.bro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}html.pc .bro-grid{grid-template-columns:repeat(4,1fr)}
+.bro-t{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:16px;border:1px solid #3a3150;background:linear-gradient(160deg,#1d1530,#120d1c);color:#eee;font-size:12px;font-weight:700;cursor:pointer;text-align:center;line-height:1.2}
+.bro-t b{font-size:22px;line-height:1}.bro-t:active{transform:scale(.95)}.bro-t:hover{border-color:var(--gold)}
+@media(max-width:380px){.bro-grid{grid-template-columns:repeat(3,1fr)}}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
@@ -333,6 +337,10 @@ input[type=range]{accent-color:#f5c542}
   <div class="pages" id="pages"><div id="actBar" hidden></div>
     <!-- 1 VIDEO -->
     <section class="page on" id="pg-vid">
+      <div class="card" id="broCard"><h3><span class="n">🌐</span> រករឿង Drama — ចុចទាញយកផ្ទាល់</h3><div class="note" style="margin:-4px 0 10px">បើក website ក្នុង App → ចាក់វីដេអូ → ចុច <b style="color:var(--gold)">⬇ ទាញយកវីដេអូនេះ</b> · មិនបាច់ copy link</div>
+        <div class="bro-grid" id="broGrid"></div>
+        <div class="row" style="margin-top:10px"><input id="broQ" placeholder="ស្វែងរករឿង ឬ វាយ website ផ្សេង..." enterkeyhint="go"><button class="btn s" id="broGo">🔍</button></div>
+        <div class="note" id="broNote" style="margin-top:8px"></div></div>
       <div class="card"><h3><span class="n">📥</span> ទាញវីដេអូពី Link</h3><div class="note" style="margin:-4px 0 8px">TikTok · Facebook · Douyin · Kuaishou · Instagram · X · Likee · Pinterest · link .mp4</div>
         <div class="row"><input id="ttUrl" placeholder="link TikTok · Douyin 抖音 · Kuaishou 快手 · Facebook · 小红书 · Weibo · X ..." inputmode="url"><button class="btn g s" id="ttPaste">📋</button></div>
         <div class="row" style="margin-top:8px"><button class="btn" id="ttGo">📥 ទាញ & ដាក់ចូលភ្លាម</button></div>
@@ -545,7 +553,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2024,6 +2032,31 @@ async function genericImport(link){const site=LINK_NAME(link);busy.on(`📥 ក�
  catch(e){busy.off();if(busy.cancel)return;buzz(80);const r=await ask(`<b>😔 ទាញពី ${site} មិនបាន</b><br>${String(e.message).replace(/</g,'&lt;')}
    <div style="margin-top:12px;padding:12px;border:1px solid #333;border-radius:14px"><b>✅ វិធីដែលដំណើរការជានិច្ច៖</b><br>1. ក្នុង App ${site} ចុច <b>Save / Download</b> វីដេអូ<br>2. ចុច <b>📂 ជ្រើសពី Gallery</b> ខាងក្រោម</div>`,'📂 ជ្រើសពី Gallery',e.hard?'បិទ':'🔁 សាកម្ដងទៀត');
   if(r)$('#vidFile').click();else if(r===false&&!e.hard)genericImport(link)}}
+/* ---- v4.3 drama browser: open site in app → play → ⬇ (no copying links) ---- */
+const BRO_SITES=[['🎬','抖音 短剧','https://www.douyin.com/search/%E7%9F%AD%E5%89%A7?type=video'],['⚡','快手 短剧','https://www.kuaishou.com/search/video?searchKey=%E7%9F%AD%E5%89%A7'],['🎵','TikTok Drama','https://www.tiktok.com/search?q=chinese%20drama'],['📕','小红书 短剧','https://www.xiaohongshu.com/search_result?keyword=%E7%9F%AD%E5%89%A7'],
+ ['📘','Facebook Reels','https://www.facebook.com/reel/'],['🎞️','Dailymotion','https://www.dailymotion.com/search/chinese%20drama/videos'],['🔴','Weibo 视频','https://m.weibo.cn/search?containerid=100103type%3D64%26q%3D%E7%9F%AD%E5%89%A7'],['🔎','Google វីដេអូ','https://www.google.com/search?tbm=vid&q=%E7%9F%AD%E5%89%A7']];
+const BRO_OK=()=>NATIVE&&DubNative.browse;
+function broOpen(u){if(!LIC.ok||!u&&!BRO_OK())return;LS.set('broLast',u);if(BRO_OK()){DubNative.browse(u);return}window.open(u,'_blank','noopener');toast('បើកក្នុង Tab ថ្មី — copy link វីដេអូមកដាក់ខាងក្រោម',4500)}
+$('#broGrid').innerHTML=BRO_SITES.map((x,i)=>`<div class="bro-t" data-i="${i}"><b>${x[0]}</b>${x[1]}</div>`).join('');
+$('#broGrid').onclick=e=>{const t=e.target.closest('.bro-t');if(t)broOpen(BRO_SITES[+t.dataset.i][2])};
+$('#broGo').onclick=()=>{const q=$('#broQ').value.trim();if(!q)return toast('វាយឈ្មោះរឿង ឬ website');broOpen(/^https?:\/\//i.test(q)||/^[\w-]+(\.[\w-]+)+(\/|$)/.test(q)?q:'https://www.google.com/search?tbm=vid&q='+encodeURIComponent(q))};
+$('#broQ').onkeydown=e=>{if(e.key==='Enter')$('#broGo').click()};
+$('#broNote').innerHTML=BRO_OK()?'✅ ទាញបានតែវីដេអូដែល website បើកឲ្យមើលហ្វ្រី · រឿង VIP/បង់លុយ ឬចាក់សោ (DRM) ទាញមិនបានទេ':'ℹ️ នៅលើ Website: ប្រើ APK ឬ Windows ដើម្បីចុចទាញផ្ទាល់ · នៅទីនេះ copy link មកដាក់ខាងក្រោម';
+async function browseImport(o){if(!LIC.ok)return;const page=o.page||'';LS.set('dlPending',{link:page,at:Date.now()});
+ try{if(!/^https?:/.test(page)&&!(o.net||[]).length)return toast('សូមបើកវីដេអូមួយសិន');
+  const site=LINK_NAME(page);const hdr={'User-Agent':o.ua||TT_UA['User-Agent'],'Referer':page,...(o.cookie?{'Cookie':o.cookie}:{})};
+  /* PC: yt-dlp knows most sites → try the page itself first */
+  if(PC&&DubNative.ytdl&&/^https?:/.test(page)&&!/google\.|\/search/i.test(page)){busy.on(`📥 កំពុងទាញពី ${site}...`,null);try{const blob=await ytdlGrab(page,site);if(busy.cancel)return busy.off();if(!(await ttRealVideo(blob,0)))return await broDone(blob,site,o)}catch(e){if(busy.cancel)return busy.off()}}
+  const cands=(o.net||[]).filter(u=>/^https?:/.test(u)).slice(0,8);
+  if(cands.length){busy.on(`⚡ កំពុងទាញវីដេអូពី ${site}...`,null);let le='';
+   for(const u of cands){if(busy.cancel)return busy.off();try{const blob=await ttDownload({url:u,headers:hdr});if(busy.cancel)return busy.off();const bad=await ttRealVideo(blob,0);if(bad)throw Error(bad);if(blob.size<150e3)throw Error('តូចពេក');return await broDone(blob,site,o)}catch(e){le=e.message}}
+   busy.off()}
+  if(/^https?:/.test(page)&&!/google\.|\/search|\/reel\/?$/i.test(page)){busy.off();return await tiktokImport0(page)}
+  busy.off();buzz(80);await ask(`<b>😔 មិនទាន់ឃើញវីដេអូ</b><br>សូម <b>ចុចចាក់វីដេអូ</b> ក្នុងទំព័រនោះ ឲ្យវាចាក់ 2-3 វិនាទី រួចចុច <b>⬇ ទាញយក</b> ម្ដងទៀត។<br><span class="note">រឿង VIP/បង់លុយ ឬវីដេអូចាក់សោ (DRM) ទាញមិនបានទេ</span>`,'🌐 បើកវិញ','បិទ')&&broOpen('')}
+ finally{LS.set('dlPending',null)}}
+async function broDone(blob,site,o){const nm=String(o.title||site).replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40)||site;const file=new File([blob],`${nm}_${Date.now()}.mp4`,{type:'video/mp4'});busy.off();goPage('pg-vid');await addFiles([file]);buzz(40);saveDl(file);
+ toast(`✓ ទាញរួច ${(blob.size/1e6).toFixed(1)}MB ពី ${site} — ដាក់ចូលរួចហើយ`,3500);if($('#ttAuto').checked&&!Q.auto){await sleep(600);goPage('pg-sub');$('#autoBtn').click()}}
+window.__dubBrowseDl=j=>{let o={};try{o=JSON.parse(j)}catch(e){}browseImport(o)};
 async function tiktokImport(link){if(!LIC.ok)return;LS.set('dlPending',{link:String(link||''),at:Date.now()});try{return await tiktokImport0(link)}finally{LS.set('dlPending',null)}}
 async function tiktokImport0(link){const m=String(link||'').match(/https?:\/\/[^\s]+/);link=m?m[0].replace(/[)\].,!?'"]+$/,''):String(link||'').trim();
  if(!/^https?:\/\//.test(link))return toast('សូមបិទភ្ជាប់ link វីដេអូ');
