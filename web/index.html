@@ -455,6 +455,15 @@ input[type=range]{accent-color:#f5c542}
         <div class="sl"><span>ទំហំ</span><input type="range" id="logoW" min=".06" max=".6" step=".01"><b id="logoWV"></b></div>
         <div class="sl"><span>ភាពថ្លា</span><input type="range" id="logoO" min=".1" max="1" step=".05"><b id="logoOV"></b></div>
         <label class="l">ចលនា Logo</label><div class="chips" id="logoAnim"></div></div>
+      <div class="card" id="mqCard"><h3><span class="n">📢</span> អក្សររត់លើវីដេអូ</h3>
+        <textarea id="mqText" rows="2" placeholder="វាយអក្សរ ឧ. 📢 Follow SK ProKH ដើម្បីមើលភាគបន្ទាប់!"></textarea>
+        <label class="chk"><input type="checkbox" id="mqOn"> 📢 បង្ហាញអក្សរលើវីដេអូ</label>
+        <label class="l">របៀប</label><div class="chips" id="mqMode"></div>
+        <label class="l">ទីតាំង</label><div class="chips" id="mqPos"></div>
+        <label class="l">ពណ៌អក្សរ</label><div class="chips" id="mqCol"></div>
+        <div class="sl"><span>ល្បឿន</span><input type="range" id="mqSp" min=".3" max="3" step=".1"><b id="mqSpV"></b></div>
+        <div class="sl"><span>ទំហំ</span><input type="range" id="mqSz" min=".03" max=".1" step=".005"><b id="mqSzV"></b></div>
+        <label class="chk"><input type="checkbox" id="mqBg"> ផ្ទៃខាងក្រោយ (ស្វាយ · មាស · ក្រហម)</label></div>
       <div class="card" id="smCard"><h3><span class="n">✨</span> Smart សម្អាតទាំងអស់</h3>
         <div class="hint">🧹 <span>ចុចតែម្ដង៖ <b>កាត់សំឡេងនិយាយចិន</b> (ទុកភ្លេង & Sound) + <b>លុប Sub ចិន</b> លើរូបភាព ដោយ AI</span></div>
         <button class="btn smb" id="smBtn"></button><div class="smst" id="smSt"></div></div>
@@ -553,7 +562,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.3';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -622,7 +631,7 @@ const S={media:[],clips:[],
  title:LS.get('title',''),
  box:{on:false,x:.06,y:.8,w:.88,h:.13,s:22,...LS.get('box',{})},
  ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:4,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{})},
- fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ttHd:LS.get('ttHd',true),
+ fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:35,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
  tr:{eng:'free',style:'funny',sl:'auto',...LS.get('tr',{})},
@@ -631,7 +640,7 @@ const S={media:[],clips:[],
 S.speakers.forEach(sp=>{if(sp.vm==='real')sp.vm='off';if(sp.voice==='phone')sp.voice='km-KH-PisethNeural'});
 S.fastSW=LS.get('fastSW',false);
 if(!LS.get('aiMig',false)){LS.set('aiMig',true);if(S.mix.mode==='full')S.mix.mode='ai'}
-let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{LS.set('subs',S.subs.map(({buf,key,norm,...r})=>r));['speakers','style','title','box','out','mix','tr','asr','ocrBox','ocr','fx','logo'].forEach(k=>LS.set(k,S[k]))},300)}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{LS.set('subs',S.subs.map(({buf,key,norm,...r})=>r));['speakers','style','title','box','out','mix','tr','asr','ocrBox','ocr','fx','logo','mq'].forEach(k=>LS.set(k,S[k]))},300)}
 const K=k=>(S.keys[k]||'').trim();
 const spOf=s=>S.speakers.find(p=>p.id===s.sp)||S.speakers[0];
 const SPK_COL=['#ffffff','#ffd400','#00d1ff','#ff5fa2','#7cff6b','#c58bff','#ff8a3d','#9ad0ff'];
@@ -1163,7 +1172,15 @@ function draw(){const W=cv.width,H=cv.height;ctx.save();ctx.fillStyle='#000';ctx
    case'flip':sx=Math.cos(TAU*lt*.35);break;case'bounce':dy=-Math.abs(Math.sin(Math.PI*lt*1.4))*lh*.18;break;case'blink':al*=.45+.55*(.5+.5*Math.sin(TAU*lt*1.3));break}
   ctx.save();ctx.globalAlpha=al;ctx.translate(cx,cy+dy);ctx.rotate(rot);ctx.scale(sc*sx,sc);if(S.logo.anim==='glow'){ctx.shadowColor='rgba(255,255,255,.95)';ctx.shadowBlur=lw*(.08+.07*Math.sin(TAU*lt*1.2))}
   ctx.drawImage(LOGO.img,-lw/2,-lh/2,lw,lh);ctx.restore()}
+ if(S.mq.on&&S.mq.text.trim())drawMq(W,H);
  {const cs=curSubShow(P.t);if(cs)drawSub(cs,P.t,W,H,subEnd(cs,CSI))}ctx.restore()}
+/* ---- running text / stay text on the video (preview + export) ---- */
+function drawMq(W,H){const m=S.mq,fs=Math.max(10,Math.round(Math.min(W,H)*m.size)),t=m.text.replace(/\s+/g,' ').trim(),lt=P.playing||P.exporting?P.t:performance.now()/1000;
+ ctx.save();ctx.font=`700 ${fs}px "Kantumruy Pro","Battambang","Khmer UI","Noto Sans Khmer",sans-serif`;ctx.textBaseline='middle';const tw=ctx.measureText(t).width,bh=Math.round(fs*1.55);
+ const y=m.pos==='bottom'?H-bh*.5-H*.03:m.pos==='mid'?H/2:bh*.5+H*.03;
+ if(m.bg){const g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(60,20,110,.72)');g.addColorStop(.5,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(110,15,30,.72)');ctx.fillStyle=g;ctx.fillRect(0,y-bh/2,W,bh);ctx.fillStyle='rgba(245,197,66,.9)';ctx.fillRect(0,y-bh/2,W,Math.max(1,fs*.06));ctx.fillRect(0,y+bh/2-Math.max(1,fs*.06),W,Math.max(1,fs*.06))}
+ let x;if(m.mode!=='run'&&tw>W*.94){const k=W*.94/tw;ctx.font=`700 ${Math.round(fs*k)}px "Kantumruy Pro","Battambang","Khmer UI","Noto Sans Khmer",sans-serif`}if(m.mode==='run'){const v=W*.13*m.speed,span=W+tw+fs*2;x=W-((lt*v)%span)}else{ctx.textAlign='center';x=W/2}
+ ctx.lineJoin='round';ctx.lineWidth=Math.max(2,fs*.14);ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(t,x,y);ctx.fillStyle=m.color;ctx.fillText(t,x,y);ctx.restore()}
 const segW=Intl.Segmenter?new Intl.Segmenter('km',{granularity:'word'}):null,segG=Intl.Segmenter?new Intl.Segmenter('km',{granularity:'grapheme'}):null;
 const graphemes=t=>segG?[...segG.segment(t)].map(x=>x.segment):[...t];
 const wrapCache=new Map();
@@ -2033,7 +2050,7 @@ async function genericImport(link){const site=LINK_NAME(link);busy.on(`📥 ក�
    <div style="margin-top:12px;padding:12px;border:1px solid #333;border-radius:14px"><b>✅ វិធីដែលដំណើរការជានិច្ច៖</b><br>1. ក្នុង App ${site} ចុច <b>Save / Download</b> វីដេអូ<br>2. ចុច <b>📂 ជ្រើសពី Gallery</b> ខាងក្រោម</div>`,'📂 ជ្រើសពី Gallery',e.hard?'បិទ':'🔁 សាកម្ដងទៀត');
   if(r)$('#vidFile').click();else if(r===false&&!e.hard)genericImport(link)}}
 /* ---- v4.3 drama browser: open site in app → play → ⬇ (no copying links) ---- */
-const BRO_SITES=[['🎬','抖音 短剧','https://www.douyin.com/search/%E7%9F%AD%E5%89%A7?type=video'],['⚡','快手 短剧','https://www.kuaishou.com/search/video?searchKey=%E7%9F%AD%E5%89%A7'],['🎵','TikTok Drama','https://www.tiktok.com/search?q=chinese%20drama'],['📕','小红书 短剧','https://www.xiaohongshu.com/search_result?keyword=%E7%9F%AD%E5%89%A7'],
+const BRO_SITES=[['⭐','ScriptAI Works','https://www.tiktok.com/@scriptaiworks_ca'],['🍎','红果短剧','https://www.douyin.com/search/%E7%BA%A2%E6%9E%9C%E7%9F%AD%E5%89%A7?type=video'],['🔥','抖音 热门短剧','https://www.douyin.com/search/%E7%83%AD%E9%97%A8%E7%9F%AD%E5%89%A7?type=video'],['💕','抖音 甜宠','https://www.douyin.com/search/%E7%94%9C%E5%AE%A0%E7%9F%AD%E5%89%A7?type=video'],['🎭','TikTok 短剧','https://www.tiktok.com/search?q=%E7%9F%AD%E5%89%A7'],['🇨🇳','TikTok CDrama','https://www.tiktok.com/search?q=cdrama%20eng%20sub'],['🎬','抖音 短剧','https://www.douyin.com/search/%E7%9F%AD%E5%89%A7?type=video'],['⚡','快手 短剧','https://www.kuaishou.com/search/video?searchKey=%E7%9F%AD%E5%89%A7'],['🎵','TikTok Drama','https://www.tiktok.com/search?q=chinese%20drama'],['📕','小红书 短剧','https://www.xiaohongshu.com/search_result?keyword=%E7%9F%AD%E5%89%A7'],
  ['📘','Facebook Reels','https://www.facebook.com/reel/'],['🎞️','Dailymotion','https://www.dailymotion.com/search/chinese%20drama/videos'],['🔴','Weibo 视频','https://m.weibo.cn/search?containerid=100103type%3D64%26q%3D%E7%9F%AD%E5%89%A7'],['🔎','Google វីដេអូ','https://www.google.com/search?tbm=vid&q=%E7%9F%AD%E5%89%A7']];
 const BRO_OK=()=>NATIVE&&DubNative.browse;
 function broOpen(u){if(!LIC.ok||!u&&!BRO_OK())return;LS.set('broLast',u);if(BRO_OK()){DubNative.browse(u);return}window.open(u,'_blank','noopener');toast('បើកក្នុង Tab ថ្មី — copy link វីដេអូមកដាក់ខាងក្រោម',4500)}
@@ -2103,9 +2120,19 @@ async function checkClipLink(){return;const t=await readClip();const m=t&&t.matc
 window.__dubSharedText=()=>{if(!LIC.ok||!NATIVE||!DubNative.sharedText)return;const t=DubNative.sharedText();if(t&&(TT_RE.test(t)||/https?:\/\//.test(t)))tiktokImport(t)};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkClipLink,500)});
 function afterUnlock(){setTimeout(()=>{try{resumeDl()}catch(e){}},3500);setTimeout(()=>{if(!LS.get('guided41',false)&&!document.getElementById('sheet').classList.contains('on'))guide()},2600);if(NATIVE){window.__dubShared&&window.__dubShared();window.__dubSharedText();setTimeout(checkClipLink,800)}}
+/* ---- running text controls ---- */
+(()=>{const m=S.mq,sv=()=>{LS.set('mq',m);if(!P.playing)draw()};
+ $('#mqText').value=m.text;$('#mqText').oninput=e=>{m.text=e.target.value;if(m.text.trim()&&!m.on){m.on=true;$('#mqOn').checked=true}sv()};
+ $('#mqOn').checked=m.on;$('#mqOn').onchange=e=>{m.on=e.target.checked;if(m.on&&!m.text.trim())toast('វាយអក្សរសិន');sv()};
+ $('#mqBg').checked=m.bg;$('#mqBg').onchange=e=>{m.bg=e.target.checked;sv()};
+ chips($('#mqMode'),[['run','➡️ រត់ (ស្ដាំ → ឆ្វេង)'],['stay','📌 Stay (នៅមួយកន្លែង)']],()=>m.mode,v=>{m.mode=v;sv()});
+ chips($('#mqPos'),[['top','⬆ លើ'],['mid','⏺ កណ្ដាល'],['bottom','⬇ ក្រោម']],()=>m.pos,v=>{m.pos=v;sv()});
+ chips($('#mqCol'),[['#ffffff','⚪ ស'],['#f5c542','🟡 មាស'],['#c9a7ff','🟣 ស្វាយ'],['#ff4d5e','🔴 ក្រហម'],['#d9d9e3','⚪ ប្រាក់']],()=>m.color,v=>{m.color=v;sv()});
+ const sl=(id,k,f)=>{const i=$('#'+id),b=$('#'+id+'V');i.value=m[k];b.textContent=f(m[k]);i.oninput=()=>{m[k]=+i.value;b.textContent=f(m[k]);sv()}};
+ sl('mqSp','speed',v=>v.toFixed(1)+'×');sl('mqSz','size',v=>Math.round(v*1000)/10+'%')})();
 /* ---- logo animation chips + idle preview loop ---- */
 chips($('#logoAnim'),[['none','គ្មាន'],['pulse','ដកដង្ហើម'],['float','អណ្ដែត'],['swing','យោល'],['spin','បង្វិល'],['flip','ត្រឡប់ 3D'],['bounce','លោត'],['blink','ភ្លឺព្រិច'],['glow','ពន្លឺ']],()=>S.logo.anim||'none',v=>{S.logo.anim=v;save()});
-(function idle(){if(!P.playing&&!P.exporting&&S.logo.on&&LOGO.img&&S.logo.anim&&S.logo.anim!=='none'&&!document.hidden)draw();setTimeout(()=>requestAnimationFrame(idle),50)})();
+(function idle(){if(!P.playing&&!P.exporting&&(S.logo.on&&LOGO.img&&S.logo.anim&&S.logo.anim!=='none'||S.mq.on&&S.mq.mode==='run'&&S.mq.text)&&!document.hidden)draw();setTimeout(()=>requestAnimationFrame(idle),50)})();
 
 /* ============ init ============ */
 renderClips();renderSubs();renderSpeakers();renderPresets();renderAsrNote();modeNote();layout();renderScrub();checkServer(true);licInit().then(ok=>{if(ok)setTimeout(afterUnlock,600)});
