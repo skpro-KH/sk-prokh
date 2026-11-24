@@ -294,6 +294,8 @@ input[type=range]{accent-color:#f5c542}
 .bro-t{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:16px;border:1px solid #3a3150;background:linear-gradient(160deg,#1d1530,#120d1c);color:#eee;font-size:12px;font-weight:700;cursor:pointer;text-align:center;line-height:1.2}
 .bro-t b{font-size:22px;line-height:1}.bro-t:active{transform:scale(.95)}.bro-t:hover{border-color:var(--gold)}
 @media(max-width:380px){.bro-grid{grid-template-columns:repeat(3,1fr)}}
+html:not(.pc) .pc-only{display:none!important}
+.hum{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:14px;margin-top:8px;background:rgba(255,255,255,.03)}.hum .t{flex:1;min-width:0;font-size:13px}.hum .t small{display:block;opacity:.65}.hum input{width:64px;padding:6px 8px;font-size:13px}.hum .chip{white-space:nowrap}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
@@ -337,6 +339,7 @@ input[type=range]{accent-color:#f5c542}
   <div class="pages" id="pages"><div id="actBar" hidden></div>
     <!-- 1 VIDEO -->
     <section class="page on" id="pg-vid">
+      <div id="dlRemoved" hidden style="display:none">
       <div class="card" id="broCard"><h3><span class="n">🌐</span> រករឿង Drama — ចុចទាញយកផ្ទាល់</h3><div class="note" style="margin:-4px 0 10px">បើក website ក្នុង App → ចាក់វីដេអូ → ចុច <b style="color:var(--gold)">⬇ ទាញយកវីដេអូនេះ</b> · មិនបាច់ copy link</div>
         <div class="bro-grid" id="broGrid"></div>
         <div class="row" style="margin-top:10px"><input id="broQ" placeholder="ស្វែងរករឿង ឬ វាយ website ផ្សេង..." enterkeyhint="go"><button class="btn s" id="broGo">🔍</button></div>
@@ -347,12 +350,13 @@ input[type=range]{accent-color:#f5c542}
         <label class="chk"><input type="checkbox" id="ttHd"> HD · គ្មាន Watermark</label>
         <label class="chk"><input type="checkbox" id="ttAuto"> ⚡ Dub ដោយខ្លួនឯង ភ្លាមក្រោយទាញរួច</label>
         <div class="note">នៅក្នុង TikTok ចុច <b>Share → Copy link</b> រួចបើក SK ProKH វានឹងសួរទាញដោយខ្លួនឯង · ឬ <b>Share → SK ProKH</b>។ សូមប្រើតែវីដេអូដែលអ្នកមានសិទ្ធិ។</div></div>
+      </div>
       <div class="card"><h3><span class="n">1</span> វីដេអូ</h3><div id="clipList"></div>
         <div class="row"><button class="btn g" id="addVid">＋ បន្ថែមវីដេអូ</button></div>
         <label class="chk"><input type="checkbox" id="qAuto"> ⚡ ដាក់វីដេអូ → បកប្រែ & Dub ដោយខ្លួនឯង (វីដេអូទី១ មុន · ថែមវីដេអូក្រោយ វាបន្តតាមជួរ)</label><button class="btn g s" id="qAll" style="margin-top:6px">⚡ Dub វីដេអូដែលនៅសល់តាមជួរ</button>
         <div class="row" style="margin-top:8px"><button class="btn g s" id="trimIn">⇤ ចាប់ពីទីនេះ</button><button class="btn g s" id="trimOut">⇥ ដល់ទីនេះ</button><button class="btn g s" id="splitBtn">✂ កាត់</button></div>
         <div class="note">អូស Timeline ខាងលើទៅកន្លែងចង់កាត់ រួចចុច ✂ ឬ ⇤ ⇥។</div>
-        <div class="row" style="margin-top:10px"><button class="btn g" id="clearAll">🗑 លុបទាំងអស់ · គម្រោងថ្មី</button></div></div>
+        <div class="row" style="margin-top:10px"><button class="btn g" id="clearAll">🗑 លុបទាំងអស់ · គម្រោងថ្មី</button><button class="btn g" id="cleanDev">🧹 សម្អាតទូរសព្ទ / PC</button></div><div class="note">🧹 លុបឯកសារបណ្ដោះអាសន្ន · Cache · Sub ចាស់ — វីដេអូដែលទាញយករួច នៅក្នុង Gallery / Videos ដដែល។ ពេលបិទ App ហើយបើកវិញ Sub ចាស់ត្រូវលុបចោលដោយខ្លួនឯង។</div></div>
       <div class="card"><h3><span class="n">✦</span> ផល្ល័រ & ពណ៌</h3><div class="chips" id="fxChips"></div>
         <div class="sl" style="margin-top:8px"><span>ពន្លឺ</span><input type="range" id="fxB" min=".6" max="1.5" step=".02"><b id="fxBV"></b></div>
         <div class="sl"><span>កម្រិតពណ៌</span><input type="range" id="fxC" min=".6" max="1.6" step=".02"><b id="fxCV"></b></div>
@@ -401,6 +405,11 @@ input[type=range]{accent-color:#f5c542}
     <section class="page" id="pg-voice">
       <div class="card" id="cloneCard" style="display:none"><h3><span class="n">⧬</span> Clone សំឡេងតួពិតពីរឿង</h3><div class="note" id="cloneNote" style="margin:0 0 10px"></div><div class="row"><button class="btn" id="cloneGo">⬇ ដំឡើង AI Clone</button></div></div>
       <div class="card"><h3><span class="n">1</span> តួអង្គ & សំឡេង <span class="sp"></span><button class="btn g s" id="spkAdd">＋ តួ</button></h3><div class="chips" id="castChips" style="margin-bottom:8px"></div><button class="btn g" id="genderBtn" style="margin-bottom:8px">🧠 ស្គាល់តួអង្គដោយខ្លួនឯង (គ្មាន API)</button><span id="matchAll" hidden></span><div id="spkList"></div></div>
+      <div class="card pc-only" id="humCard"><h3><span class="n">🎤</span> សំឡេងមនុស្សពិត <span class="sp"></span><button class="btn s" id="humAdd">＋ បញ្ចូល</button></h3>
+        <div class="hint">🎙 <span>បញ្ចូលសំឡេងដែលមនុស្សពិតថត (MP3 · WAV · M4A · វីដេអូក៏បាន) ឬចុច <b>ថត</b>។ App កាត់តាមចន្លោះស្ងាត់ ស្គាល់ <b>👨 ប្រុស · 👩 ស្រី · 👦 ក្មេង · 👴 ចាស់</b> ហើយដាក់ជំនួសសំឡេង AI តាមលំដាប់បន្ទាត់ Sub។</span></div>
+        <div class="row"><button class="btn g" id="humRec">🎙 ថតសំឡេង</button><button class="btn" id="humAuto">⚡ ដាក់ចូល Sub & ចាប់តួ</button></div>
+        <label class="chk"><input type="checkbox" id="humSplit"> ✂ កាត់ជាប្រយោគៗ តាមចន្លោះស្ងាត់</label>
+        <div id="humList"></div><input type="file" id="humFile" accept="audio/*,video/*" multiple hidden></div>
       <div class="card"><h3><span class="n">♫</span> ភ្លេងបន្ថែម</h3><div class="row"><button class="btn g" id="bgmBtn">🎵 ជ្រើសភ្លេង</button><button class="btn g s" id="bgmDel">✕</button></div><div class="note" id="bgmNote">ដាក់ភ្លេងផ្ទៃក្រោយរបស់អ្នក (mp3/m4a) — វានឹងបន្ថយសំឡេងពេល Dub និយាយ។</div>
         <div class="sl"><span>កម្រិតភ្លេង</span><input type="range" id="bgmVol" min="0" max="1" step=".05"><b id="bgmVolV"></b></div><input type="file" id="bgmFile" accept="audio/*" hidden></div>
       <div class="card"><h3><span class="n">2</span> សំឡេងដើមរបស់វីដេអូ</h3>
@@ -562,7 +571,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -625,7 +634,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('.btn,.play');if(
 /* ============ state ============ */
 const VOICE_OPTS=[['km-KH-PisethNeural','👨 ពិសិដ្ឋ'],['km-KH-SreymomNeural','👩 ស្រីមុំ']];
 const S={media:[],clips:[],
- subs:LS.get('subs',[]),
+ subs:(LS.set('subs',[]),[]),
  speakers:LS.get('speakers',null)||[{id:'p1',name:'តួប្រុស',voice:'km-KH-PisethNeural',pitch:0,rate:0},{id:'p2',name:'តួស្រី',voice:'km-KH-SreymomNeural',pitch:0,rate:0}],
  style:{font:'Kantumruy Pro',size:66,bold:true,color:'#ffffff',stroke:'#000000',sw:8,bg:false,bgc:'#000000',bga:.6,y:.8,maxW:.9,anim:'pop',hl:'#ffe600',shadow:true,tag:false,show:true,...LS.get('style',{})},
  title:LS.get('title',''),
@@ -634,7 +643,7 @@ const S={media:[],clips:[],
  fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:35,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
- tr:{eng:'free',style:'funny',sl:'auto',...LS.get('tr',{})},
+ tr:{eng:'free',style:'normal',sl:'auto',...LS.get('tr',{}),...(LS.get('v45tr',false)?{}:(LS.set('v45tr',true),{short:false,style:'normal'}))},
  asr:{eng:'auto',lang:'auto',wm:'onnx-community/whisper-base',gender:true,cast:'simple',...LS.get('asr',{})},
  keys:LS.get('keys',{}),server:LS.get('server',null)};
 S.speakers.forEach(sp=>{if(sp.vm==='real')sp.vm='off';if(sp.voice==='phone')sp.voice='km-KH-PisethNeural'});
@@ -651,7 +660,7 @@ $('#spBig').innerHTML=[...'SK',' ','ProKH'].map((c,i)=>`<span style="animation-
 setTimeout(()=>$('#splash').classList.add('off'),1700);$('#splash').onclick=()=>$('#splash').classList.add('off');
 if(LS.get('light',false))document.body.classList.add('light');
 function guide(){sheet(`<h4>👋 សូមស្វាគមន៍មក SK ProKH</h4><div class="note">Dub រឿងចិនជាខ្មែរ ក្នុង ៣ ជំហានងាយៗ</div><div class="guide">
- <div class="gs"><div><b>① 🎬 ដាក់វីដេអូ</b>ចុច <b>＋ បន្ថែមវីដេអូ</b> ឬបិទភ្ជាប់ Link (TikTok · Douyin · Facebook)។ App <b>អាន Sub ចិន</b> លើវីដេអូ ហើយ<b>បកប្រែជាខ្មែរ</b>ដោយខ្លួនឯង</div></div>
+ <div class="gs"><div><b>① 🎬 ដាក់វីដេអូ</b>ចុច <b>＋ បន្ថែមវីដេអូ</b> → ចុចប៊ូតុង <b>🤖 អាន Sub & បកប្រែជាខ្មែរ</b> (App មិនបកដោយខ្លួនឯងទេ ទាល់តែអ្នកចុច)</div></div>
  <div class="gs"><div><b>② 🔊 បង្កើតសំឡេងខ្មែរ</b>ជ្រើស 👨 <b>ពិសិដ្ឋ</b> · 👩 <b>ស្រីមុំ</b> (ឬទាំងពីរ តាមប្រុស/ស្រី) → ចុច <b>បង្កើតសំឡេង</b>។ សំឡេងនិយាយចិនដើម<b>ត្រូវដកចេញ</b> ទុកតែភ្លេង & Sound</div></div>
  <div class="gs"><div><b>③ ⬇ ទាញយក</b>ចុច ▶ មើលសាក → <b>ទាញវីដេអូពេញ</b> ឬ <b>ទាញជាខ្លីៗ</b> (Reels) → ចូល Gallery ភ្លាម</div></div></div>
  <div class="note">💡 ចុចលើបន្ទាត់ Sub ដើម្បីកែអក្សរ · ចុច 👨/👩 លើបន្ទាត់ ដើម្បីប្ដូរសំឡេង · ✈ @${TG_USER} = សួរជំនួយ</div><div class="row" style="margin-top:12px"><button class="btn big" id="gOk">👍 ចាប់ផ្ដើម</button></div>`,b=>{b.querySelector('#gOk').onclick=()=>{closeSheet();LS.set('guided41',true);LS.set('guided',true)}})}
@@ -706,7 +715,7 @@ function loadMedia(f){return new Promise((res,rej)=>{const el=document.createEle
 function makeThumb(m){const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=m.el.src;v.style.cssText='position:fixed;left:-9999px;width:2px;height:2px';document.body.appendChild(v);
  v.onloadeddata=async()=>{try{await seekEl(v,Math.min(.8,m.dur/3));const c=document.createElement('canvas');c.width=120;c.height=Math.round(120*m.h/m.w)||68;c.getContext('2d').drawImage(v,0,0,c.width,c.height);m.thumb=c.toDataURL('image/jpeg',.6);renderClips();renderScrub()}catch(e){}v.remove()}}
 async function addFiles(files){const added=[];for(const f of files){if(busy.cancel&&files.length>1&&!Q.run)break;try{if(!Q.run)busy.on('កំពុងបើក '+(f.name||'វីដេអូ')+'...',null);const m=await loadMedia(f);const c={id:uid(),m,in:0,out:m.dur,q:Q.auto?'wait':''};S.clips.push(c);added.push(c)}catch(e){toast('✕ '+e.message)}finally{if(!Q.run)busy.off()}}
- if(!Q.auto&&added.length&&!S.subs.length)setTimeout(()=>autoSubTr(),300);
+ if(!Q.auto&&added.length&&!S.subs.length)setTimeout(()=>{goPage('pg-sub');showAct()},300);
  if(Q.auto&&added.length){added.forEach(c=>Q.ids.push(c.id));if(Q.run){qPaint();toast(`➕ ថែម ${added.length} វីដេអូក្នុងជួរ — នឹងបកប្រែបន្តបន្ទាប់`,3000)}else setTimeout(qRun,50)}
  MIX.dirty=true;$('#empty').style.display=S.clips.length?'none':'';layout();renderClips();renderScrub();if(P.cur<0&&S.clips.length)await seek(0);else draw()}
 const total=()=>S.clips.reduce((a,c)=>a+(c.out-c.in),0);
@@ -742,9 +751,9 @@ const needsTr=s=>!!s.km&&CJK.test(s.km)&&!hasKh(s.km);
 function lineParams(s){const sp=spOf(s);const j=S.mix.jit?{p:hashN(s.id)%30-8,r:hashN(s.id+'r')%9}:{p:0,r:0};const st=SPEAK[s.sty||sp.sty||'normal']||SPEAK.normal,em=S.mix.emo!==false?emoOf(s.km):{r:0,p:0,v:1};
  return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
 function roomOf(s){const d=Math.max(.4,s.end-s.start);if(S.mix.smart===false)return d;const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const lim=n?n.start-s.start-.08:Math.min(d+1.5,(total()||1e9)-s.start);return Math.max(d,Math.min(d+1.5,lim))}
-const lineKey=s=>JSON.stringify(lineParams(s));
+const lineKey=s=>s.hum?'hum:'+s.hum:JSON.stringify(lineParams(s));
 const hasBuf=s=>!speakable(ttsText(s.km))||spOf(s).voice==='phone'||!!(s.buf&&s.key===lineKey(s));
-async function genLine(s){const q=lineParams(s);if(!speakable(q.text)||q.voice==='phone')return;const key=JSON.stringify(q);if(s.buf&&s.key===key)return;
+async function genLine(s){if(s.hum)return;const q=lineParams(s);if(!speakable(q.text)||q.voice==='phone')return;const key=JSON.stringify(q);if(s.buf&&s.key===key)return;
  const sp=spOf(s);let pitch=q.pitch,gains=null;
  if(q.vm==='match'&&sp.prof){const base=await voiceBase(q.voice);if(sp.prof.f0&&base.f0)pitch+=clamp(Math.round((sp.prof.f0-base.f0)*.85),-45,45);if(sp.prof.bands&&base.bands)gains=sp.prof.bands.map((v,i)=>clamp((v-base.bands[i])*.6,-8,8))}
  const synth=async rate=>{if(false){const r=await fetch(cloneBase()+'/dub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:q.text,voice:q.voice,rate,pitch,max_dur:q.slot,max_rate:q.max,ref:sp.ref}),signal:sigT(180000)});
@@ -770,6 +779,42 @@ async function genAll(){const left=S.subs.filter(needsTr);if(left.length){toast(
  if(bad.length){const ok=list.length-bad.length;if(await ask(`🔊 បង្កើតសំឡេងរួច <b>${ok}/${list.length}</b> បន្ទាត់<br>⚠ <b>${bad.length}</b> បន្ទាត់មិនទាន់បាន (Microsoft មិនឆ្លើយ ឬអត្ថបទមិនច្បាស់)<div class="note">ឧ. "${esc(ttsText(bad[0].km).slice(0,60))}" — ${esc(bad[0].err)}</div>បន្ទាត់ទាំងនេះមានសញ្ញា 🔴 នៅក្នុងបញ្ជី Sub។`,'🔁 សាកម្ដងទៀត','ទុកសិន'))return genAll();return ok>0}
  BG.done='សំឡេងខ្មែររួចរាល់ '+list.length+' បន្ទាត់';toast('✓ សំឡេងខ្មែររួចរាល់ '+list.length+' បន្ទាត់');buzz(30);return true}
 $('#genBtn').onclick=genAll;
+/* ============ v4.5: real human voices (PC) — import / record, split by silence, detect 👨👩👦👴, put into Sub lines & set the character ============ */
+const HUM={list:[]};
+const HUMC={child:['👦 ក្មេង','child'],f:['👩 ស្រី','sup_f'],of:['👵 ស្រីចាស់','grandma'],m:['👨 ប្រុស','sup_m'],om:['👴 ប្រុសចាស់','grandpa']};
+const HUMK=['m','f','child','om','of'];
+const humCls=hz=>!hz?'m':hz>260?'child':hz>=170?'f':hz>=150?'of':hz>=100?'m':'om';
+async function to16k(buf){const n=Math.ceil(buf.duration*16000);const oc=new OfflineAudioContext(1,Math.max(1,n),16000);const src=oc.createBufferSource();src.buffer=buf;src.connect(oc.destination);src.start();return(await oc.startRendering()).getChannelData(0)}
+function humSplit(x,split){const F=320,n=Math.floor(x.length/F),e=new Float32Array(n);for(let i=0;i<n;i++){let a=0;for(let k=i*F;k<(i+1)*F;k++)a+=x[k]*x[k];e[i]=Math.sqrt(a/F)}
+ const srt=[...e].sort((a,b)=>a-b),p90=srt[Math.floor(n*.9)]||0,thr=Math.max(.008,p90*.12);const seg=[];let st=-1,last=-1;
+ for(let i=0;i<n;i++){if(e[i]>thr){if(st<0)st=i;last=i}else if(st>=0&&(i-last)*.02>(split?.38:1e9)){seg.push([st,last]);st=-1}}if(st>=0)seg.push([st,last]);
+ return seg.map(([a,b])=>[Math.max(0,a*.02-.08),Math.min(x.length/16000,(b+1)*.02+.1)]).filter(([a,b])=>b-a>=.25)}
+async function humImport(files){ensureAC();busy.on('🎤 កំពុងអានសំឡេង...',0);let added=0;
+ try{for(const f of files){const buf=await AC.decodeAudioData(await f.arrayBuffer());const x=await to16k(buf);const segs=humSplit(x,$('#humSplit').checked);const sr=buf.sampleRate;
+   for(const[a,b]of segs){const i0=Math.floor(a*sr),i1=Math.min(buf.length,Math.ceil(b*sr)),len=i1-i0;if(len<sr*.2)continue;const nb=AC.createBuffer(buf.numberOfChannels,len,sr);
+    for(let c=0;c<buf.numberOfChannels;c++)nb.copyToChannel(buf.getChannelData(c).subarray(i0,i1),c);const hz=Math.round(voicePitch(x.subarray(Math.floor(a*16000),Math.floor(b*16000))));
+    HUM.list.push({id:'h'+uid(),name:(f.name||'🎙 ថត').replace(/\.[^.]+$/,'')+(segs.length>1?' #'+(++added):''),buf:nb,hz,cls:humCls(hz),used:null});if(segs.length<=1)added++}}
+  toast(`🎤 បញ្ចូល ${added} ឃ្លា · `+Object.entries(HUM.list.reduce((o,h)=>(o[h.cls]=(o[h.cls]||0)+1,o),{})).map(([k,v])=>HUMC[k][0]+' '+v).join(' · '),4500)}
+ catch(e){toast('✕ អានសំឡេងមិនបាន: '+(e.message||e),5000)}finally{busy.off();humPaint()}}
+function humSp(cls){const role=HUMC[cls][1];let sp=S.speakers.find(p=>p.role===role&&p.hum);if(!sp){sp={id:'p'+uid(),pitch:0,rate:0,hum:true};applyRole(sp,role);sp.name=HUMC[cls][0]+' (មនុស្សពិត)';S.speakers.push(sp)}return sp}
+function humSet(h,s){if(!s)return;for(const x of S.subs)if(x.hum===h.id){delete x.hum;x.buf=null;x.key=null}if(s.hum){const o=HUM.list.find(y=>y.id===s.hum);if(o)o.used=null}
+ s.hum=h.id;s.buf=h.buf;s.key=lineKey(s);h.used=s.id;s.sp=humSp(h.cls).id}
+function humFree(h){for(const x of S.subs)if(x.hum===h.id){delete x.hum;x.buf=null;x.key=null}h.used=null}
+function humAfter(){MIX.dirty=true;renderSpeakers();subChanged();humPaint();if(S.mix.mode!=='ai'&&S.subs.some(s=>s.hum))setMode('ai')}
+$('#humAuto').onclick=()=>{if(!S.subs.length)return toast('សូមអាន Sub សិន');const free=HUM.list.filter(h=>!h.used);if(!free.length)return toast(HUM.list.length?'សំឡេងទាំងអស់ដាក់រួចហើយ':'សូមបញ្ចូលសំឡេងសិន');sortSubs();
+ const tg=S.subs.filter(s=>!s.hum);let n=0;free.forEach((h,k)=>{if(tg[k]){humSet(h,tg[k]);n++}});humAfter();buzz(30);toast(`⚡ ដាក់សំឡេងពិត ${n} បន្ទាត់ · ចាប់តួរួច`,3500)};
+function humPaint(){const b=$('#humList');if(!b)return;sortSubs();b.innerHTML=HUM.list.map(h=>{const i=h.used?S.subs.findIndex(s=>s.id===h.used):-1;return`<div class="hum" data-h="${h.id}"><button class="btn g s" data-play>▶</button><div class="t">${esc(h.name)}<small>${h.buf.duration.toFixed(1)}s · ${h.hz||'?'}Hz${i>=0?` · ➜ បន្ទាត់ ${i+1}`:''}</small></div><button class="chip on" data-cls title="ចុចប្ដូរ">${HUMC[h.cls][0]}</button><input type="number" min="1" max="${S.subs.length||1}" placeholder="បន្ទាត់" value="${i>=0?i+1:''}" data-ln><button class="btn g s" data-del>✕</button></div>`}).join('')||'<div class="note" style="margin-top:8px">មិនទាន់មានសំឡេងពិត</div>'}
+$('#humList').onclick=e=>{const r=e.target.closest('.hum');if(!r)return;const h=HUM.list.find(x=>x.id===r.dataset.h);if(!h)return;
+ if(e.target.closest('[data-play]')){ensureAC();AC.resume();const src=AC.createBufferSource();src.buffer=h.buf;src.connect(AC.destination);src.start()}
+ if(e.target.closest('[data-cls]')){h.cls=HUMK[(HUMK.indexOf(h.cls)+1)%HUMK.length];const s=h.used&&S.subs.find(x=>x.id===h.used);if(s){s.sp=humSp(h.cls).id;humAfter()}else humPaint()}
+ if(e.target.closest('[data-del]')){humFree(h);HUM.list=HUM.list.filter(x=>x!==h);humAfter()}};
+$('#humList').onchange=e=>{const r=e.target.closest('.hum');if(!r||!e.target.matches('[data-ln]'))return;const h=HUM.list.find(x=>x.id===r.dataset.h);sortSubs();const v=+e.target.value;if(!v){humFree(h);return humAfter()}const s=S.subs[v-1];if(!s)return toast('គ្មានបន្ទាត់នេះ');humSet(h,s);humAfter()};
+$('#humAdd').onclick=()=>$('#humFile').click();$('#humFile').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)humImport(f)};
+$('#humSplit').checked=LS.get('humSplit',true);$('#humSplit').onchange=e=>LS.set('humSplit',e.target.checked);
+let HREC=null;$('#humRec').onclick=async()=>{if(HREC){HREC.stop();return}try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});const ch=[];const r=new MediaRecorder(st);HREC=r;
+ r.ondataavailable=e=>e.data.size&&ch.push(e.data);r.onstop=()=>{st.getTracks().forEach(t=>t.stop());HREC=null;$('#humRec').textContent='🎙 ថតសំឡេង';$('#humRec').classList.add('g');humImport([new File(ch,'🎙 ថត '+new Date().toLocaleTimeString().slice(0,5)+'.webm',{type:r.mimeType})])};
+ r.start();$('#humRec').textContent='⏹ ឈប់ថត';$('#humRec').classList.remove('g');toast('🎙 កំពុងថត... និយាយតាមលំដាប់បន្ទាត់ Sub (ឈប់បន្តិចរវាងប្រយោគ)',4000)}catch(e){toast('✕ មិនអាចប្រើ Mic: '+(e.message||e),5000)}};
+humPaint();
 function schedule(){let prevEnd=-1;sortSubs();return S.subs.filter(s=>s.buf&&s.key===lineKey(s)).map(s=>{const slot=Math.max(.3,roomOf(s));let rate=1,dur=s.buf.duration;
  if(dur>slot*1.02){rate=Math.min(1.06,dur/slot);dur/=rate}let at=s.start;if(S.mix.smart&&at<prevEnd+.06)at=Math.min(prevEnd+.06,s.start+.6);prevEnd=at+dur;return{s,at,rate,dur}})}
 /* ============ v2.4: AI voice remover (on-device UVR MDX-Net, no API) — removes speech, keeps music & sound effects ============ */
@@ -1014,7 +1059,7 @@ function u8b64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCo
 async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.max(16,Math.round(W0/16)*16),H=Math.max(16,Math.round(H0/16)*16),FPS=30,SR=44100,RT=expRates(b-a);
  const id=DubNative.encStart(W,H,FPS,Math.round(Math.max(1.2e6,RT.v)),SR,2,128000);if(!id||id.startsWith('ERR'))throw Error('Encoder: '+(id||'none'));
  liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};
- let nextA=a,frames=0,lastPts=-1,rate=.5,stalls=0,errMsg='';const span=b-a,t0w=performance.now();
+ let nextA=a,frames=0,lastPts=-1,rate=clamp(+LS.get('nencRate',.6)||.6,.3,2),stalls=0,errMsg='',fT=performance.now(),fN=0,stallN=0;const span=b-a,t0w=performance.now();
  const fail=()=>{const q=DubNative.encQueued(id);if(q===-2){errMsg=DubNative.encError(id);return true}return false};
  const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s=nextA,e=Math.min(b,s+4);const buf=await mixWindow(s,e,SR,D);const n=buf.length,l=buf.getChannelData(0),r=buf.getChannelData(1),i16=new Int16Array(n*2);
    for(let i=0;i<n;i++){let x=l[i];i16[2*i]=x>1?32767:x<-1?-32768:x*32767;x=r[i];i16[2*i+1]=x>1?32767:x<-1?-32768:x*32767}DubNative.encAudio(id,u8b64(new Uint8Array(i16.buffer)));nextA=e}};
@@ -1026,14 +1071,16 @@ async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.
     const end=()=>{if(done)return;done=true;clearInterval(wd);el.pause();el.playbackRate=1;res()};
     const onF=(now,md)=>{if(done)return;lastCb=performance.now();const pt=md&&md.mediaTime!=null?md.mediaTime:el.currentTime;
      if(busy.cancel||pt>=me-.0005||el.ended){end();return}
-     if(!inFl&&pt>last+.001){inFl=true;last=pt;const t=o0+(pt-c.in);P.t=t;draw();const url=cv.toDataURL('image/jpeg',.9);const pts=Math.round((t-a)*1e6);
+     if(!inFl&&pt>last+.001){inFl=true;last=pt;const t=o0+(pt-c.in);P.t=t;draw();const url=cv.toDataURL('image/jpeg',.86);const pts=Math.round((t-a)*1e6);
       if(pts>lastPts){lastPts=pts;frames++;DubNative.encFrame(id,url.slice(url.indexOf(',')+1),pts)}
       (async()=>{await pumpA(t+1.5);if(fail()){done=true;clearInterval(wd);el.pause();rej(Error(errMsg));return}prog(t);
        let q=DubNative.encQueued(id);if(q>3){el.pause();stalls++;while(q>1&&!busy.cancel){await sleep(25);q=DubNative.encQueued(id)}if(!done)el.play().catch(()=>{})}
        inFl=false})().catch(e=>{done=true;clearInterval(wd);rej(e)})}
      el.requestVideoFrameCallback(onF)};
     /* if the phone pauses the video (screen off etc.) start it again */
-    const wd=setInterval(()=>{if(done)return;if(el.currentTime>=me-.03){end();return}if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},700);
+    const wd=setInterval(()=>{if(done)return;if(el.currentTime>=me-.03){end();return}
+     /* v4.5: speed up while the phone keeps up (full 30fps), slow down when frames are dropped */
+     const nw=performance.now(),dt=(nw-fT)/1000;if(dt>=1.4&&!el.paused){const got=(frames-fN)/dt,want=rate*FPS;if(stalls===stallN&&got>=want*.9)rate=Math.min(2,rate*1.15);else if(got<want*.8||stalls>stallN)rate=Math.max(.3,rate*.88);el.playbackRate=rate;LS.set('nencRate',+rate.toFixed(2));fT=nw;fN=frames;stallN=stalls}if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},700);
     el.playbackRate=rate;el.requestVideoFrameCallback(onF);el.play().catch(e=>rej(e))});
    if(busy.cancel)break;off+=d;if(off>=b)break}
   if(busy.cancel){DubNative.encCancel(id);return null}
@@ -1479,14 +1526,15 @@ async function kmOnly(list){const bad=list.filter(s=>s.src&&notKm(s.km));if(!bad
  /* still not Khmer: strip leftover Latin words so the voice never reads English */
  for(const s of bad)if(notKm(s.km)){const t=cleanTags(s.km).replace(/[A-Za-z][A-Za-z'’-]*/g,' ').replace(/\s+/g,' ').trim();if(/[ក-៿]/.test(t))s.km=t}
  return bad.length}
+function ctxPrev(i){const p=S.subs.slice(Math.max(0,i-8),i).filter(s=>s.km);return p.length?' Previous lines for context (already translated): '+JSON.stringify(p.map(s=>({zh:s.src,km:s.km})))+'.':''}
 async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&K('kGem');if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
  try{if(useG){for(let i=0;i<list.length;i+=40){if(busy.cancel)break;const b=list.slice(i,i+40);
-    const d=await gemini([{text:`Translate each subtitle line into Khmer for VOICE DUBBING.${S.tr.short!==false?' Keep every line SHORT, simple, natural SPOKEN Khmer that is easy to hear — drop filler words.':''} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
+    const d=await gemini([{text:`Translate each subtitle line of this Chinese drama into Khmer for VOICE DUBBING. Translate ACCURATELY and COMPLETELY — keep every word's meaning, never skip, summarize or invent; follow the story context of the surrounding lines (who talks to whom, relationships, earlier events) so pronouns and terms of address are right.${S.tr.short===true?' Use short, simple spoken Khmer.':' Use natural spoken Khmer.'}${ctxPrev(S.subs.indexOf(b[0]))} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
     const arr=d.lines||Object.values(d)[0];b.forEach((s,k)=>{if(arr[k]!=null)s.km=postKm(arr[k],s)});done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)}}
   else{const B=50,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));await pool(bs,12,async b=>{const res=await trFree(b.map(s=>prepSrc(s.src)||s.src));b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)})}
   if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('Gemini មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
 $('#trBtn').onclick=()=>{aiBackground();translate(S.subs)};
-$('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short!==false;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
+$('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short===true;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
 $('#autoBtn').onclick=async()=>{buzz();if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');
  if(!S.subs.length&&!(await runASR()))return;aiBackground();const todo=S.subs.filter(s=>s.src&&!s.km);if(todo.length&&!(await translate(todo)))return;
  if(!(await genAll()))return;await seek(0);toast('🎉 Dub រួចរាល់!',3000);showAct()};
@@ -1690,7 +1738,7 @@ function postKm(km,s){km=String(km||'').replace(/\s+([។?!,៖])/g,'$1').replac
  if(S.tr.pron!==false&&s){const r=spOf(s).role;if(r==='villain'||r==='villainess'||r==='monster')km=km.replace(/ខ្ញុំ/g,'អញ').replace(/អ្នក(?!ណា|ទាំង)/g,'ឯង');
   else if(r==='child'||r==='boy')km=km.replace(/^ខ្ញុំ/,'កូន')}
  if(S.tr.spoken!==false&&S.tr.style!=='normal_formal')KM_SPOKEN.forEach(([a,b])=>km=km.replace(a,b));
- if(S.tr.short!==false)KM_SHORT.forEach(([a,b])=>km=km.replace(a,b));km=km.replace(/\s{2,}/g,' ').trim();
+ if(S.tr.short===true)KM_SHORT.forEach(([a,b])=>km=km.replace(a,b));km=km.replace(/\s{2,}/g,' ').trim();
  if(s){const sp=spOf(s),fem=sp.voice===SRM||sp.g==='f'||/^(lead_f|sup_f|aunt|grandma|villainess|child)$/.test(sp.role||'');km=fem?km.replace(/បាទ/g,'ចាស').replace(/ខ្ញុំបាទ/g,'នាងខ្ញុំ'):km.replace(/ចាស(?!់)/g,'បាទ')}
  return km}
 /* find where the burned-in subtitles are: scan whole frames, keep lines that the recogniser can read, pick the height where the most DIFFERENT sentences appear (static logos/watermarks repeat the same text, so they lose) */
@@ -1711,7 +1759,7 @@ async function ocrFindRegion(clip){await ocrInit();const c=clip||S.clips[0];if(!
 async function ocrScan(only){await ocrInit();
  if(S.ocr.area!=='manual'){const b=await ocrFindRegion(only?S.clips.find(c=>only.has(c.id)):undefined);if(busy.cancel)return[];if(b){const f=b.found;delete b.found;S.ocrBox=b;save();renderBox();toast(`🔍 រកឃើញ Subtitle នៅ${f.y<.35?'ខាងលើ':f.y>.65?'ខាងក្រោម':'កណ្ដាល'}អេក្រង់ (${f.distinct} ប្រយោគ)`,3500)}
   else toast('⚠ រក Subtitle មិនឃើញច្បាស់ — អានតាមប្រអប់លឿង 📖 (អាចអូសកែបាន)',5000)}const segs=[],T=total();let off=0,chain=Promise.resolve();
- for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci];if(busy.cancel)break;if(only&&!only.has(c.id)){off+=c.out-c.in;continue}const m=c.m,el=m.el,reg=boxToVideo(S.ocrBox,m);const k=Math.min(1,960/reg.w),cw=Math.max(32,Math.round(reg.w*k)),ch=Math.max(16,Math.round(reg.h*k));
+ for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci];if(busy.cancel)break;if(only&&!only.has(c.id)){off+=c.out-c.in;continue}const m=c.m,el=m.el,reg=boxToVideo(S.ocrBox,m);const k=Math.min(1280/reg.w,Math.max(1,110/reg.h),2),cw=Math.max(32,Math.round(reg.w*k)),ch=Math.max(16,Math.round(reg.h*k));
   const cc=document.createElement('canvas');cc.width=cw;cc.height=ch;const cx=cc.getContext('2d',{willReadFrequently:true});
   await setClip(ci,c.in);el.playbackRate=+S.ocr.speed||4;let cur=null,lastT=-1,fr=0;
   const finish=(seg,end)=>{seg.end=end;if(seg.end-seg.start<.2||!seg.snap)return;segs.push(seg);const snap=seg.snap;seg.snap=null;
@@ -1724,7 +1772,7 @@ async function ocrScan(only){await ocrInit();
     if(el.paused&&!el.ended){el.play().catch(()=>{})}
     if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);const on=mk.cnt>cw*ch*.004;const sig=on?subSig(mk):null;
      if(!on){if(cur){finish(cur,st);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.38){if(cur)finish(cur,st);cur={start:st,sig,n:0,snap:null}}
-     if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===14||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
+     if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
        const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
      if(fr%4===0&&!bgHidden()){P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
     nextFrame(step)};nextFrame(step)});
@@ -1797,6 +1845,16 @@ $('#clearAll').onclick=async()=>{if(!(await ask('លុបវីដេអូ Sub
  S.media.forEach(m=>{try{m.el.pause();URL.revokeObjectURL(m.el.src);m.el.remove()}catch(e){}});S.media=[];S.clips=[];S.subs=[];P.cur=-1;P.t=0;MIX.buf=null;aiClearDB();AICACHE.clear();MIX.dirty=true;BGM.buf=null;TTSC.clear();SEQ.key=null;
  S.speakers=[{id:'p1',name:'តួប្រុស',voice:'km-KH-PisethNeural',pitch:0,rate:0},{id:'p2',name:'តួស្រី',voice:'km-KH-SreymomNeural',pitch:0,rate:0}];clipsChanged();subChanged();renderSpeakers();toast('✓ សម្អាតរួច — គម្រោងថ្មី')};
 
+/* v4.5: clean the phone / PC — project, temp downloads, caches (real videos in Gallery stay) */
+$('#cleanDev').onclick=async()=>{if(!(await ask('🧹 សម្អាតទូរសព្ទ / កុំព្យូទ័រ?<div class="note">លុប៖ វីដេអូ & Sub ក្នុងគម្រោង · ឯកសារបណ្ដោះអាសន្ន · Cache សំឡេង AI · បញ្ជីវីដេអូក្នុង App<br>មិនលុប៖ វីដេអូដែលរក្សាទុកក្នុង Gallery / Videos · Key · ការកំណត់ · ម៉ូដែល AI</div>','🧹 សម្អាត')))return;
+ let before=0;try{before=(await navigator.storage.estimate()).usage||0}catch(e){}let nat=0;
+ pause();S.media.forEach(m=>{try{m.el.pause();URL.revokeObjectURL(m.el.src);m.el.remove()}catch(e){}});S.media=[];S.clips=[];S.subs=[];P.cur=-1;P.t=0;MIX.buf=null;try{await aiClearDB()}catch(e){}AICACHE.clear();MIX.dirty=true;TTSC.clear();SEQ.key=null;HUM.list=[];
+ ['subs','lib','dlPending','broLast'].forEach(k=>LS.set(k,k==='lib'?[]:null));try{libPaint()}catch(e){}
+ try{if(window.caches)for(const k of await caches.keys())await caches.delete(k)}catch(e){}
+ try{if(NATIVE&&DubNative.clearCache)nat=+DubNative.clearCache()||0}catch(e){}
+ clipsChanged();subChanged();renderSpeakers();humPaint();
+ let after=before;try{after=(await navigator.storage.estimate()).usage||0}catch(e){}const freed=Math.max(0,before-after)+nat;
+ buzz(30);toast(`✨ សម្អាតរួច${freed>1e6?` · បានទំនេរ ${(freed/1e6).toFixed(0)}MB`:''}`,3500)};
 /* ---- v1.2 UI bindings ---- */
 chips($('#ocrSpd'),[['1','1x ល្អបំផុត'],['2','2x ច្បាស់'],['4','4x'],['8','8x លឿន']],()=>String(S.ocr.speed),v=>{S.ocr.speed=+v;save()});
 chips($('#ocrCol'),[['white','ស'],['yellow','លឿង'],['nooutline','ស គ្មានគែម']],()=>S.ocr.color,v=>{S.ocr.color=v;save()});
@@ -2119,7 +2177,7 @@ async function checkClipLink(){return;const t=await readClip();const m=t&&t.matc
  if(await ask('📥 រកឃើញ link TikTok ក្នុង Clipboard<br><span class="note" style="word-break:break-all">'+esc(m[0])+'</span><br>ទាញ & ដាក់ចូលឥឡូវ?','📥 ទាញឥឡូវ','ទេ'))tiktokImport(m[0])}
 window.__dubSharedText=()=>{if(!LIC.ok||!NATIVE||!DubNative.sharedText)return;const t=DubNative.sharedText();if(t&&(TT_RE.test(t)||/https?:\/\//.test(t)))tiktokImport(t)};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkClipLink,500)});
-function afterUnlock(){setTimeout(()=>{try{resumeDl()}catch(e){}},3500);setTimeout(()=>{if(!LS.get('guided41',false)&&!document.getElementById('sheet').classList.contains('on'))guide()},2600);if(NATIVE){window.__dubShared&&window.__dubShared();window.__dubSharedText();setTimeout(checkClipLink,800)}}
+function afterUnlock(){LS.set("dlPending",null);setTimeout(()=>{if(!LS.get('guided41',false)&&!document.getElementById('sheet').classList.contains('on'))guide()},2600);if(NATIVE){window.__dubShared&&window.__dubShared();window.__dubSharedText();setTimeout(checkClipLink,800)}}
 /* ---- running text controls ---- */
 (()=>{const m=S.mq,sv=()=>{LS.set('mq',m);if(!P.playing)draw()};
  $('#mqText').value=m.text;$('#mqText').oninput=e=>{m.text=e.target.value;if(m.text.trim()&&!m.on){m.on=true;$('#mqOn').checked=true}sv()};
@@ -2332,10 +2390,11 @@ function voiceSheet(){const n=S.subs.length;sheet(`<h4>✅ អាន Sub & ប�
  b.querySelector('#vsGo').onclick=async()=>{closeSheet();if(S.mix.mode!=='ai')setMode('ai');if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច!',3000);dlSheet()}})}
 
 /* ============ v4.2: action bar under the video — after translating: make voice; after voice: download (full / short) ============ */
-function actState(){if(!S.clips.length||!S.subs.length)return'';const tr=S.subs.filter(s=>s.km).length;if(!tr)return'';const v=S.subs.filter(s=>hasBuf(s)).length;return v>=Math.max(1,S.subs.length*.9)?'dl':'voice'}
+function actState(){if(S.clips.length&&!S.subs.length&&!AUTO_ST&&!Q.run)return'sub';if(!S.clips.length||!S.subs.length)return'';const tr=S.subs.filter(s=>s.km).length;if(!tr)return'';const v=S.subs.filter(s=>hasBuf(s)).length;return v>=Math.max(1,S.subs.length*.9)?'dl':'voice'}
 function actHome(){const b=$('#actBar'),pg=document.querySelector('.page.on');if(b&&pg&&b.parentNode!==pg)pg.prepend(b)}
 function actPaint(force){const b=$('#actBar');if(!b)return;actHome();const st=actState();if(st===b.dataset.st&&!force)return;b.dataset.st=st;b.hidden=!st;if(!st){b.innerHTML='';return}
- if(st==='voice'){b.innerHTML=`<div class="ab-h">✅ អាន Sub & បកប្រែរួច · ${S.subs.length} បន្ទាត់</div><div class="ab-c">${[['pis','👨 ពិសិដ្ឋ'],['srm','👩 ស្រីមុំ'],['simple','👫 ប្រុស/ស្រី']].map(([v,t])=>`<button class="chip${(S.asr.cast||'simple')===v?' on':''}" data-vc="${v}">${t}</button>`).join('')}</div><button class="btn big ab-go" id="abVoice">🔊 បង្កើតសំឡេងខ្មែរ</button>`;
+ if(st==='sub'){b.innerHTML=`<div class="ab-h">🎬 វីដេអូរួចរាល់ · ${S.clips.length} វីដេអូ</div><div class="note" style="margin:0 0 8px">ចុចប៊ូតុងខាងក្រោម ដើម្បីអាន Sub ចិន ហើយបកប្រែជាខ្មែរ</div><button class="btn big ab-go" id="abSub">🤖 អាន Sub & បកប្រែជាខ្មែរ</button>`;$('#abSub').onclick=()=>{buzz();autoSubTr()}}
+ else if(st==='voice'){b.innerHTML=`<div class="ab-h">✅ អាន Sub & បកប្រែរួច · ${S.subs.length} បន្ទាត់</div><div class="ab-c">${[['pis','👨 ពិសិដ្ឋ'],['srm','👩 ស្រីមុំ'],['simple','👫 ប្រុស/ស្រី']].map(([v,t])=>`<button class="chip${(S.asr.cast||'simple')===v?' on':''}" data-vc="${v}">${t}</button>`).join('')}</div><button class="btn big ab-go" id="abVoice">🔊 បង្កើតសំឡេងខ្មែរ</button>`;
   b.querySelectorAll('[data-vc]').forEach(x=>x.onclick=()=>{const v=x.dataset.vc;S.asr.cast=v;save();if(v==='pis'||v==='srm')castOne(v,true);else if(S.subs.every(s=>s.f0>0))castSimple(true);actPaint(true)});
   $('#abVoice').onclick=async()=>{if(S.mix.mode!=='ai')setMode('ai');if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច — ចុចទាញយកខាងក្រោម',3500);showAct()}}
  else{b.innerHTML=`<div class="ab-h">🎉 Dub រួចរាល់ — ទាញយកវីដេអូ</div><div class="dlq" data-dlq></div>`;dlqBind(b)}}
