@@ -618,7 +618,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1156,6 +1156,7 @@ async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.
  * • hybridExport(): the phone plays the video, every new frame is drawn and handed straight from the canvas to the hardware encoder
  *   (no JPEG, no copying to Java) — several times faster than the old phone path and no dropped frames
  * • fastProbe(): checks once whether this phone can decode video frames itself (fastest path); remembered */
+const EXPM={how:''};
 function blender(FPS,W,H){const on=FPS>=50;let PV=null,px=null,pt=-1;if(on){PV=document.createElement('canvas');PV.width=W;PV.height=H;px=PV.getContext('2d')}const MX=on?document.createElement('canvas'):null;if(MX){MX.width=W;MX.height=H}const mx=MX&&MX.getContext('2d');
  return{emit(ts,enc){if(on&&pt>=0){const gap=ts-pt;if(gap>1/50&&gap<.2){mx.globalAlpha=1;mx.drawImage(PV,0,0);mx.globalAlpha=.5;mx.drawImage(cv,0,0,W,H);mx.globalAlpha=1;enc(MX,pt+gap/2)}}enc(cv,ts);if(on){px.drawImage(cv,0,0,W,H);pt=ts}}}}
 async function encPlan(){if(!window.VideoEncoder||!window.AudioEncoder||!window.Mp4Muxer||S.fast===false)return null;
@@ -1171,14 +1172,19 @@ async function fastProbe(plan){const c=LS.get('fastOK',null);if(c&&c.v===2)retur
   for(const f0 of fr.slice(-4)){try{const f=await frameSafe(f0);x.drawImage(f,0,0,48,48);if(f!==f0)try{f.close&&f.close()}catch(e){}const d=x.getImageData(0,0,48,48).data;let s1=0,s2=0;for(let p=0;p<d.length;p+=4){const l=(d[p]+d[p+1]+d[p+2])/3;s1+=l;s2+=l*l}const n=d.length/4,mean=s1/n,sd=Math.sqrt(Math.max(0,s2/n-mean*mean));best=Math.max(best,mean>8||sd>6?1:0)}catch(e){}}
   fr.forEach(f=>{try{f.close()}catch(e){}});try{dec.close()}catch(e){}ok=fr.length>=3&&best>0}catch(e){ok=false}
  LS.set('fastOK',{v:2,ok});return ok}
-async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS=outFps(),SR=aenc.sampleRate,RT=expRates(b-a);liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
+async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS=outFps(),RT=expRates(b-a);
+ /* v5.3 phone: the page encodes the picture (fast, GPU) but the phone's own MediaMuxer + AAC writes a normal MP4 that every gallery app can play */
+ const NAT=NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStartExt)&&LS.get('hybNat',true)!==false,SR=NAT?44100:aenc.sampleRate;let nid=null;
+ if(NAT){nid=DubNative.encStartExt(W,H,FPS,SR,2,160000);if(!nid||nid.startsWith('ERR'))throw Error('muxer: '+nid)}liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
- const mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'fragmented',firstTimestampBehavior:'offset'});
- let err=null,vN=0,vB=0;const ve=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;mux.addVideoChunk(c,m)},error:e=>err=e});ve.configure({...venc,bitrate:RT.v*(FPS===60?1.35:1)});
- const ae=new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});ae.configure({...aenc,bitrate:Math.max(aenc.codec==='opus'?64e3:96e3,RT.a)});const BL=blender(FPS,W,H);
+ const mux=NAT?null:new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'in-memory',firstTimestampBehavior:'offset'});
+ let err=null,vN=0,vB=0;const ve=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;if(NAT){const u=new Uint8Array(c.byteLength);c.copyTo(u);if(DubNative.encSample(nid,u8b64(u),c.timestamp,c.type==='key')===-2)err=Error(DubNative.encError(nid))}else mux.addVideoChunk(c,m)},error:e=>err=e});
+ ve.configure({...venc,bitrate:RT.v*(FPS===60?1.35:1),...(NAT?{avc:{format:'annexb'}}:{})});
+ const ae=NAT?null:new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});if(ae)ae.configure({...aenc,bitrate:Math.max(aenc.codec==='opus'?64e3:96e3,RT.a)});const BL=blender(FPS,W,H);
  let nextA=a,frames=0,lastKey=-1e9,rate=clamp(+LS.get('hybRate',1)||1,.4,2.5),stalls=0,fT=performance.now(),fN=0,stallN=0;const span=b-a,t0w=performance.now();
  const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s0=nextA,e=Math.min(b,s0+8);const buf=await mixWindow(s0,e,SR,D);const n=buf.length,data=new Float32Array(n*2);data.set(buf.getChannelData(0),0);data.set(buf.getChannelData(1),n);
-   const ad=new AudioData({format:'f32-planar',sampleRate:SR,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round((s0-a)*1e6),data});ae.encode(ad);ad.close();nextA=e}};
+   if(NAT){const l=buf.getChannelData(0),r=buf.getChannelData(1),i16=new Int16Array(n*2);for(let i=0;i<n;i++){let x=l[i];i16[2*i]=x>1?32767:x<-1?-32768:x*32767;x=r[i];i16[2*i+1]=x>1?32767:x<-1?-32768:x*32767}DubNative.encAudio(nid,u8b64(new Uint8Array(i16.buffer)))}
+   else{const ad=new AudioData({format:'f32-planar',sampleRate:SR,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round((s0-a)*1e6),data});ae.encode(ad);ad.close()}nextA=e}};
  const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`⚡ កំពុងបង្កើតវីដេអូ ${label?label+' · ':''}${Math.round(k*100)}% · ${FPS}fps\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))} · ល្បឿន ×${x.toFixed(1)}`,k)};
  let off=0;
  try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),el=c.m.el,o0=off;
@@ -1197,9 +1203,13 @@ async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS
      if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},600);
     el.playbackRate=rate;el.requestVideoFrameCallback(onF);el.play().catch(e=>rej(e))});
    if(busy.cancel||err)break;off+=d;if(off>=b)break}
-  if(err)throw err;if(busy.cancel)return null;await pumpA(b);busy.set('⚡ កំពុងបញ្ចប់វីដេអូ...',null);await ve.flush();await ae.flush();
-  if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});mux.finalize()}
- finally{try{ve.close()}catch(e){}try{ae.close()}catch(e){}}
+  if(err)throw err;if(busy.cancel){if(NAT)DubNative.encCancel(nid);return null}await pumpA(b);busy.set('⚡ កំពុងបញ្ចប់វីដេអូ...',null);await ve.flush();if(ae)await ae.flush();
+  if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});
+  if(NAT){if(err)throw err;while(DubNative.encQueued(nid)>0)await sleep(20);const name=outFileName(label,'mp4');const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===nid)res(r)};DubNative.encFinish(nid,name,S.out.sub||'')});nid=null;
+   if(!o.ok)throw Error(o.err||'muxer');EXPM.how=`⚡ GPU ${FPS}fps`;return{native:true,name,size:o.size,uri:o.uri||'',url:o.url,type:'video/mp4',frames}}
+  mux.finalize()}
+ catch(e){if(nid){try{DubNative.encCancel(nid)}catch(x){}}throw e}
+ finally{try{ve.close()}catch(e){}try{ae&&ae.close()}catch(e){}}EXPM.how=`⚡ GPU ${FPS}fps`;
  if(err)throw err;if(!seq){const all=new Uint8Array(pos);for(const x of parts)all.set(x.d,x.p);parts=[{d:all}]}return new File(parts.map(x=>x.d),outFileName(label,'mp4'),{type:'video/mp4'})}
 /* 📚 finished videos kept in a list inside the app */
 const LIB={get:()=>LS.get('lib',[]),add(f){const l=LIB.get().filter(x=>x.uri!==f.uri);l.unshift({name:f.name,uri:f.uri||'',url:f.url||'',size:f.size||0,at:Date.now()});LS.set('lib',l.slice(0,60));libPaint()}};
@@ -1212,7 +1222,7 @@ function libPaint(){const box=$('#libList');if(!box)return;const l=LIB.get();$('
 async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;liveSched();const sched=LIVE.sched,iv=LIVE.iv,L=liveLevels();
  const D={sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);const SR=aenc.sampleRate;
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
- const FPS=outFps(),mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'fragmented',firstTimestampBehavior:'offset'});
+ const FPS=outFps(),mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'in-memory',firstTimestampBehavior:'offset'});EXPM.how=`🚀 Decode ${FPS}fps`;
  let err=null,vN=0,vB=0,decN=0;const RT=expRates(b-a);const venc2=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;mux.addVideoChunk(c,m)},error:e=>err=e});venc2.configure({...venc,framerate:FPS,bitrate:RT.v*(FPS===60?1.35:1),...(sw?{hardwareAcceleration:'prefer-software'}:{})});const BL=blender(FPS,W,H);
  const ae=new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});ae.configure({...aenc,bitrate:Math.max(aenc.codec==='opus'?64e3:96e3,RT.a)});
  let nextA=a,lastKey=-1e9,frames=0;const t0w=performance.now(),span=b-a;
@@ -1825,15 +1835,15 @@ $('#outSplit').checked=!!S.out.split;$('#outSplit').onchange=e=>{S.out.split=e.t
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
  if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))return;pause();if(!(await ensureAI()))return;ensureAC();await AC.resume();if(MIX.dirty)await buildMix();layout();
  const R=partRanges(),title0=S.title;let wl=null;try{wl=await navigator.wakeLock?.request('screen')}catch(e){}if(NATIVE)DubNative.keepAwake(true);
- P.exporting=true;layout();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
+ P.exporting=true;EXPM.how='';layout();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
  try{for(let k=0;k<R.length;k++){if(busy.cancel)break;const lbl=R.length>1?`ភាគ ${k+1}`:'';
    TITLE_T0=R[k][0];let f=null;
    if(!PC&&NATIVE&&!f){/* v5.2 phone: fastest working path first */
     if(plan===undefined)plan=await fastPlan().catch(()=>null);
-    if(plan&&(await fastProbe(plan))){try{busy.set('⚡ Export លឿន...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,false);if(!f&&busy.cancel)break}catch(e){console.warn('fast',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('fastOK',{v:2,ok:false})}}
+    if(plan&&plan.acodec==='aac'&&(await fastProbe(plan))){try{busy.set('⚡ Export លឿន...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,false);if(!f&&busy.cancel)break}catch(e){console.warn('fast',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('fastOK',{v:2,ok:false})}}
     if(!f){const hp=await encPlan().catch(()=>null);if(hp&&LS.get('hybOK',true)!==false){try{f=await hybridExport(R[k][0],R[k][1],lbl,hp);if(!f&&busy.cancel)break}catch(e){console.warn('hybrid',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('hybOK',false);toast('⚡ '+String(e.message||e).slice(0,70)+' — ប្ដូរវិធីផ្សេង',3500)}}}
     plan=null}
-   if(!f&&NENC&&S.nenc!==false){try{f=await nativeExport(R[k][0],R[k][1],lbl,outFileName(lbl||'','mp4'));if(!f&&busy.cancel)break}catch(e){console.warn('nativeExport',e);if(busy.cancel)break;toast('📱 '+String(e.message||e).slice(0,80)+' — ប្ដូរវិធីផ្សេង',4000)}}
+   if(!f&&NENC&&S.nenc!==false){EXPM.how='📱 JPEG (ចាស់)';try{f=await nativeExport(R[k][0],R[k][1],lbl,outFileName(lbl||'','mp4'));if(!f&&busy.cancel)break}catch(e){console.warn('nativeExport',e);if(busy.cancel)break;toast('📱 '+String(e.message||e).slice(0,80)+' — ប្ដូរវិធីផ្សេង',4000)}}
    if(!f&&plan===undefined)plan=await fastPlan().catch(()=>null);
    if(!f&&plan){try{f=await fastExport(R[k][0],R[k][1],lbl,plan,S.fastSW);if(!f)break}catch(e){console.warn(e);if(busy.cancel)break;
      if(!S.fastSW){try{busy.set('🔁 កំពុងសាកម្ដងទៀត (វិធីសុវត្ថិភាព)...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,true);if(f){S.fastSW=true;LS.set('fastSW',true)}}catch(e2){console.warn(e2)}}
@@ -1843,7 +1853,7 @@ $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដា�
  if(!files.length)return toast('បានបោះបង់');if(S.out.split){try{await saveMp3(false,'សំឡេងខ្មែរ')}catch(e){}}BG.done=files.length>1?`Export រួច ${files.length} ភាគ`:'Export រួចរាល់';lastFile=files[files.length-1];
  if(NATIVE){busy.on('💾 កំពុងរក្សាទុក...',null);try{for(const f of files)if(!f.uri&&!f.native){f.uri=await nativeSave(f);LIB.add(f)}}catch(e){toast('✕ រក្សាទុកមិនបាន: '+e.message,5000)}busy.off()}
  const secs=Math.round((Date.now()-tStart)/1000),tot=files.reduce((x,f)=>x+f.size,0)/1e6,where=PC?(S.out.dir||'Videos\\SK ProKH'):NATIVE?'Movies/SK ProKH/'+(S.out.sub||''):'Downloads';
- $('#expOut').innerHTML=`<div class="card" style="margin-top:14px;border-color:var(--acc)"><div class="okbadge">✅ ទាញយករួចរាល់ · ${files.length>1?files.length+' ភាគ · ':''}${tot<10?tot.toFixed(1):Math.round(tot)} MB · ${secs} វិនាទី</div>
+ $('#expOut').innerHTML=`<div class="card" style="margin-top:14px;border-color:var(--acc)"><div class="okbadge">✅ ទាញយករួចរាល់ · ${files.length>1?files.length+' ភាគ · ':''}${tot<10?tot.toFixed(1):Math.round(tot)} MB · ${secs} វិនាទី</div><div class="note">${EXPM.how||'📱'} · ល្បឿន ×${(files.reduce((x,f)=>x,0)||0,(partRanges().reduce((x,r)=>x+r[1]-r[0],0)/Math.max(1,secs)).toFixed(1))}</div>
   <div class="note">📁 រក្សាទុកក្នុង <b>${esc(where)}</b></div>`+files.map((f,k)=>`<div class="prev" style="margin-top:12px"><div class="row" style="justify-content:space-between"><b>🎬 ${esc(f.name)}</b><span class="note" style="margin:0">${(f.size/1e6).toFixed(1)} MB</span></div>
   <video controls playsinline preload="metadata" src="${f.native?f.url:URL.createObjectURL(f)}"></video><div class="row" style="margin-top:8px">${NATIVE?`<button class="btn g" data-open="${k}">▶ បើក</button><button class="btn" data-sh="${k}">${PC?'📂 បើក Folder':'📤 ចែករំលែក'}</button>`:`<button class="btn" data-sh="${k}">⤓ ទាញយក</button>`}</div></div>`).join('')+`</div>`;
  $('#expOut').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{const f=files[+b.dataset.open];if(f.uri)DubNative.open(f.uri,f.type||'video/mp4')});
