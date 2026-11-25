@@ -324,6 +324,17 @@ html.pc .stage-row .stage-wrap{aspect-ratio:auto!important;max-height:none!impor
 @keyframes spin{to{transform:rotate(360deg)}}html.pc .busy-pill{bottom:22px;left:22px}
 body.mlock .vbar,body.mlock #railR [data-r=b5],body.mlock #railR [data-r=f5],body.mlock #scrub{pointer-events:none;opacity:.45}
 .sub-new{animation:subnew .8s ease-out}@keyframes subnew{from{background:rgba(245,197,66,.25)}}
+/* v5.4 ⚡ Auto Run (APK): queue of videos processed one by one, auto-saved to the gallery */
+#pg-auto #actBar{display:none!important}body.aurun #busyPill{display:none!important}
+.au-hero{border-color:rgba(245,197,66,.55)!important;background:radial-gradient(120% 90% at 0 0,rgba(139,77,255,.22),transparent 60%),var(--card)!important}
+.au-it{border:1px solid rgba(192,192,210,.2);border-radius:18px;padding:12px 12px 10px;margin:10px 0;background:linear-gradient(160deg,#170f26,#0d0915)}
+.au-it.run{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,197,66,.18),0 0 22px rgba(139,77,255,.25)}.au-it.ok{border-color:rgba(60,200,120,.55)}.au-it.bad{border-color:rgba(224,36,58,.6)}
+.au-h{display:flex;align-items:center;gap:8px}.au-h .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;font-size:13.5px}
+.au-n{min-width:30px;height:24px;border-radius:12px;background:rgba(139,77,255,.35);display:grid;place-items:center;font-size:11.5px;font-weight:800}
+.au-st{font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:12px;background:rgba(255,255,255,.08);white-space:nowrap}.au-it.ok .au-st{background:rgba(60,200,120,.2);color:#7dffb0}.au-it.run .au-st{background:rgba(245,197,66,.2);color:var(--gold)}.au-it.bad .au-st{background:rgba(224,36,58,.2);color:#ff8a96}
+.au-msg{font-size:12px;opacity:.8;margin:7px 0 6px;min-height:15px}.au-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}.au-bar i{display:block;height:100%;background:linear-gradient(90deg,#8b4dff,#f5c542);border-radius:4px;transition:width .4s}
+.au-b{display:flex;gap:6px;margin-left:auto}.au-b button{width:34px;height:30px;border-radius:10px;border:1px solid rgba(192,192,210,.25);background:rgba(255,255,255,.05);color:#fff;font-size:14px;padding:0;cursor:pointer}
+.au-b button.sv{background:var(--gold);color:#1a1205;border:0;width:auto;padding:0 10px;font-weight:800;font-size:12px}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
@@ -542,6 +553,15 @@ body.mlock .vbar,body.mlock #railR [data-r=b5],body.mlock #railR [data-r=f5],bod
         <div class="note" id="expNote">⚡ Export លឿនជាងពេលពិតច្រើនដង (ប្រើ GPU) — បើទូរសព្ទ/PC មិនគាំទ្រ វានឹងប្រើវិធីធម្មតា (តាមពេលពិត)។</div>
         <div id="expOut"></div></div>
     </section>
+    <section class="page" id="pg-auto">
+      <div class="card au-hero"><h3><span class="n">⚡</span> Auto — ដាក់វីដេអូ បកប្រែ Auto</h3>
+        <div class="note" style="margin:-2px 0 12px">ជ្រើសវីដេអូច្រើន → App <b>អាន Sub · បកប្រែ · បង្កើតសំឡេង · ទាញយកចូល Gallery</b> ដោយខ្លួនឯង ម្ដងមួយៗ</div>
+        <button class="btn big shine" id="auAdd">＋ ជ្រើសវីដេអូ</button>
+        <div class="row" style="margin-top:10px"><button class="btn g" id="auSet">⚙ ការកំណត់ Auto Run</button><button class="btn" id="auGo">▶ ចាប់ផ្ដើម</button></div>
+        <div class="note" id="auSum" style="margin-top:8px"></div></div>
+      <div id="auList"></div>
+      <input type="file" id="auFile" accept="video/*" multiple hidden>
+    </section>
     <section class="page" id="pg-poster">
       <div class="card"><h3><span class="n">🖼</span> បកប្រែ Poster ជាខ្មែរ</h3>
         <div class="hint">✨ <span>ដាក់រូប Poster (ចិន/អង់គ្លេស...) → App <b>រកអក្សរ · បកប្រែ · លុបអក្សរចាស់ · រចនាជាខ្មែរ</b> ដោយស្វ័យប្រវត្តិ</span></div>
@@ -570,6 +590,7 @@ body.mlock .vbar,body.mlock #railR [data-r=b5],body.mlock #railR [data-r=f5],bod
   <button data-p="pg-sub"><i>💬</i>Sub</button>
   <button data-p="pg-voice"><i>🔊</i>សំឡេង</button>
   <button data-p="pg-exp"><i>⬇</i>ទាញយក</button>
+  <button data-p="pg-auto" id="navAuto" style="display:none"><i>⚡</i>Auto</button>
   <button data-p="pg-poster" id="navPoster" style="display:none"><i>🖼</i>Poster</button>
 </nav>
 <div id="back"></div><div id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
@@ -618,7 +639,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.3';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -663,8 +684,8 @@ const Q={auto:LS.get('qAuto',false),ids:[],run:false,found:false,cur:null,n:0};
 const QST={wait:'⏳ រង់ចាំក្នុងជួរ',sub:'🔍 កំពុងអាន Sub...',tr:'🌐 កំពុងបកប្រែ...',tts:'🔊 កំពុងបង្កើតសំឡេង...',ok:'✅ រួចរាល់',bad:'⚠ មិនបាន'};
 const busy={cancel:false,ctrl:new AbortController(),get signal(){return this.ctrl.signal},on(m,p=null){this.cancel=false;this.ctrl=new AbortController();clearTimeout(this.mt);$('#busy').classList.add('on');if(this.mini){$('#busy').classList.add('mini');$('#busyPill').hidden=false}bgStart(m);this.set(m,p)},
  mini:false,
- set(m,p){if(m!=null){$('#busyT').textContent=m;$('#busyPT').textContent=String(m).replace(/\n/g,' · ')}$('#busyPP').textContent=p==null?'':Math.round(clamp(p,0,1)*100)+'%';if(BG.on&&Date.now()-BG.lastT>900){BG.lastT=Date.now();try{DubNative.bgProgress(String(m||BG.msg||'').replace(/\n/g,' · '),p==null?-1:Math.round(clamp(p,0,1)*100))}catch(e){}}const r=$('#ring');if(p==null){r.classList.add('ind');$('#ringC').style.strokeDashoffset=251.3*.72;$('#ringP').textContent=''}else{r.classList.remove('ind');$('#ringC').style.strokeDashoffset=251.3*(1-clamp(p,0,1));$('#ringP').textContent=Math.round(clamp(p,0,1)*100)+'%'}},
- off(){$('#busy').classList.remove('on');bgStop();clearTimeout(this.mt);this.mt=setTimeout(()=>{if(!$('#busy').classList.contains('on')){this.mini=false;$('#busy').classList.remove('mini');$('#busyPill').hidden=true}},1800)}};
+ set(m,p){if(m!=null){$('#busyT').textContent=m;$('#busyPT').textContent=String(m).replace(/\n/g,' · ')}if(typeof AUTO!=='undefined'&&AUTO.cur){const it=AUTO.cur;if(m!=null)it.msg=String(m).split('\n')[0];if(p!=null)it.pct=it.phase==='exp'?.6+.4*clamp(p,0,1):it.phase==='tts'?.5+.1*clamp(p,0,1):it.phase==='sub'?.05+.45*clamp(p,0,1):clamp(p,0,1);auPaint()}$('#busyPP').textContent=p==null?'':Math.round(clamp(p,0,1)*100)+'%';if(BG.on&&Date.now()-BG.lastT>900){BG.lastT=Date.now();try{DubNative.bgProgress(String(m||BG.msg||'').replace(/\n/g,' · '),p==null?-1:Math.round(clamp(p,0,1)*100))}catch(e){}}const r=$('#ring');if(p==null){r.classList.add('ind');$('#ringC').style.strokeDashoffset=251.3*.72;$('#ringP').textContent=''}else{r.classList.remove('ind');$('#ringC').style.strokeDashoffset=251.3*(1-clamp(p,0,1));$('#ringP').textContent=Math.round(clamp(p,0,1)*100)+'%'}},
+ off(){$('#busy').classList.remove('on');bgStop();clearTimeout(this.mt);this.mt=setTimeout(()=>{if(!$('#busy').classList.contains('on')&&!(typeof AUTO!=='undefined'&&AUTO.run)){this.mini=false;$('#busy').classList.remove('mini');$('#busyPill').hidden=true}},1800)}};
 $('#busyMin').onclick=e=>{e.stopPropagation();if(P.exporting){toast('⏳ កំពុងទាញយក — សូមរង់ចាំបន្តិច');return}busy.mini=true;$('#busy').classList.add('mini');$('#busyPill').hidden=false;buzz(15);toast('✓ កំពុងដំណើរការនៅខាងក្រោយ — អាចមើល Sub ដែលបករួចបាន',3000)};
 $('#busyPill').onclick=()=>{busy.mini=false;$('#busy').classList.remove('mini');$('#busyPill').hidden=true};
 $('#busyX').onclick=()=>{busy.cancel=true;try{busy.ctrl.abort()}catch(e){}busy.off();buzz(20);toast('⏹ បានបោះបង់');try{for(const m of S.media){if(m.el.playbackRate!==1){m.el.pause();m.el.playbackRate=1}}}catch(e){}};
@@ -727,8 +748,8 @@ $('#palBtn').onclick=()=>{const u=LS.get('ui',{});sheet(`<h4>🎨 ពណ៌ & �
 setTimeout(applyUI,0);
 $('#themeBtn').onclick=()=>{setTimeout(applyUI,0);document.body.classList.toggle('light');LS.set('light',document.body.classList.contains('light'))};
 const nav=$('#nav'),pill=nav.querySelector('.pill');const mvPill=()=>{const b=nav.querySelector('button.on');pill.style.left=b.offsetLeft+'px';pill.style.width=b.offsetWidth+'px'};
-nav.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>goPage(b.dataset.p));
-function goPage(id){try{LS.set('page',id)}catch(e){}buzz(8);if(typeof OCRUI!=='undefined'){OCRUI.edit=id==='pg-sub'&&asrEngine()==='ocr';setTimeout(renderBox,0)}const btns=[...nav.querySelectorAll('button')];const ni=btns.findIndex(b=>b.dataset.p===id);btns.forEach((b,i)=>b.classList.toggle('on',i===ni));
+nav.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{GP_USER=true;try{goPage(b.dataset.p)}finally{GP_USER=false}});
+let GP_USER=false;function goPage(id){if(typeof AUTO!=='undefined'&&AUTO.run&&id!=='pg-auto'&&!GP_USER)return;try{LS.set('page',id)}catch(e){}buzz(8);if(typeof OCRUI!=='undefined'){OCRUI.edit=id==='pg-sub'&&asrEngine()==='ocr';setTimeout(renderBox,0)}const btns=[...nav.querySelectorAll('button')];const ni=btns.findIndex(b=>b.dataset.p===id);btns.forEach((b,i)=>b.classList.toggle('on',i===ni));
  $$('.page').forEach((p,i)=>{p.classList.toggle('on',p.id===id);p.classList.toggle('left',i<ni)});mvPill();setTimeout(()=>{try{actHome()}catch(e){}},0);if(id==='pg-exp'){expNote();try{dlqPaint&&dlqPaint()}catch(e){}}document.body.classList.toggle('pvOn',id==='pg-poster');if(id==='pg-poster'){try{for(const m of S.media)m.el.pause()}catch(e){}}}
 requestAnimationFrame(mvPill);addEventListener('resize',mvPill);setTimeout(mvPill,1800);
 
@@ -1832,6 +1853,62 @@ async function saveMp3(full,label){ensureAC();await AC.resume();busy.on('🎵 �
  catch(e){toast('✕ MP3: '+(e.message||e),5000);return null}finally{busy.off()}}
 $('#mp3Voice').onclick=()=>saveMp3(false);$('#mp3Full').onclick=()=>saveMp3(true);
 $('#outSplit').checked=!!S.out.split;$('#outSplit').onchange=e=>{S.out.split=e.target.checked;save();toast(e.target.checked?'🎬+🎵 វីដេអូ (គ្មានសំឡេងខ្មែរ) + MP3 សំឡេងខ្មែរ ដាច់ពីគ្នា':'🎬 វីដេអូពេញ')};
+/* ============ v5.4 ⚡ Auto Run (APK only): pick many videos → each one is read, translated, voiced and exported to the gallery by itself ============ */
+const AUTO={list:[],run:false,stop:false,cur:null,cfg:{src:'ocr',voice:'detect',burn:true,orig:'ai',erase:true,rate:0,dub:1.2,bgm:.9,fps:30,res:720,...LS.get('autoCfg',{})}};
+const AUST={wait:'⏳ រង់ចាំ',run:'⚙ កំពុងធ្វើ',ok:'✅ រួចរាល់',bad:'⚠ មិនបាន'};
+let AUPT=0;function auPaint(force){const n=performance.now();if(!force&&n-AUPT<350)return;AUPT=n;const b=$('#auList');if(!b)return;const L=AUTO.list;
+ b.innerHTML=L.map((it,i)=>`<div class="au-it ${it.st}" data-i="${i}"><div class="au-h"><span class="au-n">#${i+1}</span><span class="nm">🎬 ${esc(it.name)}</span><span class="au-st">${it.st==='run'?Math.round((it.pct||0)*100)+'%':AUST[it.st]}</span>
+  <span class="au-b">${it.st==='ok'&&it.out?`<button data-a="open" title="មើល">▶</button><button data-a="share" title="ចែករំលែក">📤</button>`:''}${it.st==='bad'?`<button data-a="retry" title="សាកម្ដងទៀត">🔁</button>`:''}${it.st!=='run'?`<button data-a="del" title="ដកចេញ">✕</button>`:''}</span></div>
+  <div class="au-msg">${esc(it.msg||(it.st==='wait'?'រង់ចាំវេន...':''))}</div><div class="au-bar"><i style="width:${it.st==='ok'?100:Math.round((it.pct||0)*100)}%"></i></div></div>`).join('')+(L.length?`<button class="btn g" id="auMore" style="width:100%;margin-top:4px">＋ បន្ថែមវីដេអូ</button>`:'');
+ const ok=L.filter(x=>x.st==='ok').length,w=L.filter(x=>x.st==='wait').length;$('#auSum').textContent=L.length?`${L.length} វីដេអូ · ✅ ${ok} រួច · ⏳ ${w} រង់ចាំ${AUTO.run?' · ⚙ កំពុងដំណើរការ':''}`:'⚙ កំណត់ម្ដង — App ចាំការកំណត់សម្រាប់លើកក្រោយ';
+ $('#auGo').textContent=AUTO.run?'⏹ ឈប់':'▶ ចាប់ផ្ដើម';$('#auGo').classList.toggle('g',AUTO.run);const m=$('#auMore');if(m)m.onclick=()=>$('#auFile').click()}
+$('#auList').addEventListener('click',e=>{const bt=e.target.closest('button[data-a]');if(!bt)return;const it=AUTO.list[+bt.closest('.au-it').dataset.i];if(!it)return;const a=bt.dataset.a;
+ if(a==='open'&&it.out)DubNative.open(it.out.uri,'video/mp4');if(a==='share'&&it.out)DubNative.share(it.out.uri,'video/mp4');if(a==='retry'){it.st='wait';it.msg='';it.pct=0;if(!AUTO.run)autoRun()}if(a==='del'){AUTO.list.splice(AUTO.list.indexOf(it),1)}auPaint(true)});
+$('#auAdd').onclick=()=>$('#auFile').click();
+$('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+ if(fs.length>1&&(await ask(`<b>🔗 បញ្ចូលវីដេអូទាំង ${fs.length} ជាមួយគ្នា (Merge)?</b><div class="note" style="margin-top:6px">${fs.map((f,i)=>`${i+1}. ${esc(f.name)}`).join('<br>')}</div><div class="note">• <b>Merge</b> = ភ្ជាប់ជាវីដេអូតែមួយ<br>• <b>ម្ដងមួយៗ</b> = បកប្រែ & ទាញយកដាច់ពីគ្នា</div>`,'🔗 Merge ចូលគ្នា','ម្ដងមួយៗ')))
+  AUTO.list.push({name:fs.map(f=>f.name.replace(/\.[^.]+$/,'')).join(' + ').slice(0,60),files:fs,st:'wait',pct:0});
+ else fs.forEach(f=>AUTO.list.push({name:f.name.replace(/\.[^.]+$/,''),files:[f],st:'wait',pct:0}));
+ auPaint(true);buzz(20);if(!AUTO.run)toast(`＋ ${fs.length} វីដេអូ · ចុច ▶ ចាប់ផ្ដើម`,3000)};
+function auCfgSheet(then){const c=AUTO.cfg;const ch=(id,opts,v)=>`<div class="chips" id="${id}">${opts.map(([k,t])=>`<span class="chip${String(v)===String(k)?' on':''}" data-v="${k}">${t}</span>`).join('')}</div>`;
+ sheet(`<h4>⚙ ការកំណត់ Auto Run</h4>
+  <label class="l">📖 យក Sub ពី</label>${ch('acSrc',[['ocr','🔤 អាន Sub លើវីដេអូ'],['whisper','🎧 ស្ដាប់សំឡេង']],c.src)}
+  <label class="l">🎙 សំឡេងតួ</label>${ch('acVoice',[['detect','🧠 ស្គាល់ប្រុស/ស្រី Auto'],['m','👨 ពិសិដ្ឋ'],['f','👩 ស្រីមុំ']],c.voice)}
+  <label class="l">🔈 សំឡេងដើម</label>${ch('acOrig',[['ai','🤖 លុបសំឡេងចិន ទុកភ្លេង'],['mute','🔇 បិទសំឡេងដើម']],c.orig)}
+  <label class="l">🎞 វីដេអូ</label>${ch('acRes',[['540','540p'],['720','720p'],['1080','1080p']],c.res)}${ch('acFps',[['30','30fps'],['60','60fps រលូន']],c.fps)}
+  <label class="chk"><input type="checkbox" id="acBurn"${c.burn?' checked':''}> 💬 បញ្ចូល Sub ខ្មែរលើវីដេអូ</label>
+  <label class="chk"><input type="checkbox" id="acErase"${c.erase?' checked':''}> 🧠 លុប Sub ចិនលើវីដេអូ (AI)</label>
+  <div class="sl"><span>⚡ ល្បឿនសំឡេង</span><input type="range" id="acRate" min="-20" max="40" step="5" value="${c.rate}"><b id="acRateV">${c.rate>0?'+':''}${c.rate}%</b></div>
+  <div class="sl"><span>🎵 ភ្លេង/សំឡេងដើម</span><input type="range" id="acBgm" min="0" max="1.5" step=".05" value="${c.bgm}"><b id="acBgmV">${Math.round(c.bgm*100)}%</b></div>
+  <div class="sl"><span>🔊 សំឡេងខ្មែរ</span><input type="range" id="acDub" min=".5" max="2" step=".05" value="${c.dub}"><b id="acDubV">${Math.round(c.dub*100)}%</b></div>
+  <div class="note">✅ វីដេអូនីមួយៗ រក្សាទុកចូល Gallery (Movies/SK ProKH) ដោយខ្លួនឯង · ទុក App បើក (អាចចុច ✕ ហើយមើលផ្សេងក្នុង App)</div>
+  <div class="row" style="margin-top:14px"><button class="btn g" id="acNo">បិទ</button><button class="btn" id="acOk">${then?'▶ រក្សាទុក & ចាប់ផ្ដើម':'✓ រក្សាទុក'}</button></div>`,b=>{
+  b.querySelectorAll('.chips').forEach(x=>x.onclick=e=>{const t=e.target.closest('.chip');if(!t)return;x.querySelectorAll('.chip').forEach(y=>y.classList.toggle('on',y===t))});
+  const sv=(id,f)=>{const i=b.querySelector('#'+id);i.oninput=()=>b.querySelector('#'+id+'V').textContent=f(+i.value)};sv('acRate',v=>(v>0?'+':'')+v+'%');sv('acBgm',v=>Math.round(v*100)+'%');sv('acDub',v=>Math.round(v*100)+'%');
+  b.querySelector('#acNo').onclick=closeSheet;
+  b.querySelector('#acOk').onclick=()=>{const g=id=>b.querySelector('#'+id+' .chip.on').dataset.v;Object.assign(c,{src:g('acSrc'),voice:g('acVoice'),orig:g('acOrig'),res:+g('acRes'),fps:+g('acFps'),burn:b.querySelector('#acBurn').checked,erase:b.querySelector('#acErase').checked,rate:+b.querySelector('#acRate').value,bgm:+b.querySelector('#acBgm').value,dub:+b.querySelector('#acDub').value});
+   LS.set('autoCfg',c);closeSheet();toast('✓ រក្សាទុកការកំណត់');if(then)then()}})}
+$('#auSet').onclick=()=>auCfgSheet();
+$('#auGo').onclick=()=>{if(AUTO.run){AUTO.stop=true;busy.cancel=true;try{busy.ctrl.abort()}catch(e){}toast('⏹ កំពុងឈប់...');return}if(!AUTO.list.some(x=>x.st==='wait'))return toast(AUTO.list.length?'គ្មានវីដេអូរង់ចាំ':'សូមជ្រើសវីដេអូសិន');
+ if(!LS.get('autoCfg',null))return auCfgSheet(autoRun);autoRun()};
+function auReset(){pause();S.media.forEach(m=>{try{m.el.pause();URL.revokeObjectURL(m.el.src);m.el.remove()}catch(e){}});S.media=[];S.clips=[];S.subs=[];P.cur=-1;P.t=0;MIX.buf=null;MIX.dirty=true;try{AICACHE.clear()}catch(e){}SEQ.key=null;
+ S.speakers=[{id:'p1',name:'តួប្រុស',voice:'km-KH-PisethNeural',pitch:0,rate:0},{id:'p2',name:'តួស្រី',voice:'km-KH-SreymomNeural',pitch:0,rate:0}];clipsChanged();subChanged();renderSpeakers()}
+async function autoOne(it){const c=AUTO.cfg,step=(m,p)=>{it.msg=m;if(p!=null)it.pct=p;auPaint()};
+ auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error('បើកវីដេអូមិនបាន');
+ S.asr.eng=c.src;S.asr.gender=c.voice==='detect';S.style.show=!!c.burn;S.mix.dub=c.dub;S.mix.orig=c.bgm;S.out.res=c.res;S.out.fps=c.fps;setMode(c.orig);save();layout();
+ if(c.erase&&!S.erase.on){try{await eraseToggle(true)}catch(e){}}else if(!c.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}
+ it.phase='sub';step('🔤 កំពុងអាន Sub & បកប្រែ...',.05);await autoSubTr();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.subs.length)throw Error('រក Sub មិនឃើញ');
+ if(c.voice!=='detect'){const id=c.voice==='f'?'p2':'p1';S.subs.forEach(s=>s.sp=id)}S.speakers.forEach(p=>p.rate=c.rate);renderSpeakers();subChanged();
+ it.phase='tts';step('🔊 កំពុងបង្កើតសំឡេងខ្មែរ...',.5);if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))throw Error('បង្កើតសំឡេងមិនបាន (ពិនិត្យ Internet)');
+ it.phase='exp';step('⬇ កំពុងទាញយក...',.6);lastFile=null;await $('#expBtn').onclick();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');
+ const f=lastFile;if(!f)throw Error('ទាញយកមិនបាន');it.out={uri:f.uri||'',url:f.url||'',size:f.size||0,name:f.name};it.msg=`✅ ${((f.size||0)/1e6).toFixed(1)} MB · ${EXPM.how||''} · Movies/SK ProKH`}
+async function autoRun(){if(AUTO.run)return;AUTO.run=true;AUTO.stop=false;busy.mini=true;document.body.classList.add('aurun');goPage('pg-auto');auPaint(true);let n=0;try{DubNative.keepAwake(true)}catch(e){}
+ try{while(!AUTO.stop){const it=AUTO.list.find(x=>x.st==='wait');if(!it)break;it.st='run';it.pct=0;AUTO.cur=it;auPaint(true);
+   try{await autoOne(it);it.st='ok';it.pct=1;n++;buzz(30)}catch(e){it.st=AUTO.stop?'wait':'bad';it.msg='⚠ '+String(e&&e.message||e).slice(0,120);console.warn('auto',e)}
+   AUTO.cur=null;busy.cancel=false;auPaint(true)}}
+ finally{AUTO.run=false;AUTO.cur=null;busy.mini=false;document.body.classList.remove('aurun');$('#busy').classList.remove('mini');$('#busyPill').hidden=true;try{DubNative.keepAwake(false)}catch(e){}auPaint(true);goPage('pg-auto')}
+ if(n){BG.done=`Auto រួច ${n} វីដេអូ`;toast(`✅ Auto រួច ${n} វីដេអូ — រក្សាទុកក្នុង Gallery`,5000)}}
+if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
  if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))return;pause();if(!(await ensureAI()))return;ensureAC();await AC.resume();if(MIX.dirty)await buildMix();layout();
  const R=partRanges(),title0=S.title;let wl=null;try{wl=await navigator.wakeLock?.request('screen')}catch(e){}if(NATIVE)DubNative.keepAwake(true);
@@ -2689,7 +2766,7 @@ function actPaint(force){const b=$('#actBar');if(!b)return;actHome();const st=ac
   b.querySelectorAll('[data-vc]').forEach(x=>x.onclick=()=>{const v=x.dataset.vc;S.asr.cast=v;save();if(v==='pis'||v==='srm')castOne(v,true);else if(S.subs.every(s=>s.f0>0))castSimple(true);actPaint(true)});
   $('#abVoice').onclick=async()=>{if(S.mix.mode!=='ai')setMode('ai');if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច — ចុចទាញយកខាងក្រោម',3500);showAct()}}
  else{b.innerHTML=`<div class="ab-h">🎉 Dub រួចរាល់ — ទាញយកវីដេអូ</div><div class="dlq" data-dlq></div>`;dlqBind(b)}}
-function showAct(){actPaint(true);const b=$('#actBar');if(!b||b.hidden)return;b.classList.remove('ab-in');void b.offsetWidth;b.classList.add('ab-in');try{$('#pages').scrollTo({top:0,behavior:'smooth'})}catch(e){}b.scrollIntoView({behavior:'smooth',block:'start'});buzz(30)}
+function showAct(){if(typeof AUTO!=='undefined'&&AUTO.run)return;actPaint(true);const b=$('#actBar');if(!b||b.hidden)return;b.classList.remove('ab-in');void b.offsetWidth;b.classList.add('ab-in');try{$('#pages').scrollTo({top:0,behavior:'smooth'})}catch(e){}b.scrollIntoView({behavior:'smooth',block:'start'});buzz(30)}
 setInterval(()=>actPaint(),1200);
 /* ============ v3.5: quick download (full / short clips) + Facebook Reels 9:16 ============ */
 const DLF=[['9:16','📱 Reels',9,16],['src','ដើម',4,3],['16:9','YouTube',16,9],['1:1','1:1',1,1]];
