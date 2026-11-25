@@ -639,7 +639,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1138,7 +1138,7 @@ async function frameSafe(f){if(document.hidden&&!PC){try{return await viaCopy(f)
 const NENC=NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStart);
 function u8b64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
 async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.max(16,Math.round(W0/16)*16),H=Math.max(16,Math.round(H0/16)*16),FPS=30,SR=44100,RT=expRates(b-a);
- const id=DubNative.encStart(W,H,FPS,Math.round(Math.max(1.2e6,RT.v)),SR,2,128000);if(!id||id.startsWith('ERR'))throw Error('Encoder: '+(id||'none'));
+ const id=DubNative.encStartTo?DubNative.encStartTo(W,H,FPS,Math.round(Math.max(1.2e6,RT.v)),SR,2,128000,false,name,S.out.sub||''):DubNative.encStart(W,H,FPS,Math.round(Math.max(1.2e6,RT.v)),SR,2,128000);if(!id||id.startsWith('ERR'))throw Error('Encoder: '+(id||'none'));
  liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
  let nextA=a,frames=0,lastPts=-1,rate=clamp(+LS.get('nencRate',.6)||.6,.3,2),stalls=0,errMsg='',fT=performance.now(),fN=0,stallN=0;const span=b-a,t0w=performance.now();
  const fail=()=>{const q=DubNative.encQueued(id);if(q===-2){errMsg=DubNative.encError(id);return true}return false};
@@ -1196,7 +1196,7 @@ async function fastProbe(plan){const c=LS.get('fastOK',null);if(c&&c.v===2)retur
 async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS=outFps(),RT=expRates(b-a);
  /* v5.3 phone: the page encodes the picture (fast, GPU) but the phone's own MediaMuxer + AAC writes a normal MP4 that every gallery app can play */
  const NAT=NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStartExt)&&LS.get('hybNat',true)!==false,SR=NAT?44100:aenc.sampleRate;let nid=null;
- if(NAT){nid=DubNative.encStartExt(W,H,FPS,SR,2,160000);if(!nid||nid.startsWith('ERR'))throw Error('muxer: '+nid)}liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
+ const NAME=outFileName(label,'mp4');if(NAT){nid=DubNative.encStartTo?DubNative.encStartTo(W,H,FPS,0,SR,2,160000,true,NAME,S.out.sub||''):DubNative.encStartExt(W,H,FPS,SR,2,160000);if(!nid||nid.startsWith('ERR'))throw Error('muxer: '+nid)}liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
  const mux=NAT?null:new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'in-memory',firstTimestampBehavior:'offset'});
  let err=null,vN=0,vB=0;const ve=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;if(NAT){const u=new Uint8Array(c.byteLength);c.copyTo(u);if(DubNative.encSample(nid,u8b64(u),c.timestamp,c.type==='key')===-2)err=Error(DubNative.encError(nid))}else mux.addVideoChunk(c,m)},error:e=>err=e});
@@ -1226,7 +1226,7 @@ async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS
    if(busy.cancel||err)break;off+=d;if(off>=b)break}
   if(err)throw err;if(busy.cancel){if(NAT)DubNative.encCancel(nid);return null}await pumpA(b);busy.set('⚡ កំពុងបញ្ចប់វីដេអូ...',null);await ve.flush();if(ae)await ae.flush();
   if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});
-  if(NAT){if(err)throw err;while(DubNative.encQueued(nid)>0)await sleep(20);const name=outFileName(label,'mp4');const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===nid)res(r)};DubNative.encFinish(nid,name,S.out.sub||'')});nid=null;
+  if(NAT){if(err)throw err;while(DubNative.encQueued(nid)>0)await sleep(20);const name=NAME;const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===nid)res(r)};DubNative.encFinish(nid,name,S.out.sub||'')});nid=null;
    if(!o.ok)throw Error(o.err||'muxer');EXPM.how=`⚡ GPU ${FPS}fps`;return{native:true,name,size:o.size,uri:o.uri||'',url:o.url,type:'video/mp4',frames}}
   mux.finalize()}
  catch(e){if(nid){try{DubNative.encCancel(nid)}catch(x){}}throw e}
