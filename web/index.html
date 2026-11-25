@@ -296,6 +296,11 @@ input[type=range]{accent-color:#f5c542}
 @media(max-width:380px){.bro-grid{grid-template-columns:repeat(3,1fr)}}
 html:not(.pc) .pc-only{display:none!important}
 .hum{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:14px;margin-top:8px;background:rgba(255,255,255,.03)}.hum .t{flex:1;min-width:0;font-size:13px}.hum .t small{display:block;opacity:.65}.hum input{width:64px;padding:6px 8px;font-size:13px}.hum .chip{white-space:nowrap}
+.bigplay{position:absolute;left:50%;top:50%;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;border:2px solid rgba(245,197,66,.9);background:radial-gradient(circle at 35% 30%,rgba(139,77,255,.55),rgba(10,6,20,.72));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center;z-index:6;cursor:pointer;box-shadow:0 10px 34px rgba(0,0,0,.55),0 0 0 6px rgba(245,197,66,.12);transition:transform .18s,opacity .25s;padding:0}
+.bigplay svg{width:36px;height:36px;fill:#fff;margin-left:5px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}.bigplay:active{transform:scale(.9)}.bigplay[hidden]{display:none}html.pc .bigplay{width:92px;height:92px;margin:-46px 0 0 -46px}html.pc .bigplay:hover{transform:scale(1.08)}
+.tapfx{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:26px;display:grid;place-items:center;pointer-events:none;opacity:0;z-index:6}
+.tapfx.go{animation:tapfx .55s ease-out}@keyframes tapfx{0%{opacity:.95;transform:scale(.7)}100%{opacity:0;transform:scale(1.5)}}
+#stageWrap.can-tap #cv{cursor:pointer}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
@@ -324,6 +329,7 @@ html:not(.pc) .pc-only{display:none!important}
   <div class="player">
     <div class="stage-wrap" id="stageWrap">
       <div class="stage"><canvas id="cv" width="720" height="1280"></canvas><div id="ovl"></div></div>
+      <button id="bigPlay" class="bigplay" aria-label="Play" hidden><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button><div id="tapFx" class="tapfx"></div>
       <div class="empty" id="empty"><div><b>ចុចដើម្បីដាក់វីដេអូ</b>ជ្រើសពី Gallery · អាចដាក់ច្រើនដើម្បីតបញ្ចូលគ្នា</div></div>
     </div>
     <input type="file" id="vidFile" accept="video/*" multiple hidden>
@@ -581,7 +587,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.8';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.9';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1150,9 +1156,18 @@ async function seek(t){if(!S.clips.length)return;const was=P.playing;if(was)paus
 function stopMix(){liveStop()}
 function startMix(){liveStart()}
 async function play(){if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');ensureAC();await AC.resume();if(MIX.dirty)await buildMix();if(P.t>=total()-.05)await seek(0);if(P.cur<0)await seek(P.t);
- P.playing=true;$('#playBtn').textContent='❚❚';const cm=S.clips[P.cur].m;if(hookEl(cm))cm.el.muted=false;else cm.el.muted=S.mix.mode==='mute';try{await cm.el.play()}catch(e){}liveStart();nextFrame(loop)}
-function pause(){P.playing=false;$('#playBtn').textContent='▶';const pm=S.clips[P.cur]?.m;if(pm){pm.el.pause();pm.el.muted=true}liveStop();SS&&SS.cancel();ui()}
-$('#playBtn').onclick=()=>{buzz();P.playing?pause():play()};$('#back5').onclick=()=>seek(P.t-5);$('#fwd5').onclick=()=>seek(P.t+5);
+ P.playing=true;$('#playBtn').textContent='❚❚';try{$('#bigPlay').hidden=true}catch(e){}const cm=S.clips[P.cur].m;if(hookEl(cm))cm.el.muted=false;else cm.el.muted=S.mix.mode==='mute';try{await cm.el.play()}catch(e){}liveStart();nextFrame(loop)}
+function pause(){P.playing=false;$('#playBtn').textContent='▶';try{bigPlayPaint()}catch(e){}const pm=S.clips[P.cur]?.m;if(pm){pm.el.pause();pm.el.muted=true}liveStop();SS&&SS.cancel();ui()}
+let BOXDRAG=0;$('#playBtn').onclick=()=>{buzz();P.playing?pause():play()};
+/* v4.9: big ▶ in the middle of the video + tap the video to play / pause (like YouTube) */
+function bigPlayPaint(){const b=$('#bigPlay');if(!b)return;const has=S.clips.length>0;b.hidden=!has||P.playing||P.exporting;$('#stageWrap').classList.toggle('can-tap',has)}
+function tapFx(sym){const f=$('#tapFx');f.textContent=sym;f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
+$('#bigPlay').onclick=e=>{e.stopPropagation();if(!S.clips.length)return;buzz();play()};
+$('#stageWrap').addEventListener('click',e=>{if(!S.clips.length||P.exporting)return;const t=e.target;if(t.closest('.bx,.bigplay,#empty,button'))return;if(BOXDRAG&&performance.now()-BOXDRAG<300)return;buzz();if(P.playing){pause();tapFx('❚❚')}else{play();tapFx('▶')}});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&S.clips.length&&!P.exporting){e.preventDefault();P.playing?pause():play()}});
+setInterval(bigPlayPaint,400);
+let BXD=false;$('#ovl').addEventListener('pointerdown',e=>{if(e.target.closest('.bx'))BXD=true},true);window.addEventListener('pointerup',()=>{if(BXD){BXD=false;BOXDRAG=performance.now()}},true);
+$('#back5').onclick=()=>seek(P.t-5);$('#fwd5').onclick=()=>seek(P.t+5);
 function loop(){if(!P.playing)return;const c=S.clips[P.cur];
  if(!P.busy&&c){const el=c.m.el;P.t=offsetOf(P.cur)+(el.currentTime-c.in);
   if(el.currentTime>=c.out-.03||el.ended){if(P.cur<S.clips.length-1){P.busy=true;const ni=P.cur+1,n=S.clips[ni];if(n.m!==c.m)el.pause();if(n.m!==c.m)c.m.el.muted=true;setClip(ni,n.in).then(()=>{P.t=offsetOf(ni);P.busy=false;if(P.playing){if(hookEl(n.m))n.m.el.muted=false;n.m.el.play().catch(()=>{})}})}
