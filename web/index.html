@@ -581,7 +581,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.7';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.8';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1369,10 +1369,17 @@ async function gemModel(force){if(K('mGem')&&!force)return K('mGem');const c=LS.
   const score=n=>{const v=parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/)||[])[1]||0);return v*10+(/-flash$/.test(n)?3:/-flash-latest$/.test(n)?2.5:/flash/.test(n)?1:0)-(/lite|image|tts|live|audio|embed|thinking|exp|preview/.test(n)?5:0)};
   best=ok.filter(n=>/gemini/.test(n)&&/flash/.test(n)).sort((a,b)=>score(b)-score(a))[0]}catch(e){}
  best=best||'gemini-flash-latest';LS.set('gemAuto',{m:best,t:Date.now()});return best}
-async function gemini(parts,schema,temp=.6,retry=true){if(!K('kGem'))throw Error('មិនមាន Gemini key');const model=await gemModel(!retry);
+/* v4.8: no "thinking" (much faster), rate-limit aware: per-minute limit → tells how long to wait; daily limit → switches to the Lite model (own quota) */
+const GEM={lite:0,think:LS.get('gemThink',true)};
+function gemThink(model){if(!GEM.think)return{};if(/2\.5/.test(model))return{thinkingConfig:{thinkingBudget:/pro/.test(model)?128:0}};if(/gemini-(3|flash-latest|flash-lite-latest)/.test(model))return{thinkingConfig:{thinkingLevel:'low'}};return{}}
+async function gemini(parts,schema,temp=.6,retry=true,lite=false){if(!K('kGem'))throw Error('មិនមាន Gemini key');let model=await gemModel(!retry);if(lite||Date.now()<GEM.lite)model='gemini-flash-lite-latest';
  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${K('kGem')}`,{method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({contents:[{parts}],generationConfig:{responseMimeType:'application/json',...(schema?{responseSchema:schema}:{}),temperature:temp}})});
+  body:JSON.stringify({contents:[{parts}],generationConfig:{responseMimeType:'application/json',...(schema?{responseSchema:schema}:{}),temperature:temp,...gemThink(model)}})});
  const d=await r.json().catch(()=>({}));
+ if(r.status===400&&/thinking/i.test(d.error?.message||'')&&GEM.think){GEM.think=false;LS.set('gemThink',false);return gemini(parts,schema,temp,retry,lite)}
+ if(r.status===429||/RESOURCE_EXHAUSTED|quota/i.test(d.error?.status||d.error?.message||'')){const msg=d.error?.message||'',det=JSON.stringify(d.error?.details||[]),daily=/PerDay|per day|daily/i.test(msg+det),w=+((det.match(/"retryDelay":"(\d+)/)||msg.match(/retry in ([\d.]+)s/i)||[])[1])||0;
+  if(model!=='gemini-flash-lite-latest'&&!lite){GEM.lite=Date.now()+(daily?6*36e5:Math.max(30,w)*1e3);try{return await gemini(parts,schema,temp,retry,true)}catch(e2){e2.daily=e2.daily&&daily;throw e2}}
+  const e=Error('Gemini: '+(daily?'អស់កូតាថ្ងៃនេះ':'រវល់')+' (429)');e.rate=true;e.daily=daily;e.wait=w||20;throw e}
  if(!r.ok){const msg=d.error?.message||String(r.status);if(retry&&(r.status===404||/no longer available|not found|deprecated|not supported/i.test(msg))){const sug=(msg.match(/models\/(gemini[\w.\-]+)/g)||[]).map(x=>x.replace('models/','')).find(x=>x!==model);
    if(sug)LS.set('gemAuto',{m:sug,t:Date.now()});else LS.set('gemAuto',null);if(K('mGem')===model){S.keys.mGem='';LS.set('keys',S.keys)}return gemini(parts,schema,temp,false)}throw Error('Gemini: '+msg)}
  return JSON.parse(d.candidates[0].content.parts.map(p=>p.text).join(''))}
@@ -1782,15 +1789,16 @@ async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const 
 /* v4.6: strong AI (Gemini vision) reads the subtitle pictures AND translates them with the story context — much more accurate than on-device OCR */
 const gvOn=()=>aiKey()&&S.ocr.ai!==false;
 function snapJpg(snap){const sn=snap[Math.min(snap.length-1,1)]||snap[0],c=sn.canvas,k=Math.min(1,900/c.width),o=document.createElement('canvas');o.width=Math.round(c.width*k);o.height=Math.round(c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);return o.toDataURL('image/jpeg',.85).split(',')[1]}
-async function gvRead(segs){const todo=segs.filter(x=>x.snapBk);const B=20;let done=0,ctx=[];
+async function gvRead(segs){const todo=segs.filter(x=>x.snapBk);const B=30;let done=0,ctx=[],local=false;
  for(let i=0;i<todo.length;i+=B){if(busy.cancel)return;const b=todo.slice(i,i+B);busy.set(`🧠 AI ខ្លាំង (${aiName()}) កំពុងអាន & បកប្រែ ${done}/${todo.length}`,done/todo.length);
   const parts=[{text:`You are an expert Chinese→Khmer drama subtitle translator. Below are ${b.length} pictures, in time order, each a crop of the burned-in subtitle area of one moment of a Chinese drama.
 For EACH picture: 1) read the subtitle text EXACTLY as written (keep every character; ignore watermarks, logos, channel names, usernames, UI text, and blurry background text). If there is no subtitle, use "". 2) translate it into natural spoken Khmer ACCURATELY and COMPLETELY — every word and meaning, nothing skipped or invented — using the story context of the surrounding lines (who speaks to whom, relationships) so pronouns and terms of address are right. Keep names consistent.${glossList().length?' Use these name translations: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}${ctx.length?'\nEarlier lines for context: '+JSON.stringify(ctx.slice(-8)):''}
 Return {"items":[{"i":0,"zh":"...","km":"..."}, ...]} with exactly ${b.length} items, i = picture number.`}];
   b.forEach((x,k)=>{parts.push({text:'#'+k});parts.push({inlineData:{mimeType:'image/jpeg',data:snapJpg(x.snapBk)}})});
-  let ok=false;for(let t=0;t<3&&!ok&&!busy.cancel;t++){try{const d=await aiLLM(parts,null,.2);const arr=d.items||d;(Array.isArray(arr)?arr:[]).forEach((r,k)=>{const x=b[r&&r.i!=null?+r.i:k];if(!x||!r)return;const zh=cleanOcr(String(r.zh||''));if(zh){x.text=zh;x.km=String(r.km||'').trim();ctx.push({zh,km:x.km})}x.gv=true});ok=true}
-   catch(e){if(busy.cancel)return;if(/quota|429|exhausted|rate/i.test(e.message)){busy.set('⏳ '+aiName()+' រវល់ — រង់ចាំបន្តិច...',null);await sleep(20000)}else{console.warn('gvRead',e);break}}}
-  if(!ok){toast('⚠ '+aiName()+' អានមិនបាន — ប្រើ OCR ក្នុងទូរសព្ទជំនួស',3500);for(const x of b)await recSnap(x,x.snapBk)}
+  let ok=false;for(let t=0;t<2&&!ok&&!busy.cancel&&!local;t++){try{const d=await aiLLM(parts,null,.2);const arr=d.items||d;(Array.isArray(arr)?arr:[]).forEach((r,k)=>{const x=b[r&&r.i!=null?+r.i:k];if(!x||!r)return;const zh=cleanOcr(String(r.zh||''));if(zh){x.text=zh;x.km=String(r.km||'').trim();ctx.push({zh,km:x.km})}x.gv=true});ok=true}
+   catch(e){if(busy.cancel)return;if(e.daily){local=true;toast('⚠ '+aiName()+' អស់កូតាថ្ងៃនេះ — អានក្នុងទូរសព្ទជំនួស (ស្អែកប្រើបានវិញ)',5000);break}
+     if(t===0&&(e.rate||/quota|429|exhausted|rate/i.test(e.message))){const w=Math.min(45,Math.max(5,e.wait||20));for(let k=w;k>0&&!busy.cancel;k--){busy.set(`⏳ ${aiName()} រវល់ — សាកម្ដងទៀតក្នុង ${k} វិនាទី · ${done}/${todo.length}`,done/todo.length);await sleep(1000)}}else{console.warn('gvRead',e);break}}}
+  if(!ok){if(!local)toast('⚠ '+aiName()+' អានមិនបាន — ប្រើ OCR ក្នុងទូរសព្ទជំនួស',3500);for(const[k,x]of b.entries()){if(busy.cancel)return;busy.set(`🔤 កំពុងអានក្នុងទូរសព្ទ ${done+k+1}/${todo.length}`,(done+k)/todo.length);await recSnap(x,x.snapBk)}}
   done+=b.length}
  for(const x of segs){x.snapBk=null}}
 async function ocrScan(only){await ocrInit();const GV=gvOn();
