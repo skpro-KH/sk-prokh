@@ -581,7 +581,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.6';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='4.7';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -650,7 +650,7 @@ const S={media:[],clips:[],
  title:LS.get('title',''),
  box:{on:false,x:.06,y:.8,w:.88,h:.13,s:22,...LS.get('box',{})},
  ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:4,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{})},
- fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ov:{on:false,x:.62,y:.62,w:.34,op:1,key:'none',...LS.get('ov',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
+ fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ai:{eng:'',model:'',...LS.get('ai',{})},ov:{on:false,x:.62,y:.62,w:.34,op:1,key:'none',...LS.get('ov',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:35,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
  tr:{eng:'free',style:'normal',sl:'auto',...LS.get('tr',{}),...(LS.get('v45tr',false)?{}:(LS.set('v45tr',true),{short:false,style:'normal'}))},
@@ -659,7 +659,7 @@ const S={media:[],clips:[],
 S.speakers.forEach(sp=>{if(sp.vm==='real')sp.vm='off';if(sp.voice==='phone')sp.voice='km-KH-PisethNeural'});
 S.fastSW=LS.get('fastSW',false);
 if(!LS.get('aiMig',false)){LS.set('aiMig',true);if(S.mix.mode==='full')S.mix.mode='ai'}
-let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{LS.set('subs',S.subs.map(({buf,key,norm,...r})=>r));['speakers','style','title','box','out','mix','tr','asr','ocrBox','ocr','fx','logo','mq','ov'].forEach(k=>LS.set(k,S[k]))},300)}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{LS.set('subs',S.subs.map(({buf,key,norm,...r})=>r));['speakers','style','title','box','out','mix','tr','asr','ocrBox','ocr','fx','logo','mq','ov','ai'].forEach(k=>LS.set(k,S[k]))},300)}
 const K=k=>(S.keys[k]||'').trim();
 const spOf=s=>S.speakers.find(p=>p.id===s.sp)||S.speakers[0];
 const SPK_COL=['#ffffff','#ffd400','#00d1ff','#ff5fa2','#7cff6b','#c58bff','#ff8a3d','#9ad0ff'];
@@ -1547,12 +1547,12 @@ async function kmOnly(list){const bad=list.filter(s=>s.src&&notKm(s.km));if(!bad
  for(const s of bad)if(notKm(s.km)){const t=cleanTags(s.km).replace(/[A-Za-z][A-Za-z'’-]*/g,' ').replace(/\s+/g,' ').trim();if(/[ក-៿]/.test(t))s.km=t}
  return bad.length}
 function ctxPrev(i){const p=S.subs.slice(Math.max(0,i-8),i).filter(s=>s.km);return p.length?' Previous lines for context (already translated): '+JSON.stringify(p.map(s=>({zh:s.src,km:s.km})))+'.':''}
-async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&K('kGem');if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
+async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&aiKey();if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
  try{if(useG){for(let i=0;i<list.length;i+=40){if(busy.cancel)break;const b=list.slice(i,i+40);
-    const d=await gemini([{text:`Translate each subtitle line of this Chinese drama into Khmer for VOICE DUBBING. Translate ACCURATELY and COMPLETELY — keep every word's meaning, never skip, summarize or invent; follow the story context of the surrounding lines (who talks to whom, relationships, earlier events) so pronouns and terms of address are right.${S.tr.short===true?' Use short, simple spoken Khmer.':' Use natural spoken Khmer.'}${ctxPrev(S.subs.indexOf(b[0]))} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
+    const d=await aiLLM([{text:`Translate each subtitle line of this Chinese drama into Khmer for VOICE DUBBING. Translate ACCURATELY and COMPLETELY — keep every word's meaning, never skip, summarize or invent; follow the story context of the surrounding lines (who talks to whom, relationships, earlier events) so pronouns and terms of address are right.${S.tr.short===true?' Use short, simple spoken Khmer.':' Use natural spoken Khmer.'}${ctxPrev(S.subs.indexOf(b[0]))} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
     const arr=d.lines||Object.values(d)[0];b.forEach((s,k)=>{if(arr[k]!=null)s.km=postKm(arr[k],s)});done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)}}
   else{const B=50,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));await pool(bs,12,async b=>{const res=await trFree(b.map(s=>prepSrc(s.src)||s.src));b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;busy.set(`🌐 ${done}/${list.length}`,done/list.length)})}
-  if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('Gemini មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
+  if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast(aiName()+' មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
 $('#trBtn').onclick=()=>{aiBackground();translate(S.subs)};
 $('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short===true;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
 $('#autoBtn').onclick=async()=>{buzz();if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');
@@ -1780,17 +1780,17 @@ async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const 
   const t=cleanOcr(parts.join(' '));if(t)cands.push({t,c:cn?cs/cn:0})}
  if(!cands.length)return;cands.forEach(a=>a.sc=a.c+cands.reduce((x,b)=>x+(b===a?0:sim(a.t,b.t)),0)*.6);cands.sort((a,b)=>b.sc-a.sc);if(cands[0].c>.55)seg.text=cands[0].t}
 /* v4.6: strong AI (Gemini vision) reads the subtitle pictures AND translates them with the story context — much more accurate than on-device OCR */
-const gvOn=()=>!!K('kGem')&&S.ocr.ai!==false;
+const gvOn=()=>aiKey()&&S.ocr.ai!==false;
 function snapJpg(snap){const sn=snap[Math.min(snap.length-1,1)]||snap[0],c=sn.canvas,k=Math.min(1,900/c.width),o=document.createElement('canvas');o.width=Math.round(c.width*k);o.height=Math.round(c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);return o.toDataURL('image/jpeg',.85).split(',')[1]}
 async function gvRead(segs){const todo=segs.filter(x=>x.snapBk);const B=20;let done=0,ctx=[];
- for(let i=0;i<todo.length;i+=B){if(busy.cancel)return;const b=todo.slice(i,i+B);busy.set(`🧠 AI ខ្លាំង (Gemini) កំពុងអាន & បកប្រែ ${done}/${todo.length}`,done/todo.length);
+ for(let i=0;i<todo.length;i+=B){if(busy.cancel)return;const b=todo.slice(i,i+B);busy.set(`🧠 AI ខ្លាំង (${aiName()}) កំពុងអាន & បកប្រែ ${done}/${todo.length}`,done/todo.length);
   const parts=[{text:`You are an expert Chinese→Khmer drama subtitle translator. Below are ${b.length} pictures, in time order, each a crop of the burned-in subtitle area of one moment of a Chinese drama.
 For EACH picture: 1) read the subtitle text EXACTLY as written (keep every character; ignore watermarks, logos, channel names, usernames, UI text, and blurry background text). If there is no subtitle, use "". 2) translate it into natural spoken Khmer ACCURATELY and COMPLETELY — every word and meaning, nothing skipped or invented — using the story context of the surrounding lines (who speaks to whom, relationships) so pronouns and terms of address are right. Keep names consistent.${glossList().length?' Use these name translations: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}${ctx.length?'\nEarlier lines for context: '+JSON.stringify(ctx.slice(-8)):''}
 Return {"items":[{"i":0,"zh":"...","km":"..."}, ...]} with exactly ${b.length} items, i = picture number.`}];
   b.forEach((x,k)=>{parts.push({text:'#'+k});parts.push({inlineData:{mimeType:'image/jpeg',data:snapJpg(x.snapBk)}})});
-  let ok=false;for(let t=0;t<3&&!ok&&!busy.cancel;t++){try{const d=await gemini(parts,null,.2);const arr=d.items||d;(Array.isArray(arr)?arr:[]).forEach((r,k)=>{const x=b[r&&r.i!=null?+r.i:k];if(!x||!r)return;const zh=cleanOcr(String(r.zh||''));if(zh){x.text=zh;x.km=String(r.km||'').trim();ctx.push({zh,km:x.km})}x.gv=true});ok=true}
-   catch(e){if(busy.cancel)return;if(/quota|429|exhausted|rate/i.test(e.message)){busy.set('⏳ Gemini រវល់ — រង់ចាំបន្តិច...',null);await sleep(20000)}else{console.warn('gvRead',e);break}}}
-  if(!ok){toast('⚠ Gemini អានមិនបាន — ប្រើ OCR ក្នុងទូរសព្ទជំនួស',3500);for(const x of b)await recSnap(x,x.snapBk)}
+  let ok=false;for(let t=0;t<3&&!ok&&!busy.cancel;t++){try{const d=await aiLLM(parts,null,.2);const arr=d.items||d;(Array.isArray(arr)?arr:[]).forEach((r,k)=>{const x=b[r&&r.i!=null?+r.i:k];if(!x||!r)return;const zh=cleanOcr(String(r.zh||''));if(zh){x.text=zh;x.km=String(r.km||'').trim();ctx.push({zh,km:x.km})}x.gv=true});ok=true}
+   catch(e){if(busy.cancel)return;if(/quota|429|exhausted|rate/i.test(e.message)){busy.set('⏳ '+aiName()+' រវល់ — រង់ចាំបន្តិច...',null);await sleep(20000)}else{console.warn('gvRead',e);break}}}
+  if(!ok){toast('⚠ '+aiName()+' អានមិនបាន — ប្រើ OCR ក្នុងទូរសព្ទជំនួស',3500);for(const x of b)await recSnap(x,x.snapBk)}
   done+=b.length}
  for(const x of segs){x.snapBk=null}}
 async function ocrScan(only){await ocrInit();const GV=gvOn();
@@ -1890,22 +1890,38 @@ $('#cleanDev').onclick=async()=>{if(!(await ask('🧹 សម្អាតទូ�
  clipsChanged();subChanged();renderSpeakers();humPaint();
  let after=before;try{after=(await navigator.storage.estimate()).usage||0}catch(e){}const freed=Math.max(0,before-after)+nat;
  buzz(30);toast(`✨ សម្អាតរួច${freed>1e6?` · បានទំនេរ ${(freed/1e6).toFixed(0)}MB`:''}`,3500)};
-/* v4.6: strong AI card — Gemini (free key from Google AI Studio) reads subtitle pictures + translates with story context */
-function aiPaint(){const b=$('#aiBody');if(!b)return;const k=K('kGem');
- b.innerHTML=k?`<div class="hint">✅ <span><b>Gemini AI</b> បើករួច — អាន Sub ពីរូបភាព និងបកប្រែតាមសាច់រឿង ត្រូវគ្រប់ពាក្យ</span></div>
+/* v4.7: strong AI — Gemini (Google, free key) or OpenRouter (free models router: many strong free AIs, or any paid model like Claude) */
+const aiEng=()=>S.ai&&S.ai.eng?S.ai.eng:(K('kOR')&&!K('kGem')?'or':'gem');
+const aiKey=()=>aiEng()==='or'?!!K('kOR'):!!K('kGem');
+const aiName=()=>aiEng()==='or'?'OpenRouter':'Gemini';
+const orModel=()=>(S.ai&&S.ai.model||'').trim()||'openrouter/free';
+function jsonOut(t){t=String(t||'').replace(/^[\s\S]*?```(?:json)?/i,m=>/```/.test(m)?'':m).replace(/```[\s\S]*$/,'');const a=t.indexOf('{'),b=t.lastIndexOf('}'),c=t.indexOf('['),d=t.lastIndexOf(']');
+ const cand=[];if(a>=0&&b>a)cand.push(t.slice(a,b+1));if(c>=0&&d>c)cand.push(t.slice(c,d+1));for(const x of cand){try{return JSON.parse(x)}catch(e){}}throw Error('AI ឆ្លើយមិនមែន JSON')}
+async function orCall(parts,temp=.3){const content=[];for(const p of parts){if(p.text)content.push({type:'text',text:p.text});const d=p.inlineData||p.inline_data;if(d){const mt=d.mimeType||d.mime_type;if(/^image\//.test(mt))content.push({type:'image_url',image_url:{url:`data:${mt};base64,${d.data}`}});else throw Error('OpenRouter មិនស្ដាប់សំឡេងបានទេ')}}
+ content.push({type:'text',text:'Answer with JSON only.'});const m=orModel(),body={model:m,messages:[{role:'user',content}],temperature:temp};if(m==='openrouter/free')body.models=['openrouter/free'];
+ const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+K('kOR'),'Content-Type':'application/json','HTTP-Referer':'https://skprokh.onden168.workers.dev','X-Title':'SK ProKH'},body:JSON.stringify(body)});
+ const j=await r.json().catch(()=>({}));if(!r.ok||j.error){const msg=(j.error&&j.error.message)||('HTTP '+r.status);throw Error((r.status===429?'429 rate ':'')+msg)}
+ const txt=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;if(!txt)throw Error('AI មិនឆ្លើយ');return jsonOut(Array.isArray(txt)?txt.map(x=>x.text||'').join(''):txt)}
+const aiLLM=(parts,schema,temp)=>aiEng()==='or'?orCall(parts,temp):gemini(parts,schema,temp);
+function aiPaint(){const b=$('#aiBody');if(!b)return;S.ai=S.ai||{};const e=aiEng(),k=aiKey(),isOR=e==='or';
+ b.innerHTML=`<div class="chips" id="aiEng"><span class="chip${!isOR?' on':''}" data-v="gem">🔷 Gemini (Google)</span><span class="chip${isOR?' on':''}" data-v="or">🔀 OpenRouter (AI ហ្វ្រីច្រើន)</span></div>`+(k?`<div class="hint" style="margin-top:8px">✅ <span><b>${aiName()}</b> បើករួច${isOR?` · ម៉ូដែល <b>${esc(orModel())}</b>`:''} — អាន Sub ពីរូបភាព និងបកប្រែតាមសាច់រឿង</span></div>
   <label class="chk"><input type="checkbox" id="aiOcr"${S.ocr.ai!==false?' checked':''}> 🔤 ប្រើ AI អាន Sub លើវីដេអូ (ច្បាស់ជាង OCR ក្នុងទូរសព្ទ)</label>
   <label class="chk"><input type="checkbox" id="aiTr"${S.tr.eng==='gemini'?' checked':''}> 🌐 ប្រើ AI បកប្រែ (ត្រូវតាមសាច់រឿង)</label>
+  ${isOR?`<label class="l">ម៉ូដែល (ទុកទទេ = openrouter/free ជ្រើស AI ហ្វ្រីល្អបំផុតដោយខ្លួនឯង)</label><div class="row"><input id="aiModel" placeholder="openrouter/free" value="${esc(S.ai.model||'')}"><button class="btn g s" id="aiModelOk">✓</button></div><div class="note">AI ហ្វ្រី៖ ~50 ដង/ថ្ងៃ · 20 ដង/នាទី។ Claude (anthropic/...) ត្រូវបង់លុយក្នុង OpenRouter</div>`:''}
   <div class="row" style="margin-top:6px"><button class="btn g s" id="aiOff">✕ ដក Key</button></div>`
- :`<div class="hint">🔑 <span>ដាក់ <b>Gemini key ឥតគិតថ្លៃ</b> ដើម្បីឲ្យ AI ខ្លាំងរបស់ Google អាន Sub ចិន និងបកប្រែជាខ្មែរ ត្រូវតាមសាច់រឿង។ យក Key៖ ចូល <b>aistudio.google.com/apikey</b> → <b>Create API key</b> → Copy</span></div>
-  <div class="row"><input id="aiKey" type="password" placeholder="AIza..." autocomplete="off"><button class="btn s" id="aiSave">✓ ដាក់</button></div>
-  <div class="row" style="margin-top:8px"><button class="btn g s" id="aiGet">🔗 បើក AI Studio យក Key</button></div><div class="note">គ្មាន Key ក៏ប្រើបាន (OCR ក្នុងទូរសព្ទ + Google បកប្រែ) តែមិនសូវត្រូវ</div>`;
- if(k){$('#aiOcr').onchange=e=>{S.ocr.ai=e.target.checked;save()};$('#aiTr').onchange=e=>{S.tr.eng=e.target.checked?'gemini':'free';save();try{$('#trChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===S.tr.eng))}catch(x){}};
-  $('#aiOff').onclick=()=>{S.keys.kGem='';LS.set('keys',S.keys);S.tr.eng='free';save();aiPaint();renderAsrNote&&renderAsrNote()}}
- else{$('#aiGet').onclick=()=>{const u='https://aistudio.google.com/apikey';if(NATIVE&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')};
-  $('#aiSave').onclick=async()=>{const v=$('#aiKey').value.trim();if(!/^AIza[\w-]{20,}$/.test(v))return toast('Key មិនត្រឹមត្រូវ (ត្រូវចាប់ផ្ដើម AIza...)');busy.on('🔑 កំពុងពិនិត្យ Key...',null);
-   try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=5&key='+v);if(!r.ok)throw Error((await r.json().catch(()=>({}))).error?.message||r.status);
-    S.keys.kGem=v;LS.set('keys',S.keys);LS.set('gemAuto',null);S.tr.eng='gemini';S.ocr.ai=true;save();toast('✅ AI ខ្លាំងបើករួច',3000);aiPaint();renderAsrNote&&renderAsrNote()}
-   catch(e){toast('✕ Key មិនដើរ: '+(e.message||e),5000)}finally{busy.off()}}}}
+ :`<div class="hint" style="margin-top:8px">🔑 <span>${isOR?'ចុះឈ្មោះ <b>openrouter.ai</b> ឥតគិតថ្លៃ → <b>Keys</b> → <b>Create Key</b> → Copy (sk-or-...)':'ចូល <b>aistudio.google.com/apikey</b> → <b>Create API key</b> → Copy (AIza...)'}</span></div>
+  <div class="row"><input id="aiKey" type="password" placeholder="${isOR?'sk-or-v1-...':'AIza...'}" autocomplete="off"><button class="btn s" id="aiSave">✓ ដាក់</button></div>
+  <div class="row" style="margin-top:8px"><button class="btn g s" id="aiGet">🔗 ${isOR?'បើក OpenRouter យក Key':'បើក AI Studio យក Key'}</button></div><div class="note">គ្មាន Key ក៏ប្រើបាន (OCR ក្នុងទូរសព្ទ + Google បកប្រែ) តែមិនសូវត្រូវ</div>`);
+ $('#aiEng').onclick=ev=>{const c=ev.target.closest('.chip');if(!c)return;S.ai.eng=c.dataset.v;save();aiPaint()};
+ const kn=isOR?'kOR':'kGem';
+ if(k){$('#aiOcr').onchange=x=>{S.ocr.ai=x.target.checked;save()};$('#aiTr').onchange=x=>{S.tr.eng=x.target.checked?'gemini':'free';save();try{$('#trChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===S.tr.eng))}catch(y){}};
+  if(isOR)$('#aiModelOk').onclick=()=>{S.ai.model=$('#aiModel').value.trim();save();aiPaint();toast('✓ ម៉ូដែល: '+orModel())};
+  $('#aiOff').onclick=()=>{S.keys[kn]='';LS.set('keys',S.keys);save();aiPaint();try{renderAsrNote()}catch(y){}}}
+ else{$('#aiGet').onclick=()=>{const u=isOR?'https://openrouter.ai/settings/keys':'https://aistudio.google.com/apikey';if(NATIVE&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')};
+  $('#aiSave').onclick=async()=>{const v=$('#aiKey').value.trim();if(isOR?!/^sk-or-[\w-]{20,}$/.test(v):!/^AIza[\w-]{20,}$/.test(v))return toast('Key មិនត្រឹមត្រូវ ('+(isOR?'sk-or-...':'AIza...')+')');busy.on('🔑 កំពុងពិនិត្យ Key...',null);
+   try{const r=isOR?await fetch('https://openrouter.ai/api/v1/key',{headers:{Authorization:'Bearer '+v}}):await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=5&key='+v);if(!r.ok)throw Error((await r.json().catch(()=>({}))).error?.message||r.status);
+    S.keys[kn]=v;LS.set('keys',S.keys);if(!isOR)LS.set('gemAuto',null);S.ai.eng=isOR?'or':'gem';S.tr.eng='gemini';S.ocr.ai=true;save();toast('✅ AI ខ្លាំងបើករួច',3000);aiPaint();try{renderAsrNote()}catch(y){}}
+   catch(x){toast('✕ Key មិនដើរ: '+(x.message||x),5000)}finally{busy.off()}}}}
 aiPaint();
 /* ============ v4.6: ✂ remove background (logo: solid colour or AI u2netp) + 🎞 video/picture overlay with green-screen removal ============ */
 const U2URL=()=>assetBase()!=null?assetBase()+'/ai/u2netp.onnx':'https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/web/ai/u2netp.onnx';
