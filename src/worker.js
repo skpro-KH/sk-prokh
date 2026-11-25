@@ -57,7 +57,27 @@ const clean=t=>String(t||'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g
 const sign=(v,u)=>{v=Math.round(Number(v)||0);return(v>=0?'+':'')+v+u};
 const fullVoice=v=>{const m=/^([a-z]{2,})-([A-Z]{2,})-(.+Neural)$/.exec(v);return m?`Microsoft Server Speech Text to Speech Voice (${m[1]}-${m[2]}, ${m[3]})`:v};
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS'};
-const json=(o,status=200)=>new Response(JSON.stringify(o),{status,headers:{...cors,'Content-Type':'application/json; charset=utf-8'}});
+const json=(o,status=200)=>new Response(JSON.stringify(o),{status,headers:{...cors,...SEC,'Content-Type':'application/json; charset=utf-8'}});
+/* ---------------- security (v4.8) ----------------
+ * • security headers on every page (no framing / clickjacking, no MIME sniffing, HTTPS only)
+ * • per-IP rate limits so nobody can flood the voice server, the stats database or the model proxy
+ * • admin: 5 wrong passwords → that IP is locked for 30 min (stored in KV, so it holds everywhere), constant-time compare,
+ *   admin API answers only its own site (no CORS), small bodies only                                                    */
+const SEC={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Strict-Transport-Security':'max-age=31536000; includeSubDomains'};
+const PAGE_SEC={...SEC,'X-Frame-Options':'DENY','Content-Security-Policy':"frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",'Permissions-Policy':'camera=(), geolocation=(), payment=(), usb=(), microphone=(self)'};
+const ADMIN_SEC={...PAGE_SEC,'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'none'",'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow'};
+const ipOf=req=>req.headers.get('CF-Connecting-IP')||'0';
+/* per-IP fixed-window counter. Kept in memory of each Cloudflare server (works on workers.dev, where the edge cache is off);
+   if a Rate-Limiting binding named RL exists (wrangler.jsonc "ratelimits") it is used as well, which counts across servers. */
+const RLM=new Map();let RLENV=null;
+async function limited(req,name,max,win){const ip=ipOf(req),w=Math.floor(Date.now()/1000/win),k=name+'|'+ip;let e=RLM.get(k);if(!e||e.w!==w){e={w,n:0};RLM.set(k,e)}e.n++;
+  if(RLM.size>20000)for(const[kk,v]of RLM)if(v.w!==Math.floor(Date.now()/1000/win))RLM.delete(kk);
+  if(e.n>max)return true;
+  if(RLENV&&RLENV.RL&&name!=='ping'){try{const r=await RLENV.RL.limit({key:name+':'+ip});if(!r.success&&e.n>max/4)return true}catch(x){}}
+  return false}
+const tooMany=()=>json({error:'ស្នើច្រើនពេក — សូមរង់ចាំបន្តិច'},429);
+async function body(req,max=64e3){const n=+(req.headers.get('Content-Length')||0);if(n>max)throw Error('too large');const t=await req.text();if(t.length>max)throw Error('too large');return JSON.parse(t)}
+const same=(a,b)=>{if(a.length!==b.length)return false;let r=0;for(let i=0;i<a.length;i++)r|=a.charCodeAt(i)^b.charCodeAt(i);return r===0};
 
 async function edgeTTS(text,voice,rate,pitch,wssBase=WSS_BASE,retry=true){
   text=xmlEsc(clean(text)).slice(0,3000);if(!text)throw new Error('empty text');
@@ -105,14 +125,14 @@ async function verifyKey(str,dev){const raw=String(str||'').toUpperCase().trim()
   const dh=p.subarray(7,11),bound=dh.some(x=>x);if(bound){const mine=await sha('dev:'+normDev(dev));if(!dh.every((x,i)=>x===mine[i]))return{ok:false,err:'Key នេះសម្រាប់ទូរសព្ទផ្សេង'}}
   return{ok:true,exp,bound,kid:hexl(p.subarray(3,7)).toUpperCase()}}
 const keyMeta=c=>({max:c.max|0,blocked:!!c.blocked,note:String(c.note||'').slice(0,120),cnt:(c.devs||[]).length,exp:c.exp||0,bound:!!c.bound,f:c.f||0,l:c.l||0});
-async function hello(req,env){if(!env.SK)return json({ok:true,track:false});let d;try{d=await req.json()}catch(e){return json({ok:false,err:'bad request'},400)}
+async function hello(req,env){if(!env.SK)return json({ok:true,track:false});if(await limited(req,'hello',20,60))return tooMany();let d;try{d=await body(req)}catch(e){return json({ok:false,err:'bad request'},400)}
   const dev=normDev(d.dev).slice(0,24);if(dev.length<8)return json({ok:false,err:'Device ID មិនត្រឹមត្រូវ'},400);
   const v=await verifyKey(d.key,dev);if(!v.ok)return json(v);
   const now=Date.now(),kk='k:'+v.kid;const cfg=(await env.SK.get(kk,'json'))||{devs:[],f:now};let dirty=!cfg.l;
   if(cfg.blocked)return json({ok:false,err:'Key នេះត្រូវបាន Admin បិទ — សូមទាក់ទង Admin'});
   if(!cfg.devs.includes(dev)){if(cfg.max>0&&cfg.devs.length>=cfg.max)return json({ok:false,err:`Key នេះប្រើគ្រប់ ${cfg.max} ឧបករណ៍ហើយ — សូមទាក់ទង Admin`});cfg.devs.push(dev);dirty=true}
   cfg.exp=v.exp;cfg.bound=v.bound;if(dirty||now-(cfg.l||0)>3*36e5){cfg.l=now;await env.SK.put(kk,JSON.stringify(cfg),{metadata:keyMeta(cfg)})}
-  const cc=(req.cf&&req.cf.country)||'',app=String(d.app||'web').slice(0,5),ver=String(d.ver||'').slice(0,8);
+  const cc=String((req.cf&&req.cf.country)||'').replace(/[^A-Z]/g,'').slice(0,2),app=['apk','win','web'].includes(d.app)?d.app:'web',ver=String(d.ver||'').replace(/[^\w.\-]/g,'').slice(0,8);
   if(env.DB){await dbInit(env);await env.DB.prepare('INSERT INTO dev(id,k,f,l,v,n,pc,c,a) VALUES(?1,?2,?3,?3,?4,1,?5,?6,?7) ON CONFLICT(id) DO UPDATE SET k=?2,l=?3,v=?4,n=dev.n+1,pc=?5,c=?6,a=?7').bind(dev,v.kid,now,ver,d.pc?1:0,cc,app).run();return json({ok:true,stats:await pubStats(env,true)})}
   const dk='d:'+dev,old=(await env.SK.getWithMetadata(dk)).metadata;
   const rec={k:v.kid,f:old?old.f:now,l:now,v:ver,n:(old?old.n:0)+1,pc:d.pc?1:0,c:cc};
@@ -124,26 +144,33 @@ async function dbInit(env){if(DBOK)return;await env.DB.batch([env.DB.prepare('CR
 async function pubStats(env,fresh){const key=new Request('https://stats.local/v1');const c=caches.default;if(!fresh){const h=await c.match(key);if(h)return h.json()}
   await dbInit(env);const now=Date.now();const r=await env.DB.prepare('SELECT count(*) total, sum(l>?1) online, sum(l>?2) today, sum(n) uses FROM dev').bind(now-6*6e4,now-864e5).first();
   const st={online:r.online||0,today:r.today||0,total:r.total||0,uses:r.uses||0,at:now};await c.put(key,new Response(JSON.stringify(st),{headers:{'Cache-Control':'max-age=20'}}));return st}
-async function ping(req,env){if(!env.DB)return json({error:'nodb'},404);let d;try{d=await req.json()}catch(e){return json({ok:false},400)}const dev=normDev(d.dev).slice(0,24);
+async function ping(req,env){if(!env.DB)return json({error:'nodb'},404);if(await limited(req,'ping',8,60))return json({ok:true,stats:await pubStats(env)});let d;try{d=await body(req,4e3)}catch(e){return json({ok:false},400)}const dev=normDev(d.dev).slice(0,24);
   if(dev.length>=8){await dbInit(env);await env.DB.prepare('UPDATE dev SET l=?1 WHERE id=?2').bind(Date.now(),dev).run()}return json({ok:true,stats:await pubStats(env)})}
-async function isAdmin(req,env){const p=req.headers.get('X-Pass')||'';if(!p)return false;const h=hexl(await sha('skprokh-admin:'+p));
-  const want=env.ADMIN_PASS?hexl(await sha('skprokh-admin:'+env.ADMIN_PASS)):DEFAULT_ADMIN_SHA;return h===want}
+async function isAdmin(req,env){const p=(req.headers.get('X-Pass')||'').slice(0,200);if(!p)return false;const h=hexl(await sha('skprokh-admin:'+p));
+  const want=env.ADMIN_PASS?hexl(await sha('skprokh-admin:'+env.ADMIN_PASS)):DEFAULT_ADMIN_SHA;return same(h,want)}
+const LOCK_MAX=5,LOCK_SEC=1800;
+async function lockState(req,env){const k='af:'+ipOf(req);if(!env.SK)return{k,n:0};const n=+(await env.SK.get(k))||0;return{k,n}}
 async function listAll(env,prefix){const out=[];let cursor;do{const r=await env.SK.list({prefix,cursor,limit:1000});for(const k of r.keys)out.push({id:k.name.slice(prefix.length),...(k.metadata||{})});cursor=r.list_complete?null:r.cursor}while(cursor&&out.length<20000);return out}
-async function admin(req,env,u){if(!(await isAdmin(req,env)))return json({error:'ពាក្យសម្ងាត់មិនត្រឹមត្រូវ'},401);
+async function admin(req,env,u){
+  const o=req.headers.get('Origin');if(o&&o!==u.origin)return json({error:'forbidden'},403);
+  if(await limited(req,'adm',60,60))return tooMany();
+  const ls=await lockState(req,env);if(ls.n>=LOCK_MAX)return json({error:'ខុសច្រើនដងពេក — IP នេះត្រូវបានបិទ 30 នាទី'},429);
+  if(!(await isAdmin(req,env))){if(env.SK)await env.SK.put(ls.k,String(ls.n+1),{expirationTtl:LOCK_SEC});return json({error:`ពាក្យសម្ងាត់មិនត្រឹមត្រូវ (នៅសល់ ${Math.max(0,LOCK_MAX-ls.n-1)} ដង)`},401)}
+  if(ls.n&&env.SK)await env.SK.delete(ls.k);
   if(!env.SK)return json({error:'nokv'},200);
   if(u.pathname==='/admin/api/stats'){const[kv,keys]=await Promise.all([listAll(env,'d:'),listAll(env,'k:')]);let devs=kv;
     if(env.DB){await dbInit(env);const r=await env.DB.prepare('SELECT id,k,f,l,v,n,pc,c,a FROM dev ORDER BY l DESC LIMIT 20000').all();const seen=new Set(r.results.map(x=>x.id));devs=[...r.results,...kv.filter(x=>!seen.has(x.id))]}
     return json({now:Date.now(),devs,keys,db:!!env.DB})}
-  if(u.pathname==='/admin/api/key'&&req.method==='POST'){const d=await req.json();const kid=String(d.kid||'').toUpperCase().replace(/[^0-9A-F]/g,'');if(!kid)return json({error:'kid'},400);
+  if(u.pathname==='/admin/api/key'&&req.method==='POST'){const d=await body(req,4e3);const kid=String(d.kid||'').toUpperCase().replace(/[^0-9A-F]/g,'');if(!kid)return json({error:'kid'},400);
     const kk='k:'+kid,cfg=(await env.SK.get(kk,'json'))||{devs:[],f:Date.now()};if(d.max!=null)cfg.max=Math.max(0,Math.min(9999,d.max|0));if(d.blocked!=null)cfg.blocked=!!d.blocked;if(d.note!=null)cfg.note=String(d.note).slice(0,120);
     if(d.reset)cfg.devs=[];await env.SK.put(kk,JSON.stringify(cfg),{metadata:keyMeta(cfg)});return json({ok:true,key:{id:kid,...keyMeta(cfg)}})}
-  if(u.pathname==='/admin/api/forget'&&req.method==='POST'){const d=await req.json();const dev=normDev(d.dev);let m=(await env.SK.getWithMetadata('d:'+dev)).metadata;if(!m&&env.DB){await dbInit(env);m=await env.DB.prepare('SELECT k FROM dev WHERE id=?1').bind(dev).first()}
+  if(u.pathname==='/admin/api/forget'&&req.method==='POST'){const d=await body(req,4e3);const dev=normDev(d.dev);let m=(await env.SK.getWithMetadata('d:'+dev)).metadata;if(!m&&env.DB){await dbInit(env);m=await env.DB.prepare('SELECT k FROM dev WHERE id=?1').bind(dev).first()}
     if(m&&m.k){const kk='k:'+m.k,cfg=await env.SK.get(kk,'json');if(cfg){cfg.devs=(cfg.devs||[]).filter(x=>x!==dev);await env.SK.put(kk,JSON.stringify(cfg),{metadata:keyMeta(cfg)})}}
     await env.SK.delete('d:'+dev);if(env.DB){await dbInit(env);await env.DB.prepare('DELETE FROM dev WHERE id=?1').bind(dev).run()}return json({ok:true})}
   return json({error:'not found'},404)}
 /* AI model files (Whisper from Hugging Face, voice-remover from GitHub) through this server: same-origin, cached at Cloudflare */
 async function modelProxy(req,u){let up;
-  if(u.pathname.startsWith('/hf/')){const p=u.pathname.slice(4);if(!/^[\w.\-]+\/[\w.\-]+\/resolve\/[\w.\-]+\/[\w.\-\/]+$/.test(p))return json({error:'bad path'},400);up='https://huggingface.co/'+p}
+  if(u.pathname.startsWith('/hf/')){const p=u.pathname.slice(4);if(!/^(onnx-community|Xenova)\/[\w.\-]+\/resolve\/[\w.\-]+\/[\w.\-\/]+$/.test(p)||p.includes('..'))return json({error:'bad path'},400);up='https://huggingface.co/'+p}
   else{const n=u.pathname.slice(4);if(!/^[\w.\-]+\.onnx$/.test(n))return json({error:'bad path'},400);up='https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/'+n}
   const h={'User-Agent':'Mozilla/5.0 SK-ProKH'};const rg=req.headers.get('Range');if(rg)h.Range=rg;
   const r=await fetch(up,{headers:h,redirect:'follow',cf:{cacheEverything:true,cacheTtl:2592000}});
@@ -155,17 +182,20 @@ async function livePage(name,fallback){try{const r=await fetch(LIVE_BASE+name,{c
 const ISO={'Cross-Origin-Opener-Policy':'same-origin','Cross-Origin-Embedder-Policy':'credentialless'};
 export default {
   async fetch(req,env,ctx){
-    const u=new URL(req.url);
-    if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+    const u=new URL(req.url);RLENV=env;
+    if(!['GET','HEAD','POST','OPTIONS'].includes(req.method))return json({error:'method'},405);
+    if(u.pathname.length>600)return json({error:'bad path'},414);
+    if(req.method==='OPTIONS')return new Response(null,{status:204,headers:u.pathname.startsWith('/admin')?SEC:cors});
     if(u.pathname==='/health')return json({ok:true,name:'DUB Khmer Cloud',brand:'SK ProKH',version:2,features:{tts:true,lic:!!env.SK,stats:!!env.DB},voices:VOICES});
     if(u.pathname==='/api/hello'&&req.method==='POST')return hello(req,env);
     if(u.pathname==='/api/ping'&&req.method==='POST')return ping(req,env);
     if(u.pathname==='/api/stats')return env.DB?json({ok:true,stats:await pubStats(env)}):json({error:'nodb'},404);
-    if(u.pathname.startsWith('/hf/')||u.pathname.startsWith('/gh/'))return modelProxy(req,u);
+    if(u.pathname.startsWith('/hf/')||u.pathname.startsWith('/gh/')){if(await limited(req,'mdl',120,60))return tooMany();return modelProxy(req,u)}
     if(u.pathname.startsWith('/admin/api/'))return admin(req,env,u);
-    if(u.pathname==='/admin'||u.pathname==='/admin/')return new Response(await livePage('admin.html',ADMIN_HTML),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
+    if(u.pathname==='/admin'||u.pathname==='/admin/')return new Response(await livePage('admin.html',ADMIN_HTML),{headers:{...ADMIN_SEC,'Content-Type':'text/html; charset=utf-8'}});
     if(u.pathname==='/tts'&&req.method==='POST'){
-      let d;try{d=await req.json()}catch(e){return json({error:'bad json'},400)}
+      if(await limited(req,'tts',240,60))return tooMany();
+      let d;try{d=await body(req,32e3)}catch(e){return json({error:'bad json'},400)}
       const voice=d.voice||VOICES[0],rate=Math.max(-50,Math.min(100,Math.round(d.rate||0))),pitch=Math.max(-50,Math.min(50,Math.round(d.pitch||0))),text=clean(d.text);
       if(!text)return json({error:'empty text'},400);
       const keyBuf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([text,voice,rate,pitch])));
@@ -174,13 +204,13 @@ export default {
       try{const mp3=await edgeTTS(text,voice,rate,pitch,env&&env.EDGE_WSS||WSS_BASE);
         const res=new Response(mp3,{headers:{...cors,'Content-Type':'audio/mpeg','Cache-Control':'public, max-age=2592000'}});ctx.waitUntil(cache.put(key,res.clone()));return res}
       catch(e){return json({error:String(e&&e.message||e)},502)}}
-    if(u.pathname==='/proxy'){const t=u.searchParams.get('url')||'';let h;try{h=new URL(t).hostname}catch(e){return json({error:'bad url'},400)}
+    if(u.pathname==='/proxy'){if(await limited(req,'px',90,60))return tooMany();const t=u.searchParams.get('url')||'';let h,pu;try{pu=new URL(t);h=pu.hostname}catch(e){return json({error:'bad url'},400)}if(pu.protocol!=='https:'||pu.port)return json({error:'bad url'},400);
       if(!/(^|\.)(tikwm\.com|tiktokcdn\.com|tiktokcdn-us\.com|tiktokv\.com|tiktok\.com|byteoversea\.com|ibyteimg\.com|muscdn\.com|akamaized\.net)$/.test(h))return json({error:'host not allowed'},403);
       const r=await fetch(t,{headers:{'User-Agent':'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36','Referer':'https://www.tikwm.com/'}});
       return new Response(r.body,{status:r.status,headers:{...cors,'Content-Type':r.headers.get('Content-Type')||'application/octet-stream','Cross-Origin-Resource-Policy':'cross-origin'}})}
     if(u.pathname==='/manifest.webmanifest')return new Response(JSON.stringify(MANIFEST),{headers:{'Content-Type':'application/manifest+json'}});
     if(u.pathname==='/icon-192.png'||u.pathname==='/icon.svg'||u.pathname==='/favicon.ico')return new Response(b64bin(ICON192),{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'}});
     if(u.pathname==='/icon-512.png')return new Response(b64bin(ICON512),{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'}});
-    return new Response(await livePage('index.html',APP_HTML),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache',...ISO}});
+    return new Response(await livePage('index.html',APP_HTML),{headers:{...PAGE_SEC,'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache',...ISO}});
   }
 };
