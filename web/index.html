@@ -463,6 +463,10 @@ html:not(.ws) .ws-only{display:none!important}
 
     <!-- 2 SUB -->
     <section class="page" id="pg-sub">
+      <div class="card" id="dmCard" style="grid-column:1/-1"><h3><span class="n">🎬</span> របៀបធ្វើវីដេអូ</h3>
+        <div class="chips" id="dmChips"><span class="chip" data-v="dub">🗣 បកប្រែតួ (Dub)</span><span class="chip" data-v="recap">📖 សម្រាយរឿង (និទានរឿង)</span></div>
+        <div class="note" id="dmNote" style="margin-top:8px"></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="recapBtn">📖 បង្កើតសម្រាយរឿងជាខ្មែរ</button></div></div>
       <div class="card" id="aiCard" hidden style="display:none"><h3><span class="n">🧠</span> AI ខ្លាំង — អាន Sub & បកប្រែ</h3><div id="aiBody"></div></div>
       <div class="card hero"><h3>⚡ Dub ១ ចុច</h3>
         <div class="note" style="margin:0 0 10px">ស្ដាប់ → បកប្រែ → បង្កើតសំឡេងខ្មែរ ពិសិដ្ឋ/ស្រីមុំ → ចាក់</div>
@@ -685,7 +689,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2154,7 +2158,10 @@ async function ocrFindRegion(clip){await ocrInit();const c=clip||S.clips[0];if(!
  groups.sort((a,b)=>b.distinct-a.distinct||b.frames-a.frames);const g=groups[0];if(g.distinct<2&&g.frames<3)return null;
  const y0=Math.min(...g.items.map(h=>h.y0)),y1=Math.max(...g.items.map(h=>h.y1)),lh=y1-y0,pad=Math.max(.012,lh*.35);
  const v={x:m.w*.02,y:clamp(y0-pad,0,1)*m.h,w:m.w*.96,h:(clamp(y1+pad,0,1)-clamp(y0-pad,0,1))*m.h};const box=videoToBox(v,m);box.found={distinct:g.distinct,frames:g.frames,samples:K,y:+((y0+y1)/2).toFixed(3)};return box}
-async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of sn.lines){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
+/* v6.3: keep only lines that look like the subtitle: centred in the picture and about the same text height (signs, watermarks, @names on the side are skipped) */
+function subOnly(sn){const L=sn.lines||[];if(L.length<2)return L;const W=sn.canvas.width,hs=L.map(l=>l.h).sort((a,b)=>a-b),mh=hs[hs.length>>1];
+ const k=L.filter(l=>{const cx=l.x+l.w/2;return l.h>=mh*.62&&l.h<=mh*1.7&&(Math.abs(cx-W/2)<W*.2||l.w>W*.45)});return k.length?k:L}
+async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of subOnly(sn)){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
   const t=cleanOcr(parts.join(' '));if(t)cands.push({t,c:cn?cs/cn:0})}
  if(!cands.length)return;cands.forEach(a=>a.sc=a.c+cands.reduce((x,b)=>x+(b===a?0:sim(a.t,b.t)),0)*.6);cands.sort((a,b)=>b.sc-a.sc);if(cands[0].c>.55)seg.text=cands[0].t}
 /* v4.6: strong AI (Gemini vision) reads the subtitle pictures AND translates them with the story context — much more accurate than on-device OCR */
@@ -2198,6 +2205,11 @@ async function ocrScan0(only){await ocrInit();const GV=gvOn();
   if(l&&(l.text===s.text||sim(l.text,s.text)>.72)&&s.start-l.end<.7){l.end=s.end;if(s.text.length>l.text.length){l.text=s.text;if(s.km)l.km=s.km}}else out.push({start:s.start,end:s.end,text:s.text,km:s.km||''})}
  /* drop flicker blips (a short misread between two readings of the same line) */
  out=out.filter((x,i)=>{if(x.end-x.start>=.35)return true;const a=out[i-1],b=out[i+1];if(a&&x.start-a.end<.3&&sim(a.text,x.text)>.45){a.end=Math.max(a.end,x.end);return false}if(b&&b.start-x.end<.3&&sim(b.text,x.text)>.45){b.start=Math.min(b.start,x.start);return false}return true});
+ /* v6.3: Chinese video → drop lines with no Chinese at all (@user names, links, numbers) and text repeated in most lines (channel name glued to the subtitle) */
+ {const cj=x=>new RegExp(`[${CJKC}]`).test(x.text);if(out.filter(cj).length>=out.length*.6)out=out.filter(cj);
+  const grams={};out.forEach(x=>{const t=x.text.replace(/\s/g,''),seen=new Set();for(let n=4;n<=10;n++)for(let i=0;i+n<=t.length;i++){const g=t.slice(i,i+n);if(!seen.has(g)){seen.add(g);grams[g]=(grams[g]||0)+1}}});
+  const wm=Object.keys(grams).filter(g=>grams[g]>=Math.max(4,out.length*.35)).sort((a,b)=>b.length-a.length);
+  if(wm.length&&out.length>=6)out.forEach(x=>{let t=x.text;for(const g of wm)t=t.split(g).join(' ');x.text=cleanOcr(t)});out=out.filter(x=>x.text.replace(/[\s\p{P}\p{S}]/gu,'').length>0)}
  /* drop static on-screen text (channel name / watermark inside the subtitle box) */
  const tot={};out.forEach(x=>{const k=x.text.replace(/\s/g,'');tot[k]=(tot[k]||0)+(x.end-x.start)});const Tt=total()||1;out=out.filter(x=>tot[x.text.replace(/\s/g,'')]<Tt*.4||out.length<3);
  if(S.ocr.autoBlur===true&&out.length){S.box={...S.box,x:S.ocrBox.x,y:S.ocrBox.y,w:S.ocrBox.w,h:S.ocrBox.h,on:true};$('#bxOn').checked=true}
@@ -2351,6 +2363,27 @@ $('#ovOn').checked=false;S.ov.on=false;$('#ovOn').onchange=e=>{S.ov.on=e.target.
 chips($('#ovKey'),OVKEYS,()=>S.ov.key,v=>{S.ov.key=v;save();if(OV.src){busy.on('✂ កំពុងលុបផ្ទៃ...',null);setTimeout(()=>{try{OV.frames=ovProc(OV.src);draw()}finally{busy.off()}},30)}});
 {const sl=(id,k,f)=>{const i=$('#'+id),b=$('#'+id+'V');i.value=S.ov[k];b.textContent=f(S.ov[k]);i.oninput=()=>{S.ov[k]=+i.value;b.textContent=f(S.ov[k]);renderBox();draw();save()}};sl('ovW','w',v=>Math.round(v*100)+'%');sl('ovO','op',v=>Math.round(v*100)+'%')}
 ovNote();
+/* ============ v6.3 📖 សម្រាយរឿង — AI tells the story in Khmer (one narrator voice) instead of dubbing each character ============ */
+const REC={busy:false};
+function modePaint(){const m=S.recap?'recap':'dub';$('#dmChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===m));
+ $('#dmNote').innerHTML=m==='recap'?`📖 កំពុងប្រើ <b>សម្រាយរឿង</b> — អ្នកនិទាន 1 សំឡេង និទានរឿងតាមសាច់រឿង (${S.subs.length} ផ្នែក)`:'🗣 <b>បកប្រែតួ</b> — តួនីមួយៗនិយាយខ្មែរ ប្រុស/ស្រី ស្គាល់ដោយខ្លួនឯង · ចុច 📖 ដើម្បីប្ដូរទៅ <b>សម្រាយរឿង</b>';
+ $('#recapBtn').textContent=m==='recap'?'🔁 បង្កើតសម្រាយរឿងម្ដងទៀត':'📖 បង្កើតសម្រាយរឿងជាខ្មែរ'}
+async function makeRecap(){if(REC.busy)return;if(!S.clips.length){toast('សូមដាក់វីដេអូសិន');return $('#vidFile').click()}
+ let src=S.recap&&S.recapSrc?S.recapSrc:S.subs;if(!src.some(s=>s.src&&s.src.trim())){await autoSubTr();src=S.subs}if(!src.some(s=>s.src&&s.src.trim()))return toast('រក Sub ចិនមិនឃើញ');
+ REC.busy=true;busy.on('📖 AI កំពុងសរសេរសម្រាយរឿង...',0);
+ try{const base=src.map(s=>({...s,buf:null}));const lines=[...base].sort((a,b)=>a.start-b.start),k=LS.get('licKey','')||'',B=80,segs=[];let prev='';
+  for(let i=0;i<lines.length;i+=B){if(busy.cancel)throw Error('បានបោះបង់');const b=lines.slice(i,i+B);busy.set(`📖 AI កំពុងសរសេរសម្រាយរឿង ${Math.min(lines.length,i+B)}/${lines.length}`,i/lines.length);
+   const r=await fetch(STAT_HOST+'/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(120000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),prev:prev.slice(-1200),lines:b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),zh:prepSrc(s.src)||s.src,who:(spOf(s)||{}).role||''}))})});
+   const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw Error(r.status===404?'AI server មិនទាន់បើក':r.status===429?'AI ថ្ងៃនេះប្រើអស់កូតា — សាកស្អែក':(d.error||'AI '+r.status));
+   for(const x of d.segs){const s0=Math.max(x.s,segs.length?segs[segs.length-1].end+.05:0);if(x.e-s0>.6)segs.push({start:s0,end:x.e,km:x.km})}prev+=' '+d.segs.map(x=>x.km).join(' ')}
+  if(!segs.length)throw Error('AI មិនបានសរសេរ');
+  let nar=S.speakers.find(p=>p.role==='narrator');if(!nar){nar={id:'p'+uid(),pitch:0,rate:0};applyRole(nar,'narrator');nar.name='📖 អ្នកនិទាន';nar.voice='km-KH-PisethNeural';S.speakers.push(nar)}
+  if(!S.recap)S.recapSrc=base;S.recap=true;S.subs=segs.map(x=>({id:uid(),start:x.start,end:x.end,src:'',km:x.km,sp:nar.id}));MIX.dirty=true;if(S.mix.mode!=='ai'&&S.mix.mode!=='mute')setMode('ai');
+  renderSpeakers();subChanged();modePaint();buzz(40);toast(`📖 សម្រាយរឿងរួច · ${segs.length} ផ្នែក — ចុច 🔊 បង្កើតសំឡេង`,4500);showAct()}
+ catch(e){toast('✕ សម្រាយរឿង: '+(e.message||e),6000)}finally{REC.busy=false;busy.off()}}
+function backToDub(){if(!S.recap)return;if(S.recapSrc){S.subs=S.recapSrc;S.recapSrc=null}S.recap=false;MIX.dirty=true;renderSpeakers();subChanged();modePaint();toast('🗣 ត្រឡប់ទៅបកប្រែតួវិញ')}
+$('#dmChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;buzz();if(c.dataset.v==='recap'){if(!S.recap)makeRecap()}else backToDub()};
+$('#recapBtn').onclick=()=>makeRecap();modePaint();
 /* ---- v1.2 UI bindings ---- */
 chips($('#ocrSpd'),[['1','1x ល្អបំផុត'],['2','2x ច្បាស់'],['4','4x'],['8','8x លឿន']],()=>String(S.ocr.speed),v=>{S.ocr.speed=+v;save()});
 chips($('#ocrCol'),[['white','ស'],['yellow','លឿង'],['nooutline','ស គ្មានគែម']],()=>S.ocr.color,v=>{S.ocr.color=v;save()});
