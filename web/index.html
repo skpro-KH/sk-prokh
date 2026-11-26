@@ -335,6 +335,33 @@ body.mlock .vbar,body.mlock #railR [data-r=b5],body.mlock #railR [data-r=f5],bod
 .au-msg{font-size:12px;opacity:.8;margin:7px 0 6px;min-height:15px}.au-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}.au-bar i{display:block;height:100%;background:linear-gradient(90deg,#8b4dff,#f5c542);border-radius:4px;transition:width .4s}
 .au-b{display:flex;gap:6px;margin-left:auto}.au-b button{width:34px;height:30px;border-radius:10px;border:1px solid rgba(192,192,210,.25);background:rgba(255,255,255,.05);color:#fff;font-size:14px;padding:0;cursor:pointer}
 .au-b button.sv{background:var(--gold);color:#1a1205;border:0;width:auto;padding:0 10px;font-weight:800;font-size:12px}
+/* ============ v6.1 PC "Workspace" — neon navy, left tool rail, preview panel, transcript panel, audio timeline at the bottom ============ */
+html.pc.ws{--wsbg:#050a17;--wsp:#0a1226;--wsl:rgba(34,211,238,.22);--neon:#22d3ee;--ngl:0 0 0 1px rgba(34,211,238,.35),0 0 22px rgba(34,211,238,.18)}
+html.pc.ws body{background:radial-gradient(1200px 700px at 30% -10%,#10204a 0,transparent 60%),var(--wsbg)}
+html.pc.ws .app{grid-template-columns:92px minmax(440px,35vw) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) 196px;gap:12px;padding:0 12px 12px 0}
+html.pc.ws .top{grid-column:1/4;background:rgba(8,14,32,.85);border-bottom:1px solid var(--wsl);padding:10px 18px;gap:10px}
+html.pc.ws nav{position:static!important;grid-column:1;grid-row:2/4;width:auto!important;left:auto;right:auto;top:auto;flex-direction:column;justify-content:flex-start;gap:10px;padding:12px 8px;margin-left:10px;border-radius:20px;background:var(--wsp);border:1px solid var(--wsl);box-shadow:none;height:auto;overflow-y:auto}
+html.pc.ws nav button{flex-direction:column!important;gap:4px!important;font-size:11.5px!important;padding:12px 4px!important;border-radius:16px;border:1px solid rgba(34,211,238,.18);background:rgba(34,211,238,.04);color:#cfe9f3;width:100%;flex:0 0 auto}
+html.pc.ws nav button i{font-size:22px!important}html.pc.ws nav>:not(button){display:none!important}html.pc.ws .ws-ph .wsb{padding:7px 10px;font-size:12px}html.pc.ws nav button.on{background:linear-gradient(160deg,rgba(34,211,238,.28),rgba(139,77,255,.28))!important;border-color:var(--neon);box-shadow:var(--ngl);color:#fff}
+html.pc.ws .player{grid-column:2;grid-row:2;background:var(--wsp);border:1px solid var(--wsl);border-radius:20px;padding:12px!important;gap:10px}
+html.pc.ws .pages{grid-column:3;grid-row:2;border:1px solid var(--wsl);border-radius:20px;background:var(--wsp)}
+html.pc.ws .page{padding:18px 18px 26px!important}
+html.pc.ws .stage-row .rail{display:none}
+html.pc.ws .stage-wrap{border:2px solid var(--neon)!important;box-shadow:var(--ngl),inset 0 0 30px rgba(34,211,238,.08);border-radius:22px}
+html.pc.ws #cv{max-height:calc(100vh - 380px)!important}
+html.pc.ws .ws-tl{grid-column:2/4;grid-row:3;background:var(--wsp);border:1px solid var(--wsl);border-radius:20px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;min-height:0}
+html.pc.ws .ws-tl #scrub{height:auto;flex:1;min-height:90px;border-color:rgba(34,211,238,.25);background:#060d1f}
+.ws-tlh,.ws-ph{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:nowrap;font-weight:800;font-size:13px;color:#d6f6ff}.ws-tlh .note,.ws-ph .note{margin:0;font-weight:600}
+.ws-ph .sp,.ws-tools .sp{flex:1}
+.wsb{border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:#e9fbff;border-radius:14px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;transition:transform .12s,box-shadow .2s}
+.wsb:hover{box-shadow:var(--ngl)}.wsb:active{transform:scale(.95)}
+.wsb.or{background:linear-gradient(135deg,#ff8a00,#ff5e3a);border-color:#ffb36b;color:#fff;box-shadow:0 0 18px rgba(255,120,40,.35)}
+.wsb.gr{background:linear-gradient(135deg,#16c172,#0ea35f);border-color:#7cf0b3;color:#fff;box-shadow:0 0 18px rgba(22,193,114,.3)}
+.wsb.cy{background:linear-gradient(135deg,#0891b2,#22d3ee);border-color:#a5f3fc;color:#04202a}
+.ws-tools{display:flex;align-items:center;gap:8px;margin-left:18px}
+.ws-tools select{background:#08142c;color:#d6f6ff;border:1px solid rgba(34,211,238,.45);border-radius:14px;padding:8px 10px;font-weight:700;font-size:13px}
+.ws-chip{font-size:11.5px;padding:3px 10px;border-radius:10px;background:rgba(34,211,238,.15);color:var(--neon);font-weight:800}
+html:not(.ws) .ws-only{display:none!important}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
@@ -639,7 +666,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.0';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.1';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1944,6 +1971,18 @@ async function autoRun(){if(AUTO.run)return;AUTO.run=true;AUTO.stop=false;busy.m
    AUTO.cur=null;busy.cancel=false;auPaint(true)}}
  finally{AUTO.run=false;AUTO.cur=null;busy.mini=false;document.body.classList.remove('aurun');$('#busy').classList.remove('mini');$('#busyPill').hidden=true;try{DubNative.keepAwake(false)}catch(e){}auPaint(true);goPage('pg-auto')}
  if(n){BG.done=`Auto រួច ${n} វីដេអូ`;toast(`✅ Auto រួច ${n} វីដេអូ — រក្សាទុកក្នុង Gallery`,5000)}}
+/* v6.1 PC workspace layout */
+if(document.documentElement.classList.contains('pc')){const R=document.documentElement;R.classList.add('ws');
+ const top=document.querySelector('.top'),logo=top.querySelector('.logo');
+ logo.insertAdjacentHTML('afterend',`<div class="ws-tools ws-only"><button class="wsb cy" id="wsExpT">⬇ Export</button><select id="wsLang" title="ភាសាដើម"></select><button class="wsb or" id="wsTr">📝 Transcript ចិន → ខ្មែរ</button><button class="wsb gr" id="wsTl">🎞 Timeline</button><button class="wsb" id="wsMp3">🎵 MP3</button></div>`);
+ const pl=document.querySelector('.player');pl.insertAdjacentHTML('afterbegin',`<div class="ws-ph ws-only"><span>🎬 Preview</span><span class="ws-chip" id="wsInfo">0:00 · MP4</span><span class="sp"></span><button class="wsb" id="wsNew">＋ New Video</button><button class="wsb or" id="wsSub">🤖 Sub</button><button class="wsb gr" id="wsExp">⬇ Export</button></div>`);
+ const tl=document.createElement('div');tl.className='ws-tl ws-only';tl.innerHTML=`<div class="ws-tlh">🎚 Audio Timeline (តាមពេលវេលា) <span class="ws-chip" id="wsCues">0 Cues</span><span class="note">ចុច/អូសលើ Timeline ដើម្បីទៅពេលនោះ</span><span class="sp" style="flex:1"></span><span class="ws-chip" id="wsMode"></span></div>`;
+ document.querySelector('.app').appendChild(tl);tl.appendChild($('#scrub'));document.querySelector('.app').appendChild($('#nav'));
+ const ex=()=>{goPage('pg-exp');$('#expBtn').click()};$('#wsExpT').onclick=ex;$('#wsExp').onclick=ex;
+ $('#wsNew').onclick=()=>$('#vidFile').click();const tr=()=>{if(!S.clips.length)return $('#vidFile').click();goPage('pg-sub');autoSubTr()};$('#wsTr').onclick=tr;$('#wsSub').onclick=tr;
+ $('#wsTl').onclick=()=>{tl.classList.toggle('big');tl.style.gridRow=tl.classList.contains('big')?'2/4':'';tl.scrollIntoView({behavior:'smooth'})};$('#wsMp3').onclick=()=>saveMp3(false);
+ const L=$('#wsLang'),A=$('#asrLang');const syncL=()=>{if(A&&A.options.length&&L.options.length!==A.options.length)L.innerHTML=A.innerHTML;if(A)L.value=A.value};syncL();L.onchange=()=>{if(A){A.value=L.value;A.dispatchEvent(new Event('change'))}};
+ setInterval(()=>{syncL();$('#wsInfo').textContent=`${mmss(P.t)} / ${mmss(total())} · ${S.clips.length?'MP4':'—'}`;$('#wsCues').textContent=`${S.subs.length} Cues`;$('#wsMode').textContent={ai:'🤖 លុបសំឡេងចិន',full:'🔊 សំឡេងដើម',karaoke:'🎤 Karaoke',mute:'🔇 បិទសំឡេងដើម'}[S.mix.mode]||''},500)}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 $('#expBtn').textContent=NATIVE&&!PC?'⬇ រក្សាទុកចូលទូរសព្ទ':PC?'⬇ រក្សាទុកចូលកុំព្យូទ័រ':'⬇ ទាញយកចូលម៉ាស៊ីន';
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
