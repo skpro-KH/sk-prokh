@@ -361,6 +361,25 @@ html.pc.ws .ws-tl #scrub{height:auto;flex:1;min-height:90px;border-color:rgba(34
 .ws-tools{display:flex;align-items:center;gap:8px;margin-left:18px}
 .ws-tools select{background:#08142c;color:#d6f6ff;border:1px solid rgba(34,211,238,.45);border-radius:14px;padding:8px 10px;font-weight:700;font-size:13px}
 .ws-chip{font-size:11.5px;padding:3px 10px;border-radius:10px;background:rgba(34,211,238,.15);color:var(--neon);font-weight:800}
+/* v6.2 workspace: transcript list, extra tool rail, multi-track audio timeline */
+html.pc.ws nav .wsr{font-size:10.5px!important}html.pc.ws nav .wsr i{font-size:19px!important}
+html.pc.ws nav button.wsr.gem{border-color:rgba(168,85,247,.6)}
+.ws-tx{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;padding-right:6px}
+.ws-tx .tx{display:grid;grid-template-columns:54px 1fr;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.ws-tx .tx:hover{background:rgba(34,211,238,.06)}.ws-tx .tx.on{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.45)}
+.ws-tx .tm{font:700 11.5px ui-monospace,monospace;color:#7dd3fc;padding-top:2px}.ws-tx .zh{font-size:14px;color:#e6f6ff;line-height:1.5}.ws-tx .km{font-size:13px;color:#f5c542;line-height:1.55;margin-top:2px}
+.ws-txh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:8px;color:#e9fbff}
+.wst{display:grid;grid-template-columns:150px 1fr;gap:0;flex:1;min-height:0;border:1px solid rgba(34,211,238,.22);border-radius:14px;overflow:hidden;background:#050c1d}
+.wst-h{display:flex;flex-direction:column;border-right:1px solid rgba(34,211,238,.2)}.wst-h>div{flex:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:4px 10px;border-bottom:1px solid rgba(34,211,238,.1);font-size:11.5px;font-weight:800;color:#cdeefa}
+.wst-h>div:first-child{flex:0 0 22px}.wst-h input[type=range]{width:100%;height:14px;accent-color:#ec4899;margin:0}.wst-h small{opacity:.6;font-weight:600}
+.wst-b{position:relative;overflow-x:auto;overflow-y:hidden;cursor:pointer}.wst-in{position:relative;height:100%;min-width:100%}
+.wst-ru{position:absolute;left:0;right:0;top:0;height:22px;border-bottom:1px solid rgba(34,211,238,.15);font:600 10px ui-monospace,monospace;color:#7dd3fc}.wst-ru span{position:absolute;top:5px;transform:translateX(-50%)}
+.wst-ln{position:absolute;left:0;right:0}
+.wst-pill{position:absolute;top:6px;bottom:6px;border-radius:9px;background:linear-gradient(90deg,#be185d,#ec4899);border:1px solid #f9a8d4;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;box-shadow:0 0 10px rgba(236,72,153,.35)}
+.wst-pill.f{background:linear-gradient(90deg,#7c3aed,#a855f7);border-color:#d8b4fe;box-shadow:0 0 10px rgba(168,85,247,.35)}.wst-pill.nv{opacity:.55;border-style:dashed}
+.wst-clip{position:absolute;top:5px;bottom:5px;border-radius:8px;background:linear-gradient(90deg,#0e7490,#0891b2);border:1px solid #67e8f9;color:#fff;font-size:10.5px;font-weight:800;padding:3px 7px;overflow:hidden;white-space:nowrap}
+.wst-bgm{position:absolute;top:7px;bottom:7px;left:0;border-radius:9px;background:repeating-linear-gradient(90deg,rgba(56,189,248,.55) 0 2px,rgba(56,189,248,.18) 2px 5px);border:1px solid #38bdf8;color:#e0f2fe;font-size:10.5px;font-weight:800;padding:3px 8px}
+.wst-ph{position:absolute;top:0;bottom:0;width:2px;background:#f43f5e;box-shadow:0 0 8px #f43f5e;pointer-events:none;z-index:3}.wst-ph:before{content:'';position:absolute;top:0;left:-6px;width:14px;height:14px;border-radius:50%;background:#f43f5e}
 html:not(.ws) .ws-only{display:none!important}
 #actBar{scroll-margin-top:90px;margin:0 0 14px;padding:16px;border-radius:20px;background:linear-gradient(160deg,#1d1530,#120d1c) padding-box,linear-gradient(135deg,#f5c542,#8b4dff 55%,#e0243a) border-box;border:2px solid transparent;box-shadow:0 10px 30px rgba(139,77,255,.25)}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
@@ -666,7 +685,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.1';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.2';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1983,6 +2002,37 @@ if(document.documentElement.classList.contains('pc')){const R=document.documentE
  $('#wsTl').onclick=()=>{tl.classList.toggle('big');tl.style.gridRow=tl.classList.contains('big')?'2/4':'';tl.scrollIntoView({behavior:'smooth'})};$('#wsMp3').onclick=()=>saveMp3(false);
  const L=$('#wsLang'),A=$('#asrLang');const syncL=()=>{if(A&&A.options.length&&L.options.length!==A.options.length)L.innerHTML=A.innerHTML;if(A)L.value=A.value};syncL();L.onchange=()=>{if(A){A.value=L.value;A.dispatchEvent(new Event('change'))}};
  setInterval(()=>{syncL();$('#wsInfo').textContent=`${mmss(P.t)} / ${mmss(total())} · ${S.clips.length?'MP4':'—'}`;$('#wsCues').textContent=`${S.subs.length} Cues`;$('#wsMode').textContent={ai:'🤖 លុបសំឡេងចិន',full:'🔊 សំឡេងដើម',karaoke:'🎤 Karaoke',mute:'🔇 បិទសំឡេងដើម'}[S.mix.mode]||''},500)}
+/* ---- v6.2: workspace — tool rail, transcript, multi-track timeline (PC) ---- */
+if(document.documentElement.classList.contains('ws')){
+ const goCard=(txt)=>{const h=[...document.querySelectorAll('.page .card h3')].find(x=>x.textContent.includes(txt));if(!h)return;const pg=h.closest('.page');GP_USER=true;try{goPage(pg.id)}finally{GP_USER=false}setTimeout(()=>{const c=h.closest('.card');c.scrollIntoView({behavior:'smooth',block:'start'});c.animate([{boxShadow:'0 0 0 3px #22d3ee'},{boxShadow:'0 0 0 0 transparent'}],{duration:1400})},60)};
+ const RT=[['🧠','AI បកប្រែ','gem',()=>{if(!S.clips.length)return $('#vidFile').click();GP_USER=true;try{goPage('pg-sub')}finally{GP_USER=false}autoSubTr()}],['🎵','Separate','',()=>goCard('សំឡេងដើមរបស់វីដេអូ')],['🎨','Color','',()=>goCard('ផល្ល័រ & ពណ៌')],['🎤','Voice ពិត','',()=>goCard('សំឡេងមនុស្សពិត')],['📢','Text','',()=>goCard('អក្សររត់')],['💧','Blur','',()=>goCard('AI លុប Sub ចិន')],['🖼','Logo','',()=>goCard('Logo / Watermark')],['🎞','Media','',()=>goCard('វីដេអូ / រូប លើអេក្រង់')]];
+ const nav=$('#nav');RT.forEach(([i,t,c,f])=>{const b=document.createElement('button');b.className='wsr '+c;b.innerHTML=`<i>${i}</i>${t}`;b.onclick=e=>{e.stopPropagation();buzz();f()};nav.appendChild(b)});
+ /* transcript */
+ const sp=$('#pg-sub');sp.insertAdjacentHTML('afterbegin',`<div class="card ws-only" id="wsTxCard" style="grid-column:1/-1"><div class="ws-txh">📄 <span id="wsTxName">Transcript</span><span class="ws-chip" id="wsTxN">0</span><span style="flex:1"></span><button class="wsb" id="wsSrt">💾 SRT</button></div><div class="ws-tx" id="wsTx"><div class="note">ដាក់វីដេអូ ហើយចុច 📝 Transcript ដើម្បីអាន Sub ចិន & បកប្រែ</div></div></div>`);
+ const tc=s=>{const t=Math.max(0,s);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')};
+ let TXK='';const txPaint=()=>{const k=S.subs.length+'|'+S.subs.map(s=>s.km.length+s.src.length).join(',');if(k===TXK)return;TXK=k;sortSubs();
+  $('#wsTxN').textContent=S.subs.length+' បន្ទាត់';$('#wsTxName').textContent=(S.clips[0]&&S.clips[0].m&&S.clips[0].m.name||'Transcript').replace(/\.[^.]+$/,'').slice(0,40);
+  $('#wsTx').innerHTML=S.subs.length?S.subs.map((s,i)=>`<div class="tx" data-i="${i}"><span class="tm">${tc(s.start)}</span><div><div class="zh">${esc(s.src||'')}</div>${s.km?`<div class="km">${esc(s.km)}</div>`:''}</div></div>`).join(''):'<div class="note">ដាក់វីដេអូ ហើយចុច 📝 Transcript ដើម្បីអាន Sub ចិន & បកប្រែ</div>'};
+ $('#wsTx').onclick=e=>{const r=e.target.closest('.tx');if(!r)return;const s=S.subs[+r.dataset.i];if(s)seek(s.start+.01)};
+ $('#wsSrt').onclick=()=>{if(!S.subs.length)return toast('គ្មាន Sub');sortSubs();const f2=t=>{const ms=Math.round(t*1000),h=Math.floor(ms/36e5),m=Math.floor(ms/6e4)%60,x=Math.floor(ms/1e3)%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms%1000).padStart(3,'0')}`};
+  const txt=S.subs.map((s,i)=>`${i+1}\n${f2(s.start)} --> ${f2(s.end)}\n${s.km||s.src}\n`).join('\n'),f=new File([txt],outFileName('sub-khmer','srt'),{type:'text/plain'});if(NATIVE)nativeSave(f).then(()=>toast('💾 SRT រក្សាទុករួច')).catch(e=>toast('✕ '+e.message));else{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()}};
+ /* multi-track timeline */
+ const tl=document.querySelector('.ws-tl');tl.insertAdjacentHTML('beforeend',`<div class="wst"><div class="wst-h"><div></div><div>🎬 Video</div><div>🎙 Voice (ខ្មែរ)<small>Edge TTS · ពិសិដ្ឋ/ស្រីមុំ</small><input type="range" id="wstDub" min="0" max="2" step=".05"></div><div>🎵 BGM (ដើម)<small id="wstBgmL">Separated</small><input type="range" id="wstOrig" min="0" max="1.2" step=".05"></div></div><div class="wst-b" id="wstB"><div class="wst-in" id="wstIn"></div></div></div>`);
+ $('#scrub').style.display='none';
+ let Z=+LS.get('wsZoom',40)||40,TLK='';const W=()=>Math.max($('#wstB').clientWidth,total()*Z);
+ const tlPaint=(force)=>{const T=total(),k=[T,Z,S.subs.length,S.subs.map(s=>s.start.toFixed(2)+(s.km||'').length+(hasBuf(s)?1:0)).join(','),S.clips.length,S.mix.mode].join('|');if(!force&&k===TLK)return;TLK=k;const w=W(),H=$('#wstB').clientHeight,rh=(H-22)/3;
+  let ru='';const st=Z>=80?1:Z>=30?5:Z>=12?10:30;for(let t=0;t<=T;t+=st)ru+=`<span style="left:${t*Z}px">${tc(t)}</span>`;let off=0,cl='';S.clips.forEach((c,i)=>{const d=c.out-c.in;cl+=`<div class="wst-clip" style="left:${off*Z}px;width:${Math.max(4,d*Z-3)}px">🎬 ${esc((c.m&&c.m.name||'clip '+(i+1)).slice(0,30))}</div>`;off+=d});
+  const pills=S.subs.map(s=>{const p=spOf(s),f=/f|grandma/.test(p.role||'')||/Sreymom/.test(p.voice||'');return`<div class="wst-pill ${f?'f':''} ${hasBuf(s)?'':'nv'}" title="${esc(s.km||s.src)}" style="left:${s.start*Z}px;width:${Math.max(6,(s.end-s.start)*Z-2)}px">${esc(s.km||s.src||'')}</div>`}).join('');
+  $('#wstIn').style.width=w+'px';$('#wstIn').innerHTML=`<div class="wst-ru">${ru}</div><div class="wst-ln" style="top:22px;height:${rh}px">${cl}</div><div class="wst-ln" style="top:${22+rh}px;height:${rh}px">${pills}</div><div class="wst-ln" style="top:${22+2*rh}px;height:${rh}px"><div class="wst-bgm" style="width:${Math.max(0,T*Z-2)}px">♫ ${S.mix.mode==='ai'?'BGM (ដកសំឡេងចិន)':S.mix.mode==='mute'?'BGM (បិទ)':'សំឡេងដើម'} · ${fmt(T)}</div></div><div class="wst-ph" id="wstPh"></div>`;
+  $('#wstBgmL').textContent=S.mix.mode==='ai'?'Separated':S.mix.mode==='mute'?'Muted':'Original'};
+ const phPaint=()=>{const ph=$('#wstPh');if(!ph)return;const x=P.t*Z;ph.style.left=x+'px';if(P.playing){const b=$('#wstB');if(x<b.scrollLeft||x>b.scrollLeft+b.clientWidth-40)b.scrollLeft=x-60}
+  const i=S.subs.findIndex(s=>P.t>=s.start&&P.t<s.end),rows=$('#wsTx').children;for(const r of rows)r.classList.toggle('on',+r.dataset.i===i)};
+ $('#wstB').addEventListener('click',e=>{const b=$('#wstB'),x=e.clientX-b.getBoundingClientRect().left+b.scrollLeft;seek(Math.max(0,x/Z))});
+ $('#wstB').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();const b=$('#wstB'),mx=e.clientX-b.getBoundingClientRect().left,t=(mx+b.scrollLeft)/Z;Z=clamp(Z*(e.deltaY<0?1.2:1/1.2),4,300);LS.set('wsZoom',Z);tlPaint(true);b.scrollLeft=t*Z-mx}else if(!e.shiftKey&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.preventDefault();$('#wstB').scrollLeft+=e.deltaY}},{passive:false});
+ const sl=(id,k,src)=>{const i=$('#'+id);i.value=S.mix[k];i.oninput=()=>{S.mix[k]=+i.value;MIX.dirty=true;save();const o=$('#'+src);if(o){o.value=i.value;o.dispatchEvent(new Event('input'))}}};sl('wstDub','dub','mxDub');sl('wstOrig','orig','mxOrig');
+ $('#wsTl').textContent='🎞 Timeline 100%';$('#wsTl').onclick=()=>{Z=Math.max(4,($('#wstB').clientWidth-10)/Math.max(1,total()));LS.set('wsZoom',Z);tlPaint(true)};
+ new ResizeObserver(()=>tlPaint(true)).observe($('#wstB'));
+ setInterval(()=>{txPaint();tlPaint()},700);(function loop(){phPaint();requestAnimationFrame(loop)})()}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 $('#expBtn').textContent=NATIVE&&!PC?'⬇ រក្សាទុកចូលទូរសព្ទ':PC?'⬇ រក្សាទុកចូលកុំព្យូទ័រ':'⬇ ទាញយកចូលម៉ាស៊ីន';
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
