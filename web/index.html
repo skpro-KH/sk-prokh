@@ -467,7 +467,7 @@ html:not(.ws) .ws-only{display:none!important}
         <div class="chips" id="dmChips"><span class="chip" data-v="dub">🗣 បកប្រែតួ (Dub)</span><span class="chip" data-v="recap">📖 សម្រាយរឿង (និទានរឿង)</span></div>
         <div class="note" id="dmNote" style="margin-top:8px"></div>
         <div class="row" style="margin-top:10px"><button class="btn" id="recapBtn">📖 បង្កើតសម្រាយរឿងជាខ្មែរ</button></div></div>
-      <div class="card" id="aiCard" hidden style="display:none"><h3><span class="n">🧠</span> AI ខ្លាំង — អាន Sub & បកប្រែ</h3><div id="aiBody"></div></div>
+      <div class="card" id="aiCard"><h3><span class="n">🔑</span> API Key — បកប្រែច្បាស់ & ត្រូវជាងមុន</h3><div id="aiBody"></div></div>
       <div class="card hero"><h3>⚡ Dub ១ ចុច</h3>
         <div class="note" style="margin:0 0 10px">ស្ដាប់ → បកប្រែ → បង្កើតសំឡេងខ្មែរ ពិសិដ្ឋ/ស្រីមុំ → ចាក់</div>
         <label class="chk aiTog"><input type="checkbox" class="aiTr"> 🤖 កាត់សំឡេងដើម (ចិន...) ចេញ — ទុកតែភ្លេង & Sound</label>
@@ -689,7 +689,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.3';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -766,7 +766,7 @@ const S={media:[],clips:[],
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:50,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
  tr:{eng:'free',style:'normal',sl:'auto',...LS.get('tr',{}),...(LS.get('v45tr',false)?{}:(LS.set('v45tr',true),{short:false,style:'normal'}))},
  asr:{eng:'auto',lang:'auto',wm:'onnx-community/whisper-base',gender:true,cast:'simple',...LS.get('asr',{}),...(LS.get('asr',{}).eng==='gemini'?{eng:'auto'}:{})},
- keys:(LS.set('keys',{}),{}),server:LS.get('server',null)};
+ keys:LS.get('keys',{}),server:LS.get('server',null)};
 S.speakers.forEach(sp=>{if(sp.vm==='real')sp.vm='off';if(sp.voice==='phone')sp.voice='km-KH-PisethNeural'});
 S.fastSW=LS.get('fastSW',false);
 if(!LS.get('aiMig',false)){LS.set('aiMig',true);if(S.mix.mode==='full')S.mix.mode='ai'}
@@ -820,9 +820,9 @@ $('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>
  <label class="l">Server សំឡេង ពិសិដ្ឋ/ស្រីមុំ</label><input id="sSrv" value="${esc(srv())}" placeholder="https://dub-khmer.xxx.workers.dev">
  <div class="note">${NATIVE?'• App: ទុកទទេ = ប្រើសំឡេង ពិសិដ្ឋ/ស្រីមុំ ក្នុង App ផ្ទាល់ (គ្មាន key គ្មាន server)។<br>':''}• បើអ្នកបើក App នេះពី Cloudflare Worker ឬ AI Engine លើកុំព្យូទ័រ វាភ្ជាប់ដោយខ្លួនឯង។<br>• AI Engine លើកុំព្យូទ័រ (Wi-Fi តែមួយ): <b>http://IP-កុំព្យូទ័រ:7860</b></div>
  <input id="sGem" type="hidden" value=""><input id="sGemM" type="hidden" value="">
- <div class="note">🧠 AI បកប្រែ ដំណើរការពី Server របស់ SK ProKH — មិនបាច់មាន API key ទេ។</div><div class="note" style="text-align:center;margin-top:14px">SK ProKH v${APP_VER}</div>
+ <div class="note">🧠 គ្មាន Key: បកប្រែដោយ AI Server របស់ SK ProKH។ ដាក់ API Key (Claude / Gemini / OpenRouter) នៅទំព័រ Sub → 🔑 ដើម្បីបកប្រែច្បាស់ និងត្រូវជាងមុន។</div><div class="note" style="text-align:center;margin-top:14px">SK ProKH v${APP_VER}</div>
  <div class="row" style="margin-top:16px"><button class="btn" id="sSave">រក្សាទុក & ភ្ជាប់</button></div>`,b=>{
- b.querySelector('#sSave').onclick=async()=>{S.server=b.querySelector('#sSrv').value.trim();LS.set('server',S.server);{const nk=b.querySelector('#sGem').value.trim();if(nk&&!K('kGem'))S.tr.eng='gemini';S.keys.kGem=nk}S.keys.mGem=b.querySelector('#sGemM').value.trim();LS.set('keys',S.keys);closeSheet();aiPaint();await checkServer();renderAsrNote()}});
+ b.querySelector('#sSave').onclick=async()=>{S.server=b.querySelector('#sSrv').value.trim();LS.set('server',S.server);closeSheet();aiPaint();await checkServer();renderAsrNote()}});
 
 /* ============ media & clips ============ */
 const cv=$('#cv'),ctx=cv.getContext('2d');
@@ -1746,7 +1746,7 @@ $('#asrBtn').onclick=runASR;
 
 /* ============ translate ============ */
 chips($('#styChips'),Object.entries(STYLES).map(([k,v])=>[k,v[0]]),()=>S.tr.style,v=>{S.tr.style=v;save()});
-chips($('#trChips'),[['free','🧠 AI បកប្រែតាមសាច់រឿង (គ្មាន key)']],()=>S.tr.eng,v=>{S.tr.eng=v;save()});
+function trChipsPaint(){chips($('#trChips'),[['free','🧠 AI Server (គ្មាន key)'],['gemini','🔑 AI Key របស់ខ្ញុំ (ច្បាស់ជាង)']],()=>{try{return S.tr.eng==='gemini'&&aiKey()?'gemini':'free'}catch(e){return S.tr.eng==='gemini'?'gemini':'free'}},v=>{if(v==='gemini'&&!aiKey()){toast('🔑 សូមដាក់ API Key ខាងលើសិន',3000);try{$('#aiCard').scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}return}S.tr.eng=v;save();try{aiPaint()}catch(e){}})}trChipsPaint();
 /* ---- free translation (no key): Google → Microsoft Edge → Google dict, via native HTTP in the APK (no CORS) ---- */
 const nHttp=new Map();window.__dubHttp=(id,status,text,err,fin)=>{const f=nHttp.get(id);if(f){nHttp.delete(id);f({status,text,err,fin})}};
 async function xfetch(url,o={}){if(busy.cancel)throw Error('បានបោះបង់');
@@ -1792,7 +1792,7 @@ async function cloudTr(b){const k=LS.get('licKey','')||'';const prev=S.subs.slic
  const r=await fetch(STAT_HOST+'/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(90000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),task:'tr',ctx:prev,lines:b.map(s=>({zh:prepSrc(s.src)||s.src,sec:+Math.max(.6,s.end-s.start).toFixed(1),who:spk(s)}))})});
  const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok||!Array.isArray(d.km)){const e=Error(d.error||('AI server '+r.status));e.st=r.status;throw e}return d.km}
 async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&aiKey();if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
- if(!forceFree&&!useG&&S.tr.cloud!==false&&Date.now()>CAI.off){const B=25,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));let fail=null;const t0=performance.now();
+ if((!forceFree||forceFree==='srv')&&!useG&&S.tr.cloud!==false&&Date.now()>CAI.off){const B=25,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));let fail=null;const t0=performance.now();
   /* v5.8: 3 batches at the same time → ~3× faster; a failed batch is retried once, then the rest falls back to Google */
   busy.set(`🧠 AI កំពុងបកប្រែតាមសាច់រឿង 0/${list.length}`,0);
   try{await pool(bs,3,async b=>{if(busy.cancel||fail)return;let km=null;for(let t=0;t<2&&!km&&!busy.cancel;t++){try{km=await cloudTr(b)}catch(e){if(t||e.st===404||e.st===403){throw e}await sleep(1500)}}
@@ -1805,7 +1805,7 @@ async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const
     const d=await aiLLM([{text:`Translate each subtitle line of this Chinese drama into Khmer for VOICE DUBBING. Translate ACCURATELY and COMPLETELY — keep every word's meaning, never skip, summarize or invent; follow the story context of the surrounding lines (who talks to whom, relationships, earlier events) so pronouns and terms of address are right.${S.tr.short===true?' Use short, simple spoken Khmer.':' Use natural spoken Khmer.'}${ctxPrev(S.subs.indexOf(b[0]))} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*15)+4,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
     const arr=d.lines||Object.values(d)[0];b.forEach((s,k)=>{if(arr[k]!=null)s.km=postKm(arr[k],s)});done+=b.length;liveSub();busy.set(`🌐 ${done}/${list.length}`,done/list.length)}}
   else{const B=50,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));await pool(bs,12,async b=>{const res=await trFree(b.map(s=>prepSrc(s.src)||s.src));b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;liveSub();busy.set(`🌐 ${done}/${list.length}`,done/list.length)})}
-  if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast(aiName()+' មានបញ្ហា — បកប្រែដោយ Google ឥតគិតថ្លៃ',3000);return translate(list,true)}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
+  if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('⚠ '+aiName()+' មានបញ្ហា ('+String(e.message||e).slice(0,60)+') — បកប្រែដោយ AI Server ជំនួស',4000);return translate(list,'srv')}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
 $('#trBtn').onclick=()=>{aiBackground();translate(S.subs)};
 $('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short===true;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
 $('#autoBtn').onclick=async()=>{buzz();if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');
@@ -2284,9 +2284,19 @@ $('#cleanDev').onclick=async()=>{if(!(await ask('🧹 សម្អាតទូ�
  let after=before;try{after=(await navigator.storage.estimate()).usage||0}catch(e){}const freed=Math.max(0,before-after)+nat;
  buzz(30);toast(`✨ សម្អាតរួច${freed>1e6?` · បានទំនេរ ${(freed/1e6).toFixed(0)}MB`:''}`,3500)};
 /* v4.7: strong AI — Gemini (Google, free key) or OpenRouter (free models router: many strong free AIs, or any paid model like Claude) */
-const aiEng=()=>S.ai&&S.ai.eng?S.ai.eng:(K('kOR')&&!K('kGem')?'or':'gem');
-const aiKey=()=>aiEng()==='or'?!!K('kOR'):!!K('kGem');
-const aiName=()=>aiEng()==='or'?'OpenRouter':'Gemini';
+const aiEng=()=>S.ai&&S.ai.eng?S.ai.eng:K('kCla')?'cla':(K('kOR')&&!K('kGem')?'or':'gem');
+const AIK={gem:'kGem',or:'kOR',cla:'kCla'};
+const aiKey=()=>!!K(AIK[aiEng()]||'kGem');
+const aiName=()=>({or:'OpenRouter',cla:'Claude'})[aiEng()]||'Gemini';
+const claModel=()=>(S.ai&&S.ai.cmodel||'').trim()||'claude-sonnet-5-5';
+/* v6.4: 🟠 Claude (Anthropic) — the user's own key, called straight from the app */
+async function claCall(parts,temp=.3,tries=0){const content=[];for(const p of parts){if(p.text)content.push({type:'text',text:p.text});const d=p.inlineData||p.inline_data;if(d){const mt=d.mimeType||d.mime_type;if(/^image\//.test(mt))content.push({type:'image',source:{type:'base64',media_type:mt,data:d.data}});else throw Error('Claude មិនស្ដាប់សំឡេងបានទេ')}}
+ content.push({type:'text',text:'Answer with JSON only, no explanation.'});
+ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':K('kCla'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:claModel(),max_tokens:8192,temperature:Math.min(1,temp),messages:[{role:'user',content}]})});
+ const j=await r.json().catch(()=>({}));
+ if(r.status===429||r.status===529){if(tries<2){await sleep((+r.headers.get('retry-after')||8)*1000);return claCall(parts,temp,tries+1)}const e=Error('Claude រវល់ (429)');e.rate=true;e.wait=20;throw e}
+ if(!r.ok){const e=Error('Claude: '+((j.error&&j.error.message)||r.status));if(r.status===401||r.status===403)e.daily=true;throw e}
+ const txt=(j.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('');if(!txt)throw Error('Claude មិនឆ្លើយ');return jsonOut(txt)}
 const orModel=()=>(S.ai&&S.ai.model||'').trim()||'openrouter/free';
 function jsonOut(t){t=String(t||'').replace(/^[\s\S]*?```(?:json)?/i,m=>/```/.test(m)?'':m).replace(/```[\s\S]*$/,'');const a=t.indexOf('{'),b=t.lastIndexOf('}'),c=t.indexOf('['),d=t.lastIndexOf(']');
  const cand=[];if(a>=0&&b>a)cand.push(t.slice(a,b+1));if(c>=0&&d>c)cand.push(t.slice(c,d+1));for(const x of cand){try{return JSON.parse(x)}catch(e){}}throw Error('AI ឆ្លើយមិនមែន JSON')}
@@ -2295,25 +2305,29 @@ async function orCall(parts,temp=.3){const content=[];for(const p of parts){if(p
  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+K('kOR'),'Content-Type':'application/json','HTTP-Referer':'https://skprokh.onden168.workers.dev','X-Title':'SK ProKH'},body:JSON.stringify(body)});
  const j=await r.json().catch(()=>({}));if(!r.ok||j.error){const msg=(j.error&&j.error.message)||('HTTP '+r.status);throw Error((r.status===429?'429 rate ':'')+msg)}
  const txt=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;if(!txt)throw Error('AI មិនឆ្លើយ');return jsonOut(Array.isArray(txt)?txt.map(x=>x.text||'').join(''):txt)}
-const aiLLM=(parts,schema,temp)=>aiEng()==='or'?orCall(parts,temp):gemini(parts,schema,temp);
-function aiPaint(){const b=$('#aiBody');if(!b)return;S.ai=S.ai||{};const e=aiEng(),k=aiKey(),isOR=e==='or';
- b.innerHTML=`<div class="chips" id="aiEng"><span class="chip${!isOR?' on':''}" data-v="gem">🔷 Gemini (Google)</span><span class="chip${isOR?' on':''}" data-v="or">🔀 OpenRouter (AI ហ្វ្រីច្រើន)</span></div>`+(k?`<div class="hint" style="margin-top:8px">✅ <span><b>${aiName()}</b> បើករួច${isOR?` · ម៉ូដែល <b>${esc(orModel())}</b>`:''} — អាន Sub ពីរូបភាព និងបកប្រែតាមសាច់រឿង</span></div>
-  <label class="chk"><input type="checkbox" id="aiOcr"${S.ocr.ai!==false?' checked':''}> 🔤 ប្រើ AI អាន Sub លើវីដេអូ (ច្បាស់ជាង OCR ក្នុងទូរសព្ទ)</label>
-  <label class="chk"><input type="checkbox" id="aiTr"${S.tr.eng==='gemini'?' checked':''}> 🌐 ប្រើ AI បកប្រែ (ត្រូវតាមសាច់រឿង)</label>
-  ${isOR?`<label class="l">ម៉ូដែល (ទុកទទេ = openrouter/free ជ្រើស AI ហ្វ្រីល្អបំផុតដោយខ្លួនឯង)</label><div class="row"><input id="aiModel" placeholder="openrouter/free" value="${esc(S.ai.model||'')}"><button class="btn g s" id="aiModelOk">✓</button></div><div class="note">AI ហ្វ្រី៖ ~50 ដង/ថ្ងៃ · 20 ដង/នាទី។ Claude (anthropic/...) ត្រូវបង់លុយក្នុង OpenRouter</div>`:''}
-  <div class="row" style="margin-top:6px"><button class="btn g s" id="aiOff">✕ ដក Key</button></div>`
- :`<div class="hint" style="margin-top:8px">🔑 <span>${isOR?'ចុះឈ្មោះ <b>openrouter.ai</b> ឥតគិតថ្លៃ → <b>Keys</b> → <b>Create Key</b> → Copy (sk-or-...)':'ចូល <b>aistudio.google.com/apikey</b> → <b>Create API key</b> → Copy (AIza...)'}</span></div>
-  <div class="row"><input id="aiKey" type="password" placeholder="${isOR?'sk-or-v1-...':'AIza...'}" autocomplete="off"><button class="btn s" id="aiSave">✓ ដាក់</button></div>
-  <div class="row" style="margin-top:8px"><button class="btn g s" id="aiGet">🔗 ${isOR?'បើក OpenRouter យក Key':'បើក AI Studio យក Key'}</button></div><div class="note">គ្មាន Key ក៏ប្រើបាន (OCR ក្នុងទូរសព្ទ + Google បកប្រែ) តែមិនសូវត្រូវ</div>`);
- $('#aiEng').onclick=ev=>{const c=ev.target.closest('.chip');if(!c)return;S.ai.eng=c.dataset.v;save();aiPaint()};
- const kn=isOR?'kOR':'kGem';
- if(k){$('#aiOcr').onchange=x=>{S.ocr.ai=x.target.checked;save()};$('#aiTr').onchange=x=>{S.tr.eng=x.target.checked?'gemini':'free';save();try{$('#trChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===S.tr.eng))}catch(y){}};
-  if(isOR)$('#aiModelOk').onclick=()=>{S.ai.model=$('#aiModel').value.trim();save();aiPaint();toast('✓ ម៉ូដែល: '+orModel())};
-  $('#aiOff').onclick=()=>{S.keys[kn]='';LS.set('keys',S.keys);save();aiPaint();try{renderAsrNote()}catch(y){}}}
- else{$('#aiGet').onclick=()=>{const u=isOR?'https://openrouter.ai/settings/keys':'https://aistudio.google.com/apikey';if(NATIVE&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')};
-  $('#aiSave').onclick=async()=>{const v=$('#aiKey').value.trim();if(isOR?!/^sk-or-[\w-]{20,}$/.test(v):!/^AIza[\w-]{20,}$/.test(v))return toast('Key មិនត្រឹមត្រូវ ('+(isOR?'sk-or-...':'AIza...')+')');busy.on('🔑 កំពុងពិនិត្យ Key...',null);
-   try{const r=isOR?await fetch('https://openrouter.ai/api/v1/key',{headers:{Authorization:'Bearer '+v}}):await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=5&key='+v);if(!r.ok)throw Error((await r.json().catch(()=>({}))).error?.message||r.status);
-    S.keys[kn]=v;LS.set('keys',S.keys);if(!isOR)LS.set('gemAuto',null);S.ai.eng=isOR?'or':'gem';S.tr.eng='gemini';S.ocr.ai=true;save();toast('✅ AI ខ្លាំងបើករួច',3000);aiPaint();try{renderAsrNote()}catch(y){}}
+const aiLLM=(parts,schema,temp)=>{const e=aiEng();return e==='or'?orCall(parts,temp):e==='cla'?claCall(parts,temp):gemini(parts,schema,temp)};
+function aiPaint(){const b=$('#aiBody');if(!b)return;S.ai=S.ai||{};const e=aiEng(),k=aiKey(),isOR=e==='or',isC=e==='cla',kn=AIK[e]||'kGem';
+ const INFO={cla:{ph:'sk-ant-api03-...',re:/^sk-ant-[\w-]{20,}$/,url:'https://console.anthropic.com/settings/keys',how:'ចូល <b>console.anthropic.com</b> → <b>API Keys</b> → <b>Create Key</b> → Copy (sk-ant-...) · ត្រូវបញ្ចូលលុយ (Billing) ក្នុង Anthropic',get:'បើក Anthropic យក Key'},
+  gem:{ph:'AIza...',re:/^AIza[\w-]{20,}$/,url:'https://aistudio.google.com/apikey',how:'ចូល <b>aistudio.google.com/apikey</b> → <b>Create API key</b> → Copy (AIza...) · ឥតគិតថ្លៃ',get:'បើក AI Studio យក Key'},
+  or:{ph:'sk-or-v1-...',re:/^sk-or-[\w-]{20,}$/,url:'https://openrouter.ai/settings/keys',how:'ចុះឈ្មោះ <b>openrouter.ai</b> ឥតគិតថ្លៃ → <b>Keys</b> → <b>Create Key</b> → Copy (sk-or-...)',get:'បើក OpenRouter យក Key'}}[e]||{};
+ const has=['cla','gem','or'].filter(x=>K(AIK[x]));
+ b.innerHTML=`<div class="chips" id="aiEng"><span class="chip${isC?' on':''}" data-v="cla">🟠 Claude${K('kCla')?' ✓':''}</span><span class="chip${e==='gem'?' on':''}" data-v="gem">🔷 Gemini${K('kGem')?' ✓':''}</span><span class="chip${isOR?' on':''}" data-v="or">🔀 OpenRouter${K('kOR')?' ✓':''}</span></div>`+(k?`<div class="hint" style="margin-top:8px">✅ <span><b>${aiName()}</b> បើករួច · ម៉ូដែល <b>${esc(isC?claModel():isOR?orModel():(K('mGem')||'Gemini Flash'))}</b> — អាន Sub ពីរូបភាព បកប្រែតាមសាច់រឿង និងសរសេរសម្រាយរឿង</span></div>
+  <label class="chk"><input type="checkbox" id="aiTr"${S.tr.eng==='gemini'?' checked':''}> 🌐 ប្រើ Key នេះបកប្រែ (ច្បាស់ ត្រូវតាមសាច់រឿង)</label>
+  <label class="chk"><input type="checkbox" id="aiOcr"${S.ocr.ai!==false?' checked':''}> 🔤 ប្រើ Key នេះអាន Sub លើវីដេអូ (ច្បាស់ជាង OCR)</label>
+  ${isOR||isC?`<label class="l">ម៉ូដែល ${isC?'(ទុកទទេ = claude-sonnet-5-5 · ល្អបំផុត: claude-opus-5-5 · លឿន/ថោក: claude-haiku-5-5)':'(ទុកទទេ = openrouter/free)'}</label><div class="row"><input id="aiModel" placeholder="${isC?'claude-sonnet-5-5':'openrouter/free'}" value="${esc((isC?S.ai.cmodel:S.ai.model)||'')}"><button class="btn g s" id="aiModelOk">✓</button></div>`:''}
+  <div class="row" style="margin-top:6px"><button class="btn g s" id="aiTest">🧪 សាកបកប្រែ</button><button class="btn g s" id="aiOff">✕ ដក Key</button></div>`
+ :`<div class="hint" style="margin-top:8px">🔑 <span>${INFO.how}</span></div>
+  <div class="row"><input id="aiKey" type="password" placeholder="${INFO.ph}" autocomplete="off"><button class="btn s" id="aiSave">✓ ដាក់</button></div>
+  <div class="row" style="margin-top:8px"><button class="btn g s" id="aiGet">🔗 ${INFO.get}</button></div><div class="note">${has.length?'មាន Key រួចសម្រាប់: '+has.map(x=>({cla:'Claude',gem:'Gemini',or:'OpenRouter'})[x]).join(', ')+' — ចុចឈ្មោះខាងលើដើម្បីប្ដូរ':'គ្មាន Key ក៏ប្រើបាន (AI Server) តែដាក់ Key វាបកប្រែច្បាស់ និងត្រូវជាង'} · Key រក្សាទុកតែក្នុងឧបករណ៍របស់អ្នក</div>`);
+ $('#aiEng').onclick=ev=>{const c=ev.target.closest('.chip');if(!c)return;S.ai.eng=c.dataset.v;if(K(AIK[c.dataset.v]))S.tr.eng='gemini';save();aiPaint();try{trChipsPaint()}catch(y){}};
+ if(k){$('#aiOcr').onchange=x=>{S.ocr.ai=x.target.checked;save()};$('#aiTr').onchange=x=>{S.tr.eng=x.target.checked?'gemini':'free';save();try{trChipsPaint()}catch(y){}};
+  if(isOR||isC)$('#aiModelOk').onclick=()=>{const v=$('#aiModel').value.trim();if(isC)S.ai.cmodel=v;else S.ai.model=v;save();aiPaint();toast('✓ ម៉ូដែល: '+(isC?claModel():orModel()))};
+  $('#aiTest').onclick=async()=>{busy.on('🧪 '+aiName()+' កំពុងសាក...',null);try{const d=await aiLLM([{text:'Translate this Chinese drama line into natural spoken Khmer. Return {"km":"..."}. LINE: 你竟然敢背叛我？'}],null,.3);toast('✅ '+aiName()+': '+String(d.km||JSON.stringify(d)).slice(0,120),6000)}catch(x){toast('✕ '+(x.message||x),6000)}finally{busy.off()}};
+  $('#aiOff').onclick=()=>{S.keys[kn]='';LS.set('keys',S.keys);if(!aiKey())S.tr.eng='free';save();aiPaint();try{trChipsPaint();renderAsrNote()}catch(y){}}}
+ else{$('#aiGet').onclick=()=>{const u=INFO.url;if(NATIVE&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')};
+  $('#aiSave').onclick=async()=>{const v=$('#aiKey').value.trim();if(!INFO.re.test(v))return toast('Key មិនត្រឹមត្រូវ ('+INFO.ph+')');busy.on('🔑 កំពុងពិនិត្យ Key...',null);
+   try{const r=isC?await fetch('https://api.anthropic.com/v1/models?limit=1',{headers:{'x-api-key':v,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}}):isOR?await fetch('https://openrouter.ai/api/v1/key',{headers:{Authorization:'Bearer '+v}}):await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=5&key='+v);if(!r.ok)throw Error((await r.json().catch(()=>({}))).error?.message||r.status);
+    S.keys[kn]=v;LS.set('keys',S.keys);if(e==='gem')LS.set('gemAuto',null);S.ai.eng=e;S.tr.eng='gemini';S.ocr.ai=true;save();toast('✅ '+aiName()+' បើករួច — បកប្រែច្បាស់ជាងមុន',3000);aiPaint();try{trChipsPaint();renderAsrNote()}catch(y){}}
    catch(x){toast('✕ Key មិនដើរ: '+(x.message||x),5000)}finally{busy.off()}}}}
 aiPaint();
 /* ============ v4.6: ✂ remove background (logo: solid colour or AI u2netp) + 🎞 video/picture overlay with green-screen removal ============ */
@@ -2368,11 +2382,16 @@ const REC={busy:false};
 function modePaint(){const m=S.recap?'recap':'dub';$('#dmChips').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===m));
  $('#dmNote').innerHTML=m==='recap'?`📖 កំពុងប្រើ <b>សម្រាយរឿង</b> — អ្នកនិទាន 1 សំឡេង និទានរឿងតាមសាច់រឿង (${S.subs.length} ផ្នែក)`:'🗣 <b>បកប្រែតួ</b> — តួនីមួយៗនិយាយខ្មែរ ប្រុស/ស្រី ស្គាល់ដោយខ្លួនឯង · ចុច 📖 ដើម្បីប្ដូរទៅ <b>សម្រាយរឿង</b>';
  $('#recapBtn').textContent=m==='recap'?'🔁 បង្កើតសម្រាយរឿងម្ដងទៀត':'📖 បង្កើតសម្រាយរឿងជាខ្មែរ'}
+const RECAP_P=(b,prev)=>`You are the most popular Khmer movie-recap narrator on TikTok ("សម្រាយរឿង"). From the Chinese dialogue of a short drama below (times in seconds), write a Khmer narration that TELLS THE STORY to the audience in the third person, vivid and emotional, natural everyday spoken Khmer like famous Khmer recap channels (e.g. "នាងមិនដឹងសោះថា...", "ភ្លាមៗនោះ...", "តែអ្វីដែលគ្មានអ្នកណានឹកស្មានដល់គឺ...").
+Rules: follow the real story (who did what to whom, feelings, twists); never invent events. Refer to characters by role ("នាយក្មេង", "នារីម្នាក់", "ប្ដីរបស់នាង", "លោកប្រធាន") or by name when said. Group the dialogue into narration segments of about 4-12 seconds; each segment's Khmer must be speakable in its time (~14 Khmer characters per second). Segments are in time order, never overlap, and use times from the dialogue.
+${prev?'Story so far (continue from it, do not repeat): '+prev.slice(-1200)+'\n':''}Return {"segs":[{"s":start,"e":end,"km":"..."}]}.
+DIALOGUE: ${JSON.stringify(b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),who:(spOf(s)||{}).role||'',zh:prepSrc(s.src)||s.src})))}`;
 async function makeRecap(){if(REC.busy)return;if(!S.clips.length){toast('សូមដាក់វីដេអូសិន');return $('#vidFile').click()}
  let src=S.recap&&S.recapSrc?S.recapSrc:S.subs;if(!src.some(s=>s.src&&s.src.trim())){await autoSubTr();src=S.subs}if(!src.some(s=>s.src&&s.src.trim()))return toast('រក Sub ចិនមិនឃើញ');
  REC.busy=true;busy.on('📖 AI កំពុងសរសេរសម្រាយរឿង...',0);
  try{const base=src.map(s=>({...s,buf:null}));const lines=[...base].sort((a,b)=>a.start-b.start),k=LS.get('licKey','')||'',B=80,segs=[];let prev='';
   for(let i=0;i<lines.length;i+=B){if(busy.cancel)throw Error('បានបោះបង់');const b=lines.slice(i,i+B);busy.set(`📖 AI កំពុងសរសេរសម្រាយរឿង ${Math.min(lines.length,i+B)}/${lines.length}`,i/lines.length);
+   if(aiKey()){try{const d=await aiLLM([{text:RECAP_P(b,prev)}],null,.8);const arr=(d.segs||d).filter(x=>x&&x.km).map(x=>({s:+x.s||0,e:+x.e||0,km:String(x.km).trim()}));if(arr.length){for(const x of arr){const s0=Math.max(x.s,segs.length?segs[segs.length-1].end+.05:0);if(x.e-s0>.6)segs.push({start:s0,end:x.e,km:x.km})}prev+=' '+arr.map(x=>x.km).join(' ');continue}}catch(e){console.warn('recap key',e);toast('⚠ '+aiName()+' មានបញ្ហា — ប្រើ AI Server',3000)}}
    const r=await fetch(STAT_HOST+'/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(120000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),prev:prev.slice(-1200),lines:b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),zh:prepSrc(s.src)||s.src,who:(spOf(s)||{}).role||''}))})});
    const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw Error(r.status===404?'AI server មិនទាន់បើក':r.status===429?'AI ថ្ងៃនេះប្រើអស់កូតា — សាកស្អែក':(d.error||'AI '+r.status));
    for(const x of d.segs){const s0=Math.max(x.s,segs.length?segs[segs.length-1].end+.05:0);if(x.e-s0>.6)segs.push({start:s0,end:x.e,km:x.km})}prev+=' '+d.segs.map(x=>x.km).join(' ')}
