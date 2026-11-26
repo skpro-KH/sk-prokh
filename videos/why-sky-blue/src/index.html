@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<title>Why Sky Blue Short</title>
+<style>
+  @font-face { font-family: "Kantumruy Pro"; src: url("assets/KantumruyPro.ttf") format("truetype"); font-weight: 100 700; }
+  html, body { margin: 0; padding: 0; background: #000; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Kantumruy Pro", sans-serif; color: #fff; }
+  canvas { position: absolute; inset: 0; }
+  #top { position: absolute; left: 60px; right: 60px; top: 90px; display: flex; align-items: center; gap: 24px; }
+  #pill { font-size: 34px; font-weight: 600; padding: 10px 26px; border-radius: 40px; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); white-space: nowrap; }
+  #bar { flex: 1; height: 10px; border-radius: 6px; background: rgba(255,255,255,.25); overflow: hidden; }
+  #bar i { display: block; height: 100%; width: 0; background: #ffd84d; border-radius: 6px; }
+  #title { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center; font-size: 132px; font-weight: 700; line-height: 1.5;
+           text-shadow: 0 10px 40px rgba(0,0,0,.45); opacity: 0; }
+  #card { position: absolute; left: 90px; width: 900px; top: 1080px; padding: 34px 40px 40px; box-sizing: border-box; border-radius: 44px;
+          background: #fff; color: #10204a; box-shadow: 0 30px 80px rgba(0,0,0,.35); text-align: center; opacity: 0; }
+  #card .t { font-size: 84px; font-weight: 700; line-height: 1.55; }
+  #card .s { font-size: 40px; font-weight: 500; line-height: 1.6; color: #3a4a7a; margin-top: 6px; }
+  #card .tag { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: #ffd84d; color: #10204a; font-size: 32px; font-weight: 700;
+               padding: 6px 28px; border-radius: 30px; white-space: nowrap; }
+  #sub { position: absolute; left: 50px; right: 50px; top: 1500px; height: 300px; display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
+         gap: 0 18px; font-size: 76px; font-weight: 700; line-height: 1.7; }
+  #sub span { color: #fff; opacity: .55; transition: none; text-shadow: 0 4px 0 #0b1638, 0 0 24px rgba(0,0,0,.6);
+              -webkit-text-stroke: 3px #0b1638; paint-order: stroke fill; }
+  #sub span.on { opacity: 1; }
+  #sub span.cur { color: #ffd84d; }
+  #cta { position: absolute; left: 50%; top: 1130px; transform: translateX(-50%); padding: 26px 70px; border-radius: 80px; background: #ff3b5c; font-size: 72px;
+         font-weight: 700; opacity: 0; white-space: nowrap; box-shadow: 0 20px 60px rgba(255,59,92,.5); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1080" height="1920"></canvas>
+  <div id="top"><div id="pill">១ / ៨</div><div id="bar"><i></i></div></div>
+  <div id="title"></div>
+  <div id="card"><div class="tag">ចំណុចសំខាន់</div><div class="t"></div><div class="s"></div></div>
+  <div id="cta">+ Follow</div>
+  <div id="sub"></div>
+</div>
+<script>
+const KH = n => String(n).replace(/\d/g, d => "០១២៣៤៥៦៧៨៩"[d]);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+const backOut = x => { x = clamp(x); const c = 1.70158, c3 = c + 1; return 1 + c3 * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+const rnd = s => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+let DATA, SC = [];
+const cv = document.getElementById("cv"), g = cv.getContext("2d");
+const W = 1080, H = 1920;
+const $ = id => document.getElementById(id);
+
+window.setup = (data, scale = 1) => {
+  DATA = data; let t0 = 0;
+  SC = data.scenes.map(s => { const d = s.dur * scale; const o = { ...s, start: t0, dur: d, scale }; t0 += d; return o; });
+  DATA.totalScaled = t0;
+  // cue times for whoosh (absolute seconds)
+  return SC.flatMap((s, i) => {
+    const cues = [];
+    if (s.card) cues.push(+(s.start + s.card.at * s.scale).toFixed(3));
+    if (i === 0) cues.push(0.15);
+    if (s.id === "cta") cues.push(+(s.start + 0.5 * s.scale).toFixed(3));
+    return cues;
+  });
+};
+
+function skyGrad(c1, c2) { const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, c1); gr.addColorStop(1, c2); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
+function sun(x, y, r, col = "#fff3b0", glow = "rgba(255,230,120,.5)") {
+  const gr = g.createRadialGradient(x, y, r * .2, x, y, r * 3); gr.addColorStop(0, glow); gr.addColorStop(1, "rgba(255,230,120,0)");
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 3, 0, 7); g.fill();
+  g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+}
+const RAINBOW = ["#ff3b3b", "#ff8a1f", "#ffe03a", "#3fd16b", "#2f8bff", "#3b4bd8", "#9b4dff"];
+
+const DRAW = {
+  hook(lt, d) {
+    skyGrad("#1d6fe0", "#7cc4ff");
+    sun(900, 1000, 90 + Math.sin(lt * 4) * 6);
+    for (let i = 0; i < 14; i++) {
+      const y = (H + 200) - ((lt * 260 + i * 160) % (H + 400)), x = 80 + rnd(i) * 920;
+      g.globalAlpha = .25; g.fillStyle = "#fff"; g.font = `700 ${70 + rnd(i + 9) * 70}px "Kantumruy Pro"`; g.fillText("?", x, y);
+    }
+    g.globalAlpha = 1;
+    // sea at bottom with a red X (it's not the sea)
+    g.fillStyle = "#0b4aa8"; g.fillRect(0, 1320, W, 160);
+    const k = ease((lt - 1.4) / .4);
+    if (k > 0) { g.strokeStyle = "#ff3b5c"; g.lineWidth = 22; g.lineCap = "round"; g.beginPath();
+      g.moveTo(420, 1320); g.lineTo(lerp(420, 660, k), lerp(1320, 1480, k)); g.moveTo(660, 1320); g.lineTo(lerp(660, 420, k), lerp(1320, 1480, k)); g.stroke(); }
+  },
+  white(lt) {
+    skyGrad("#0f1d4a", "#24356e");
+    sun(150, 520, 70);
+    const px = 560, py = 620, k = ease(lt / 1.2);
+    g.strokeStyle = "#fff"; g.lineWidth = 26; g.beginPath(); g.moveTo(200, 540); g.lineTo(lerp(200, px - 40, k), lerp(540, py, k)); g.stroke();
+    // prism
+    g.fillStyle = "rgba(200,230,255,.35)"; g.strokeStyle = "#cfe6ff"; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(px, 430); g.lineTo(px + 180, 780); g.lineTo(px - 180, 780); g.closePath(); g.fill(); g.stroke();
+    const k2 = ease((lt - 1.1) / 1.4);
+    RAINBOW.forEach((c, i) => { g.strokeStyle = c; g.lineWidth = 20; g.beginPath(); g.moveTo(px + 40, py + 20);
+      g.lineTo(px + 40 + k2 * 420, py + 20 + k2 * (60 + i * 58)); g.stroke(); });
+  },
+  waves(lt) {
+    skyGrad("#0f1d4a", "#1b2d66");
+    const wave = (y, lambda, col, amp, label) => {
+      g.strokeStyle = col; g.lineWidth = 14; g.lineCap = "round"; g.beginPath();
+      for (let x = 60; x <= 1020; x += 4) { const yy = y + Math.sin((x / lambda) * 6.283 - lt * 6) * amp; x === 60 ? g.moveTo(x, yy) : g.lineTo(x, yy); }
+      g.stroke(); g.fillStyle = col; g.font = `700 54px "Kantumruy Pro"`; g.fillText(label, 70, y - amp - 40);
+    };
+    const kr = ease(lt / .8), kb = ease((lt - .9) / .8);
+    g.globalAlpha = kr; wave(520, 380, "#ff5a5a", 80, "ក្រហម · រលកវែង"); g.globalAlpha = kb; wave(860, 120, "#4aa3ff", 80, "ខៀវ · រលកខ្លី"); g.globalAlpha = 1;
+  },
+  scatter(lt) {
+    skyGrad("#0f1d4a", "#183a8a");
+    sun(130, 380, 60);
+    // molecules
+    for (let i = 0; i < 26; i++) { const x = 300 + rnd(i) * 700, y = 300 + rnd(i + 50) * 680;
+      g.fillStyle = "rgba(255,255,255,.18)"; g.beginPath(); g.arc(x, y, 18, 0, 7); g.fill(); }
+    g.fillStyle = "rgba(255,255,255,.75)"; g.font = `600 40px "Kantumruy Pro"`; g.fillText("N₂ · O₂", 820, 1010);
+    // photons: red go straight, blue bounce
+    for (let i = 0; i < 18; i++) {
+      const p = ((lt * .45 + i / 18) % 1), blue = i % 3 !== 0;
+      let x = 160 + p * 900, y = 420 + (i % 6) * 95;
+      if (blue && p > .35) { const q = (p - .35) / .65, a = rnd(i + 3) * 6.283; x = 160 + .35 * 900 + Math.cos(a) * q * 520; y += Math.sin(a) * q * 520; }
+      g.fillStyle = blue ? "#4aa3ff" : "#ff5a5a"; g.shadowColor = g.fillStyle; g.shadowBlur = 24;
+      g.beginPath(); g.arc(x, y, 16, 0, 7); g.fill(); g.shadowBlur = 0;
+    }
+  },
+  everywhere(lt, d) {
+    const k = ease(lt / 3);
+    skyGrad(`rgb(${lerp(15, 30, k)},${lerp(29, 110, k)},${lerp(74, 225, k)})`, `rgb(${lerp(36, 130, k)},${lerp(53, 200, k)},${lerp(110, 255, k)})`);
+    const cx = 540, cy = 760;
+    for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283 + .1, p = ((lt * .6 + rnd(i)) % 1);
+      const r = lerp(520, 140, p); g.strokeStyle = `rgba(150,210,255,${1 - p * .6})`; g.lineWidth = 10; g.lineCap = "round";
+      g.beginPath(); g.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); g.lineTo(cx + Math.cos(a) * (r - 70), cy + Math.sin(a) * (r - 70)); g.stroke(); }
+    // eye
+    g.fillStyle = "#fff"; g.beginPath(); g.ellipse(cx, cy, 150, 85, 0, 0, 7); g.fill();
+    g.fillStyle = "#2f6fe0"; g.beginPath(); g.arc(cx, cy, 58, 0, 7); g.fill(); g.fillStyle = "#081534"; g.beginPath(); g.arc(cx, cy, 26, 0, 7); g.fill();
+  },
+  violet(lt) {
+    skyGrad("#1a1446", "#2a2a7a");
+    const bars = [["ស្វាយ", "#9b4dff", .35], ["ខៀវ", "#2f8bff", .95], ["បៃតង", "#3fd16b", .75]];
+    bars.forEach(([lb, c, v], i) => { const k = ease((lt - i * .25) / .9), x = 180 + i * 270, h = 560 * v * k;
+      g.fillStyle = c; g.beginPath(); g.roundRect(x, 860 - h, 180, h, 24); g.fill();
+      g.fillStyle = "#fff"; g.font = `700 52px "Kantumruy Pro"`; g.textAlign = "center"; g.fillText(lb, x + 90, 940); g.textAlign = "start"; });
+    g.fillStyle = "rgba(255,255,255,.8)"; g.font = `600 44px "Kantumruy Pro"`; g.textAlign = "center"; g.fillText("កម្រិតដែលភ្នែកមើលឃើញ", 540, 250); g.textAlign = "start";
+  },
+  sunset(lt) {
+    const k = ease(lt / 3);
+    const gr = g.createLinearGradient(0, 0, 0, H);
+    gr.addColorStop(0, `rgb(${lerp(30, 60, k)},${lerp(110, 30, k)},${lerp(225, 90, k)})`);
+    gr.addColorStop(.5, `rgb(${lerp(120, 255, k)},${lerp(190, 110, k)},${lerp(255, 60, k)})`);
+    gr.addColorStop(1, `rgb(${lerp(150, 255, k)},${lerp(210, 70, k)},${lerp(255, 40, k)})`);
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    sun(800, lerp(420, 900, k), 100, "#ffd27a", "rgba(255,140,60,.6)");
+    // earth + atmosphere arc
+    g.fillStyle = "#1a2a2a"; g.beginPath(); g.arc(540, 2900, 1900, 0, 7); g.fill();
+    g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 6; g.setLineDash([18, 16]); g.beginPath(); g.arc(540, 2900, 2050, 3.6, 5.8); g.stroke(); g.setLineDash([]);
+    // light path
+    const sy = lerp(420, 900, k); g.strokeStyle = "#ffb04a"; g.lineWidth = 12; g.beginPath(); g.moveTo(800, sy); g.lineTo(300, 1010); g.stroke();
+    g.fillStyle = "#fff"; g.beginPath(); g.arc(300, 1010, 16, 0, 7); g.fill();
+  },
+  cta(lt) {
+    skyGrad("#1d6fe0", "#7cc4ff"); sun(540, 560, 120 + Math.sin(lt * 5) * 8);
+    for (let i = 0; i < 40; i++) { const a = rnd(i) * 6.283, r = ease(lt / 1.2) * (300 + rnd(i + 7) * 500);
+      g.fillStyle = RAINBOW[i % 7]; g.fillRect(540 + Math.cos(a) * r, 560 + Math.sin(a) * r, 18, 18); }
+  }
+};
+
+window.renderAt = t => {
+  let i = SC.findIndex(s => t < s.start + s.dur); if (i < 0) i = SC.length - 1;
+  const s = SC[i], lt = (t - s.start) / s.scale, d = s.dur / s.scale;
+  g.clearRect(0, 0, W, H); DRAW[s.id](lt, d);
+  // scene transition flash
+  const fl = Math.max(clamp(1 - lt / .25), i < SC.length - 1 ? clamp((lt - (d - .12)) / .12) : 0);
+  if (fl > 0 && i > 0) { g.fillStyle = `rgba(255,255,255,${fl * .6})`; g.fillRect(0, 0, W, H); }
+
+  $("pill").textContent = `${KH(i + 1)} / ${KH(SC.length)}`;
+  $("bar").firstChild.style.width = (t / DATA.totalScaled * 100) + "%";
+
+  // hook title slam
+  const ti = $("title");
+  if (s.id === "hook") { ti.textContent = DATA.title; const k = backOut(lt / .45); ti.style.opacity = clamp(lt / .2); ti.style.transform = `scale(${lerp(2.2, 1, k)})`; }
+  else ti.style.opacity = 0;
+
+  // flying card
+  const card = $("card");
+  if (s.card) {
+    const a = lt - s.card.at, out = lt - (d - .45);
+    card.querySelector(".t").textContent = s.card.title; card.querySelector(".s").textContent = s.card.sub;
+    if (a < 0) card.style.opacity = 0;
+    else { const k = backOut(a / .55), ko = ease(out / .4);
+      const x = lerp(1250, 0, k) - (out > 0 ? ko * 1300 : 0), r = lerp(14, 0, k) - (out > 0 ? ko * 10 : 0);
+      card.style.opacity = 1; card.style.transform = `translateX(${x}px) rotate(${r}deg) scale(${lerp(.8, 1, ease(a / .4))})`; }
+  } else card.style.opacity = 0;
+
+  // CTA button
+  const cta = $("cta");
+  if (s.id === "cta") { const k = backOut((lt - .5) / .5); cta.style.opacity = clamp((lt - .5) / .15); cta.style.transform = `translateX(-50%) scale(${k * (1 + Math.sin(lt * 8) * .03)})`; }
+  else cta.style.opacity = 0;
+
+  // running subtitles (karaoke)
+  const n = s.caption.length, seg = d / n, ci = Math.min(n - 1, Math.floor(lt / seg)), words = s.caption[ci].split(" ");
+  const p = clamp((lt - ci * seg) / (seg * .85)), cur = Math.min(words.length - 1, Math.floor(p * words.length));
+  const sub = $("sub"); const key = i + ":" + ci;
+  if (sub.dataset.key !== key) { sub.dataset.key = key; sub.innerHTML = words.map(w => `<span>${w}</span>`).join(""); }
+  [...sub.children].forEach((el, j) => { el.className = j < cur ? "on" : j === cur ? "on cur" : ""; });
+  const pop = backOut(clamp((lt - ci * seg) / .25)); sub.style.transform = `scale(${lerp(.85, 1, pop)})`;
+};
+</script>
+</body>
+</html>
