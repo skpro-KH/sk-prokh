@@ -639,7 +639,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.8';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='5.9';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1103,7 +1103,7 @@ async function fastPlan(){if(!window.VideoEncoder||!window.VideoDecoder||!window
  for(const codec of['avc1.640028','avc1.4d0028','avc1.42e028','avc1.640033'])for(const hw of['prefer-hardware','no-preference']){if(venc)break;const c={codec,width:W,height:H,bitrate:br,framerate:30,hardwareAcceleration:hw,avc:{format:'avc'},latencyMode:PC?'quality':'realtime'};try{if((await VideoEncoder.isConfigSupported(c)).supported)venc=c}catch(e){}}
  if(!venc)return null;let aenc=null,acodec='';
  for(const[c,sr,mc]of[['mp4a.40.2',44100,'aac'],['mp4a.40.2',48000,'aac'],['opus',48000,'opus']]){const x={codec:c,sampleRate:sr,numberOfChannels:2,bitrate:192000};try{if((await AudioEncoder.isConfigSupported(x)).supported){aenc=x;acodec=mc;break}}catch(e){}}
- if(!aenc)return null;return{W,H,venc,aenc,acodec}}
+ if(!aenc){if(!natOK())return null;aenc={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2};acodec='aac'};return{W,H,venc,aenc,acodec}}
 function duckFn(iv,base,low){let p=0;return t=>{while(p<iv.length&&iv[p][1]+.75<t)p++;let g=base;for(let k=p;k<iv.length;k++){const[a,b]=iv[k];if(a-.2>t)break;let v=base;
   if(t<a+.05)v=base+(low-base)*Math.max(0,(t-(a-.2))/.25);else if(t<=b+.15)v=low;else if(t<b+.75)v=low+(base-low)*((t-(b+.15))/.6);g=Math.min(g,v)}return g}}
 /* one 10-second slice of the final sound: original / AI-cleaned audio + Khmer lines + ducking + music */
@@ -1147,14 +1147,22 @@ async function nativeExport(a,b,label,name){const[W0,H0]=outSize();const W=Math.
  const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`📱 កំពុងបង្កើតវីដេអូ ${label?label+' · ':''}${Math.round(k*100)}%\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))}\nសូមទុក App បើក (កុំបិទអេក្រង់)`,k)};
  let off=0;
  try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),el=c.m.el,o0=off;
-   await setClip(ci,ms);el.muted=true;el.pause();P.cur=ci;const v=c.m.vix,FD=v&&v.n&&c.m.dur?c.m.dur/v.n:1/30;
-   /* v5.7: frame-exact (step every source frame, no playback) → never skips / jumps */
-   const sk=tt=>new Promise(r=>{let ok=false;const fin=()=>{if(ok)return;ok=true;el.removeEventListener('seeked',sd);clearTimeout(to);r()};const sd=()=>{if(el.requestVideoFrameCallback){el.requestVideoFrameCallback(fin);setTimeout(fin,120)}else fin()};el.addEventListener('seeked',sd);const to=setTimeout(fin,1500);el.currentTime=tt});
-   const n0=Math.max(0,Math.floor(ms/FD)),n1=Math.ceil((me-1e-4)/FD);
-   for(let fi=n0;fi<n1;fi++){if(busy.cancel)break;const pt=Math.max(ms,fi*FD+FD*.3);if(pt>=me)break;await sk(pt);const t=o0+(pt-c.in);P.t=t;
-    if(S.erase.on&&detReady()){eraseKick(el,c.m,ci);let w=0;while(ER.busy&&w++<60)await sleep(5)}
-    draw();const url=cv.toDataURL('image/jpeg',.88),pts=Math.round((t-a)*1e6);if(pts>lastPts){lastPts=pts;frames++;DubNative.encFrame(id,url.slice(url.indexOf(',')+1),pts)}
-    await pumpA(t+1.5);if(fail())throw Error(errMsg);if(frames%6===0)prog(t);let q=DubNative.encQueued(id);while(q>6&&!busy.cancel){await sleep(15);q=DubNative.encQueued(id)}}
+   await setClip(ci,ms);el.muted=true;P.cur=ci;
+   await new Promise((res,rej)=>{let done=false,inFl=false,lastCb=performance.now(),last=-1;
+    const end=()=>{if(done)return;done=true;clearInterval(wd);el.pause();el.playbackRate=1;res()};
+    const onF=(now,md)=>{if(done)return;lastCb=performance.now();const pt=md&&md.mediaTime!=null?md.mediaTime:el.currentTime;
+     if(busy.cancel||pt>=me-.0005||el.ended){end();return}
+     if(!inFl&&pt>last+.001){inFl=true;last=pt;const t=o0+(pt-c.in);P.t=t;draw();const url=cv.toDataURL('image/jpeg',.86);const pts=Math.round((t-a)*1e6);
+      if(pts>lastPts){lastPts=pts;frames++;DubNative.encFrame(id,url.slice(url.indexOf(',')+1),pts)}
+      (async()=>{await pumpA(t+1.5);if(fail()){done=true;clearInterval(wd);el.pause();rej(Error(errMsg));return}prog(t);
+       let q=DubNative.encQueued(id);if(q>6){el.pause();stalls++;while(q>2&&!busy.cancel){await sleep(25);q=DubNative.encQueued(id)}if(!done)el.play().catch(()=>{})}
+       inFl=false})().catch(e=>{done=true;clearInterval(wd);rej(e)})}
+     el.requestVideoFrameCallback(onF)};
+    /* if the phone pauses the video (screen off etc.) start it again */
+    const wd=setInterval(()=>{if(done)return;if(el.currentTime>=me-.03){end();return}
+     /* v4.5: speed up while the phone keeps up (full 30fps), slow down when frames are dropped */
+     const nw=performance.now(),dt=(nw-fT)/1000;if(dt>=1.4&&!el.paused){const got=(frames-fN)/dt,want=rate*FPS;if(stalls===stallN&&got>=want*.9)rate=Math.min(2,rate*1.15);else if(got<want*.8||stalls>stallN)rate=Math.max(.3,rate*.88);el.playbackRate=rate;LS.set('nencRate',+rate.toFixed(2));fT=nw;fN=frames;stallN=stalls}if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},700);
+    el.playbackRate=rate;el.requestVideoFrameCallback(onF);el.play().catch(e=>rej(e))});
    if(busy.cancel)break;off+=d;if(off>=b)break}
   if(busy.cancel){DubNative.encCancel(id);return null}
   await pumpA(b);busy.set('📱 កំពុងបញ្ចប់វីដេអូ...',null);
@@ -1177,7 +1185,7 @@ async function encPlan(){if(!window.VideoEncoder||!window.AudioEncoder||!window.
  for(const codec of['avc1.640028','avc1.4d0028','avc1.42e028','avc1.640033','avc1.42e01f'])for(const hw of['prefer-hardware','no-preference']){if(venc)break;const c={codec,width:W,height:H,bitrate:br,framerate:FPS,hardwareAcceleration:hw,avc:{format:'avc'},latencyMode:'quality'};try{if((await VideoEncoder.isConfigSupported(c)).supported)venc=c}catch(e){}}
  if(!venc)return null;let aenc=null,acodec='';
  for(const[c,sr,mc]of[['mp4a.40.2',44100,'aac'],['mp4a.40.2',48000,'aac'],['opus',48000,'opus']]){const x={codec:c,sampleRate:sr,numberOfChannels:2,bitrate:160000};try{if((await AudioEncoder.isConfigSupported(x)).supported){aenc=x;acodec=mc;break}}catch(e){}}
- if(!aenc)return null;return{W,H,venc,aenc,acodec}}
+ if(!aenc){if(!natOK())return null;aenc={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2};acodec='aac'};return{W,H,venc,aenc,acodec}}
 async function fastProbe(plan){const c=LS.get('fastOK',null);if(c&&c.v===2)return c.ok;let ok=false;
  try{const cl=S.clips[0],m=cl.m,v=m.vix;if(!v||!m.vcfg)throw 0;let i=Math.floor(v.n*.3);while(i>0&&!v.key[i])i--;const fr=[];const dec=new VideoDecoder({output:f=>fr.push(f),error:()=>{}});dec.configure(m.vcfg);
   for(let k=i;k<Math.min(v.n,i+12);k++){const buf=new Uint8Array(await m.file.slice(v.offs[k],v.offs[k]+v.sizes[k]).arrayBuffer());dec.decode(new EncodedVideoChunk({type:v.key[k]?'key':'delta',timestamp:Math.round(v.pts[k]*1e6),data:buf}))}
@@ -1186,6 +1194,8 @@ async function fastProbe(plan){const c=LS.get('fastOK',null);if(c&&c.v===2)retur
   fr.forEach(f=>{try{f.close()}catch(e){}});try{dec.close()}catch(e){}ok=fr.length>=3&&best>0}catch(e){ok=false}
  LS.set('fastOK',{v:2,ok});return ok}
 async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS=outFps(),RT=expRates(b-a);
+ /* v5.9: stepping frame by frame is exact on PC, but on phones every seek decodes from the last key frame (hours!) → phones play & capture */
+ const STEP=PC||!NATIVE;
  /* v5.3 phone: the page encodes the picture (fast, GPU) but the phone's own MediaMuxer + AAC writes a normal MP4 that every gallery app can play */
  const NAT=NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStartExt)&&LS.get('hybNat',true)!==false,SR=NAT?44100:aenc.sampleRate;let nid=null;
  const NAME=outFileName(label,'mp4');if(NAT){nid=DubNative.encStartTo?DubNative.encStartTo(W,H,FPS,0,SR,2,160000,true,NAME,S.out.sub||''):DubNative.encStartExt(W,H,FPS,SR,2,160000);if(!nid||nid.startsWith('ERR'))throw Error('muxer: '+nid)}liveSched();const iv=LIVE.iv,L=liveLevels(),D={sched:LIVE.sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
@@ -1205,6 +1215,7 @@ async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS
  const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`⚡ កំពុងបង្កើតវីដេអូ ${label?label+' · ':''}${Math.round(k*100)}% · ${FPS}fps\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))} · ល្បឿន ×${x.toFixed(1)}`,k)};
  let off=0;
  try{for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci],d=c.out-c.in,A=Math.max(a,off),B=Math.min(b,off+d);if(B<=A){off+=d;continue}const ms=c.in+(A-off),me=c.in+(B-off),el=c.m.el,o0=off;
+   if(STEP){
    await setClip(ci,ms);el.muted=true;el.pause();P.cur=ci;const v=c.m.vix,FD=v&&v.n&&c.m.dur?c.m.dur/v.n:1/30;
    /* v5.6: frame-exact capture — the video is stepped frame by frame (no playback), so the output never skips or jumps */
    const sk=tt=>new Promise(r=>{let ok=false;const fin=()=>{if(ok)return;ok=true;el.removeEventListener('seeked',sd);clearTimeout(to);r()};const sd=()=>{if(el.requestVideoFrameCallback){el.requestVideoFrameCallback(fin);setTimeout(fin,120)}else fin()};el.addEventListener('seeked',sd);const to=setTimeout(fin,1500);el.currentTime=tt});
@@ -1213,6 +1224,22 @@ async function hybridExport(a,b,label,plan){const{W,H,venc,aenc,acodec}=plan,FPS
     if(S.erase.on&&detReady()){eraseKick(el,c.m,ci);let w=0;while(ER.busy&&w++<60)await sleep(5)}
     draw();BL.emit(t-a,(src,ts)=>{const vf=new VideoFrame(src,{timestamp:Math.round(ts*1e6)});const kf=ts+a-lastKey>=2;if(kf)lastKey=ts+a;ve.encode(vf,{keyFrame:kf});vf.close()});frames++;
     await pumpA(t+1.5);if(frames%8===0)prog(t);while(ve.encodeQueueSize>6&&!busy.cancel&&!err)await sleep(8)}
+   }else{
+   await setClip(ci,ms);el.muted=true;P.cur=ci;
+   await new Promise((res,rej)=>{let done=false,inFl=false,lastCb=performance.now(),last=-1;
+    const end=()=>{if(done)return;done=true;clearInterval(wd);el.pause();el.playbackRate=1;res()};
+    const onF=(now,md)=>{if(done)return;lastCb=performance.now();const pt=md&&md.mediaTime!=null?md.mediaTime:el.currentTime;
+     if(busy.cancel||err||pt>=me-.0005||el.ended){end();return}
+     if(!inFl&&pt>last+.001){inFl=true;last=pt;const t=o0+(pt-c.in);P.t=t;
+      if(S.erase.on)eraseKick(el,c.m,ci);
+      draw();BL.emit(t-a,(src,ts)=>{const vf=new VideoFrame(src,{timestamp:Math.round(ts*1e6)});const kf=ts+a-lastKey>=2;if(kf)lastKey=ts+a;ve.encode(vf,{keyFrame:kf});vf.close()});frames++;
+      (async()=>{await pumpA(t+1.5);if(frames%10===0)prog(t);if(ve.encodeQueueSize>8){el.pause();stalls++;while(ve.encodeQueueSize>3&&!busy.cancel&&!err)await sleep(15);if(!done)el.play().catch(()=>{})}inFl=false})().catch(e=>{done=true;clearInterval(wd);rej(e)})}
+     el.requestVideoFrameCallback(onF)};
+    const wd=setInterval(()=>{if(done)return;if(el.currentTime>=me-.03){end();return}
+     const nw=performance.now(),dt=(nw-fT)/1000;if(dt>=1.2&&!el.paused){const srcF=c.m.fps||30,got=(frames-fN)/dt,want=rate*srcF;if(stalls===stallN&&got>=want*.92)rate=Math.min(2.5,rate*1.18);else if(got<want*.82||stalls>stallN)rate=Math.max(.4,rate*.85);el.playbackRate=rate;LS.set('hybRate',+rate.toFixed(2));fT=nw;fN=frames;stallN=stalls}
+     if(!inFl&&performance.now()-lastCb>2500){el.play().catch(()=>{});lastCb=performance.now()}},600);
+    el.playbackRate=rate;el.requestVideoFrameCallback(onF);el.play().catch(e=>rej(e))});
+   }
    if(busy.cancel||err)break;off+=d;if(off>=b)break}
   if(err)throw err;if(busy.cancel){if(NAT)DubNative.encCancel(nid);return null}await pumpA(b);busy.set('⚡ កំពុងបញ្ចប់វីដេអូ...',null);await ve.flush();if(ae)await ae.flush();
   if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});
@@ -1230,14 +1257,25 @@ function libPaint(){const box=$('#libList');if(!box)return;const l=LIB.get();$('
  box.querySelectorAll('[data-lo]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.lo];if(NATIVE)DubNative.open(x.uri,'video/mp4')});
  box.querySelectorAll('[data-ls]').forEach(b=>b.onclick=()=>{const x=l[+b.dataset.ls];if(NATIVE)DubNative.share(x.uri,'video/mp4')});
  box.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{const n=LIB.get();n.splice(+b.dataset.lx,1);LS.set('lib',n);libPaint()})}
+/* v5.9: phone "native sink" — the page gives H.264 (from the GPU encoder), the phone itself writes AAC audio + a normal MP4 straight into the gallery */
+const natOK=()=>NATIVE&&!PC&&!!(window.DubNative&&DubNative.encStartTo&&DubNative.encCsd&&DubNative.encSample);
+function natSink(W,H,FPS,SR,name){const nid=DubNative.encStartTo(W,H,FPS,0,SR,2,160000,true,name,S.out.sub||'');if(!nid||nid.startsWith('ERR'))throw Error('muxer: '+nid);let NLS=4,csd=false,err=null;
+ return{nid,get err(){return err},
+  video(c,m){if(!csd&&m&&m.decoderConfig&&m.decoderConfig.description){const ds=m.decoderConfig.description,d=ds instanceof ArrayBuffer?new Uint8Array(ds):new Uint8Array(ds.buffer,ds.byteOffset,ds.byteLength);NLS=(d[4]&3)+1;csd=true;DubNative.encCsd(nid,u8b64(new Uint8Array(d)))}
+   const u=new Uint8Array(c.byteLength);c.copyTo(u);const o=new Uint8Array(u.length+(4-NLS)*64+64);let i=0,j=0;while(i+NLS<=u.length){let n=0;for(let k=0;k<NLS;k++)n=n*256+u[i+k];i+=NLS;if(n<=0||i+n>u.length)break;o[j++]=0;o[j++]=0;o[j++]=0;o[j++]=1;o.set(u.subarray(i,i+n),j);j+=n;i+=n}
+   if(DubNative.encSample(nid,u8b64(o.subarray(0,j)),c.timestamp,c.type==='key')===-2)err=Error(DubNative.encError(nid))},
+  audio(buf){const n=buf.length,l=buf.getChannelData(0),r=buf.getChannelData(1),i16=new Int16Array(n*2);for(let i=0;i<n;i++){let x=l[i];i16[2*i]=x>1?32767:x<-1?-32768:x*32767;x=r[i];i16[2*i+1]=x>1?32767:x<-1?-32768:x*32767}DubNative.encAudio(nid,u8b64(new Uint8Array(i16.buffer)))},
+  queued(){return DubNative.encQueued(nid)},
+  async finish(frames){while(DubNative.encQueued(nid)>0)await sleep(20);const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===nid)res(r)};DubNative.encFinish(nid,name,S.out.sub||'')});if(!o.ok)throw Error(o.err||'muxer');return{native:true,name,size:o.size,uri:o.uri||'',url:o.url,type:'video/mp4',frames}},
+  cancel(){try{DubNative.encCancel(nid)}catch(e){}}}}
 async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;liveSched();const sched=LIVE.sched,iv=LIVE.iv,L=liveLevels();
- const D={sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);const SR=aenc.sampleRate;
+ const D={sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);const NS=natOK()?natSink(W,H,outFps(),44100,outFileName(label,'mp4')):null,SR=NS?44100:aenc.sampleRate;
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
- const FPS=outFps(),mux=new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'in-memory',firstTimestampBehavior:'offset'});EXPM.how=`🚀 Decode ${FPS}fps`;
- let err=null,vN=0,vB=0,decN=0;const RT=expRates(b-a);const venc2=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;mux.addVideoChunk(c,m)},error:e=>err=e});venc2.configure({...venc,framerate:FPS,bitrate:RT.v*(FPS===60?1.35:1),...(sw?{hardwareAcceleration:'prefer-software'}:{})});const BL=blender(FPS,W,H);
- const ae=new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});ae.configure({...aenc,bitrate:Math.max(aenc.codec==='opus'?64e3:96e3,RT.a)});
+ const FPS=outFps(),mux=NS?null:new Mp4Muxer.Muxer({target,video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:acodec,numberOfChannels:2,sampleRate:SR},fastStart:'in-memory',firstTimestampBehavior:'offset'});EXPM.how=`🚀 Decode ${FPS}fps`;
+ let err=null,vN=0,vB=0,decN=0;const RT=expRates(b-a);const venc2=new VideoEncoder({output:(c,m)=>{vN++;vB+=c.byteLength;if(NS){NS.video(c,m);if(NS.err)err=NS.err}else mux.addVideoChunk(c,m)},error:e=>err=e});venc2.configure({...venc,framerate:FPS,bitrate:RT.v*(FPS===60?1.35:1),...(NS?{avc:{format:'avc'}}:{}),...(sw?{hardwareAcceleration:'prefer-software'}:{})});const BL=blender(FPS,W,H);
+ const ae=NS?null:new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});if(ae)ae.configure({...aenc,bitrate:Math.max(aenc.codec==='opus'?64e3:96e3,RT.a)});
  let nextA=a,lastKey=-1e9,frames=0;const t0w=performance.now(),span=b-a;
- const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s=nextA,e=Math.min(b,s+10);const buf=await mixWindow(s,e,SR,D);const n=buf.length,data=new Float32Array(n*2);data.set(buf.getChannelData(0),0);data.set(buf.getChannelData(1),n);
+ const pumpA=async t=>{while(nextA<Math.min(t,b)-1e-6){if(busy.cancel)return;const s=nextA,e=Math.min(b,s+10);const buf=await mixWindow(s,e,SR,D);if(NS){NS.audio(buf);nextA=e;continue}const n=buf.length,data=new Float32Array(n*2);data.set(buf.getChannelData(0),0);data.set(buf.getChannelData(1),n);
    const ad=new AudioData({format:'f32-planar',sampleRate:SR,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round((s-a)*1e6),data});ae.encode(ad);ad.close();nextA=e}};
  const prog=t=>{const k=(t-a)/span,el=(performance.now()-t0w)/1000,x=el>0?(t-a)/el:0;busy.set(`⚡ Export លឿន ${label?label+' · ':''}${Math.round(k*100)}%\n${fmt(t-a)} / ${fmt(span)} · ⏱ នៅសល់ ~${fmt(Math.max(0,(span-(t-a))/Math.max(x,.05)))}`,k)};
  const sleep0=()=>new Promise(r=>setTimeout(r,0));let off=0;
@@ -1246,15 +1284,17 @@ async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;li
    const q=[];const dec=new VideoDecoder({output:f=>{decN++;q.push(f)},error:e=>err=e});dec.configure(sw?{...c.m.vcfg,hardwareAcceleration:'prefer-software'}:c.m.vcfg);
    const draw1=async f0=>{const pt=f0.timestamp/1e6;if(pt<ms-.001||pt>=me-.0005){f0.close();return}const t=off+(pt-c.in);await pumpA(t);P.cur=ci;P.t=t;const f=await frameSafe(f0);if(S.erase.on&&detReady()&&(ER.ci!==ci||!(Math.abs(t-(ER.lastT??-9))<(PC?.2:.34)))){ER.lastT=t;try{await eraseDetect(f,c.m,t,ci)}catch(e){}}DRAWSRC=f;draw();DRAWSRC=null;if(f!==f0){try{f.close&&f.close()}catch(e){}}f0.close();
     BL.emit(t-a,(src,ts)=>{const vf=new VideoFrame(src,{timestamp:Math.round(ts*1e6)});const kf=ts+a-lastKey>=2;if(kf)lastKey=ts+a;venc2.encode(vf,{keyFrame:kf});vf.close()});if(++frames%15===0)prog(t);
-    while(venc2.encodeQueueSize>6)await new Promise(r=>setTimeout(r,1))};
+    while(venc2.encodeQueueSize>6||(NS&&NS.queued()>8))await new Promise(r=>setTimeout(r,2))};
    for(let i=ks;i<end;){if(busy.cancel||err)break;let j=i+1,e=v.offs[i]+v.sizes[i];while(j<end&&v.offs[j]===e&&e-v.offs[i]<4e6){e+=v.sizes[j];j++}
     const buf=new Uint8Array(await c.m.file.slice(v.offs[i],e).arrayBuffer());let p=0;
     for(let k=i;k<j;k++){dec.decode(new EncodedVideoChunk({type:v.key[k]?'key':'delta',timestamp:Math.round(v.pts[k]*1e6),data:buf.subarray(p,p+v.sizes[k])}));p+=v.sizes[k];
      while(q.length)await draw1(q.shift());while(dec.decodeQueueSize>12){await new Promise(r=>setTimeout(r,1));while(q.length)await draw1(q.shift())}}i=j;await sleep0()}
    if(!busy.cancel&&!err){await dec.flush();while(q.length)await draw1(q.shift())}q.forEach(f=>f.close());try{dec.close()}catch(e){}off+=d;if(busy.cancel||err)break}
-  if(err)throw err;if(busy.cancel)return null;await pumpA(b);await venc2.flush();await ae.flush();
-  if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (decode ${decN} · frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});mux.finalize()}
- finally{DRAWSRC=null;try{venc2.close()}catch(e){}try{ae.close()}catch(e){}}
+  if(err)throw err;if(busy.cancel){NS&&NS.cancel();return null}await pumpA(b);await venc2.flush();if(ae)await ae.flush();
+  if(span>1&&(frames<Math.min(10,span*5)||vN<frames*.5||vB<frames*60))throw Object.assign(Error(`វីដេអូចេញទទេ (decode ${decN} · frames ${frames} · ${Math.round(vB/1024)}KB)`),{novideo:true});
+  if(NS){if(err)throw err;busy.set('💾 កំពុងបញ្ចប់...',null);return await NS.finish(frames)}mux.finalize()}
+ catch(e){NS&&NS.cancel();throw e}
+ finally{DRAWSRC=null;try{venc2.close()}catch(e){}try{ae&&ae.close()}catch(e){}}
  if(err)throw err;if(!seq){const all=new Uint8Array(pos);for(const x of parts)all.set(x.d,x.p);parts=[{d:all}]}return new File(parts.map(x=>x.d),outFileName(label,'mp4'),{type:'video/mp4'})}
 
 /* ============ player ============ */
@@ -1912,7 +1952,7 @@ $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដា�
    TITLE_T0=R[k][0];let f=null;
    if(!PC&&NATIVE&&!f){/* v5.2 phone: fastest working path first */
     if(plan===undefined)plan=await fastPlan().catch(()=>null);
-    if(plan&&plan.acodec==='aac'&&(await fastProbe(plan))){try{busy.set('⚡ Export លឿន...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,false);if(!f&&busy.cancel)break}catch(e){console.warn('fast',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('fastOK',{v:2,ok:false})}}
+    if(plan&&(plan.acodec==='aac'||natOK())&&(await fastProbe(plan))){try{busy.set('⚡ Export លឿន...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,false);if(!f&&busy.cancel)break}catch(e){console.warn('fast',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('fastOK',{v:2,ok:false})}}
     if(!f){const hp=await encPlan().catch(()=>null);if(hp&&LS.get('hybOK',true)!==false){try{f=await hybridExport(R[k][0],R[k][1],lbl,hp);if(!f&&busy.cancel)break}catch(e){console.warn('hybrid',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('hybOK',false);toast('⚡ '+String(e.message||e).slice(0,70)+' — ប្ដូរវិធីផ្សេង',3500)}}}
     plan=null}
    if(!f&&NENC&&S.nenc!==false){EXPM.how='📱 JPEG (ចាស់)';try{f=await nativeExport(R[k][0],R[k][1],lbl,outFileName(lbl||'','mp4'));if(!f&&busy.cancel)break}catch(e){console.warn('nativeExport',e);if(busy.cancel)break;toast('📱 '+String(e.message||e).slice(0,80)+' — ប្ដូរវិធីផ្សេង',4000)}}
