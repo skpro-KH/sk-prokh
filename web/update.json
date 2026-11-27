@@ -21,13 +21,13 @@
   ],
   "must": false
  },
- "app": "8.8",
+ "app": "8.9",
  "page": "web/app-native.html",
  "notes": [
-  "🔐 សុវត្ថិភាព៖ Update ក្នុង App មានហត្ថលេខា SK ProKH — គ្មាននរណាអាចបញ្ជូនកូដក្លែងក្លាយបាន",
-  "🔐 PC៖ ការពារការបើក/រក្សាទុកឯកសារគ្រោះថ្នាក់ (.exe ...)",
-  "⏱ សំឡេងមិនជាប់គាំងទៀត · សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ"
+  "✨ Logo ថ្មី SK ProKH — ក្បាច់ខ្មែរ ប្រាសាទអង្គរ អក្សរមាសមានពន្លឺរត់",
+  "🌀 ផ្ទាំងបើក App មានចលនាគូរក្បាច់ផ្ញីតេស",
+  "🔆 ខ្សែក្បាច់ខ្មែរមានពន្លឺរត់នៅ Header"
  ],
- "sig": "KYEjooTv/e9EL62dLliDH3tUxHwurMCVrcnn6i0SkDQG0zEbdyTD1ya3VhgM6U1f3oTiM28XJ9BDinVPbj5x3g==",
- "sha": "a87e08208af12c017b267fb85df1251e2c5fc77f46992f91bee508dc2b9ee14e"
+ "sig": "+lknNG2f7IDCfradu3b6BceNfqPIhIC6ZzUp9PeV41yP9aVKc3icXS0Nhea/NbyLauXyEB6aucb2CawRBpaUyg==",
+ "sha": "c7a994b787f1323844d361844dbd2a9a2e79e8f0917434abf98f7206cbdac42f"
 }
