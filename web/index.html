@@ -689,7 +689,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.0';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.1';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1242,7 +1242,7 @@ const EXPM={how:''};
 function blender(FPS,W,H){const on=FPS>=50;let PV=null,px=null,pt=-1;if(on){PV=document.createElement('canvas');PV.width=W;PV.height=H;px=PV.getContext('2d')}const MX=on?document.createElement('canvas'):null;if(MX){MX.width=W;MX.height=H}const mx=MX&&MX.getContext('2d');
  return{emit(ts,enc){if(on&&pt>=0){const gap=ts-pt;if(gap>1/50&&gap<.2){mx.globalAlpha=1;mx.drawImage(PV,0,0);mx.globalAlpha=.5;mx.drawImage(cv,0,0,W,H);mx.globalAlpha=1;enc(MX,pt+gap/2)}}enc(cv,ts);if(on){px.drawImage(cv,0,0,W,H);pt=ts}}}}
 async function encPlan(){if(!window.VideoEncoder||!window.AudioEncoder||!window.Mp4Muxer||S.fast===false)return null;
- const W=cv.width&~1,H=cv.height&~1,px=W*H,FPS=outFps(),br=(px>=1920*1080*.9?9e6:px>=1280*720*.9?5.5e6:3e6)*(FPS===60?1.35:1);let venc=null;
+ const W=cv.width&~1,H=cv.height&~1,px=W*H,FPS=outFps(),sb=srcStats(S.clips[0]?.m).br||0,br=Math.min(14e6,Math.max((px>=1920*1080*.9?9e6:px>=1280*720*.9?5.5e6:3e6)*(FPS===60?1.35:1),sb*1.3));let venc=null;
  for(const codec of['avc1.640028','avc1.4d0028','avc1.42e028','avc1.640033','avc1.42e01f'])for(const hw of['prefer-hardware','no-preference']){if(venc)break;const c={codec,width:W,height:H,bitrate:br,framerate:FPS,hardwareAcceleration:hw,avc:{format:'avc'},latencyMode:'quality'};try{if((await VideoEncoder.isConfigSupported(c)).supported)venc=c}catch(e){}}
  if(!venc)return null;let aenc=null,acodec='';
  for(const[c,sr,mc]of[['mp4a.40.2',44100,'aac'],['mp4a.40.2',48000,'aac'],['opus',48000,'opus']]){const x={codec:c,sampleRate:sr,numberOfChannels:2,bitrate:160000};try{if((await AudioEncoder.isConfigSupported(x)).supported){aenc=x;acodec=mc;break}}catch(e){}}
@@ -1416,7 +1416,9 @@ $('#scrub').onpointerdown=e=>{const r=$('#scrub').getBoundingClientRect();const 
  const mv=ev=>go(ev),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);if(was)play()};addEventListener('pointermove',mv);addEventListener('pointerup',up)};
 
 /* ============ rendering ============ */
-function outSize(){const m=S.clips[0]?.m;const sw=m?.w||720,sh=m?.h||1280,r=+S.out.res;let w,h;
+/* v7.1 "Original": same size, frame rate and quality as the source video */
+function srcStats(m){if(!m)return{};if(m._st)return m._st;const v=m.vix;if(!v||!v.n)return{};let lo=1e9,hi=-1e9,sz=0;for(let i=0;i<v.n;i++){const t=v.pts[i];if(t<lo)lo=t;if(t>hi)hi=t;sz+=v.sizes[i]}const d=Math.max(.1,hi-lo);return m._st={fps:(v.n-1)/d,br:sz*8/d}}
+function outSize(){const m=S.clips[0]?.m;const sw=m?.w||720,sh=m?.h||1280;if(S.out.res==='src'){const k=Math.min(1,1920/Math.max(sw,sh));return[Math.round(sw*k/2)*2,Math.round(sh*k/2)*2]}const r=+S.out.res;let w,h;
  switch(S.out.aspect){case'16:9':w=16;h=9;break;case'9:16':w=9;h=16;break;case'1:1':w=h=1;break;case'4:5':w=4;h=5;break;default:w=sw;h=sh}const k=r/Math.min(w,h);return[Math.round(w*k/2)*2,Math.round(h*k/2)*2]}
 function layout(){const[W0,H0]=outSize();const k=(!PC&&!P.exporting)?Math.min(1,900/Math.max(W0,H0)):1;const W=Math.round(W0*k/2)*2,H=Math.round(H0*k/2)*2;if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}renderBox();draw()}
 const contain=(vw,vh,W,H)=>{const k=Math.min(W/vw,H/vh);return{w:vw*k,h:vh*k,x:(W-vw*k)/2,y:(H-vh*k)/2}};
@@ -1878,9 +1880,9 @@ function fontsReady(){document.fonts.load(`700 40px "${S.style.font}"`,'កខ�
 document.fonts&&document.fonts.ready.then(fontsReady);
 chips($('#aspChips'),[['src','ដើម'],['9:16','📱 FB Reels · TikTok 9:16'],['16:9','16:9 YouTube'],['1:1','1:1'],['4:5','4:5 FB']],()=>S.out.aspect,v=>{S.out.aspect=v;save();layout()});
 chips($('#fitChips'),[['blurfill','Blur'],['fit','ខ្មៅ'],['fill','ពេញ (កាត់គែម)']],()=>S.out.fit,v=>{S.out.fit=v;save();draw()});
-chips($('#resChips'),[['540','540p'],['720','720p HD'],['1080','1080p Full HD']],()=>S.out.res,v=>{S.out.res=+v;save();layout();szUpdate()});
-chips($('#fpsChips'),[['30','30 fps'],['60','60 fps · រលូនបំផុត']],()=>String(S.out.fps||30),v=>{S.out.fps=+v;save();toast(+v===60?'🎞 60fps — រលូនជាង (ឯកសារធំជាងបន្តិច)':'🎞 30fps')});
-const outFps=()=>+S.out.fps===60?60:30;
+chips($('#resChips'),[['src','🎬 ដើម (Original)'],['540','540p'],['720','720p HD'],['1080','1080p Full HD']],()=>String(S.out.res),v=>{S.out.res=v==='src'?'src':+v;save();layout();szUpdate()});
+chips($('#fpsChips'),[['src','ដើម'],['30','30 fps'],['60','60 fps · រលូនបំផុត']],()=>String(S.out.fps||30),v=>{S.out.fps=v==='src'?'src':+v;save();toast(+v===60?'🎞 60fps — រលូនជាង (ឯកសារធំជាងបន្តិច)':'🎞 30fps')});
+const outFps=()=>S.out.fps==='src'?((srcStats(S.clips[0]?.m).fps||30)>=48?60:30):+S.out.fps===60?60:30;
 /* file size: bitrate from preset or a target size */
 function expRates(dur){const q=S.out.q||'med',px=(cv.width*cv.height)||921600,k=clamp(px/921600,.45,2.4),ab=q==='small'?96e3:q==='high'?192e3:128e3;
  if(q==='mb'){const mb=clamp(+S.out.mb||50,2,4000);return{v:Math.round(clamp(mb*8e6/Math.max(1,dur)-ab,250e3,16e6)),a:ab}}return{v:Math.round(({small:1.1e6,med:2.4e6,high:5e6}[q]||2.4e6)*k),a:ab}}
@@ -3203,7 +3205,7 @@ async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.l
 const FLOW=Object.assign({kind:'dub',cast:'simple',orig:'mute',auto:true,clean:true},LS.get('flow',{}));
 if(!LS.get('cleanMig68',false)){LS.set('cleanMig68',true);FLOW.clean=true;AUTO.cfg.clean=true;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 /* v6.8 "clean video": the output is the original picture, full frame, nothing drawn on it — only the Khmer voice changes */
-async function cleanOut(){S.style.show=false;S.box.on=false;if(S.mq)S.mq.on=false;if(S.ov)S.ov.on=false;if(S.logo)S.logo.on=false;S.out.aspect='src';if(S.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}save();try{layout();draw()}catch(e){}try{akChipPaint()}catch(e){}}
+async function cleanOut(){S.out.res='src';S.out.fps='src';S.out.fit='fit';if(S.fx){S.fx.preset='none';S.fx.zoom=1;S.fx.bright=1;S.fx.contrast=1;S.fx.sat=1;S.fx.flip=false;S.fx.vignette=false}S.style.show=false;S.box.on=false;if(S.mq)S.mq.on=false;if(S.ov)S.ov.on=false;if(S.logo)S.logo.on=false;S.out.aspect='src';if(S.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}save();try{layout();draw()}catch(e){}try{akChipPaint()}catch(e){}}
 if(!LS.get('flowMig67',false)){LS.set('flowMig67',true);FLOW.orig='mute';AUTO.cfg.orig='mute';LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 function only2(){S.speakers.forEach(p=>{if(p.voice!==PIS&&p.voice!==SRM)p.voice=(p.g==='f'||/ស្រី|female/.test(p.name||''))?SRM:PIS})}
 function castPick(cast){if(S.recap){const nar=S.speakers.find(p=>p.role==='narrator');if(nar){nar.voice=cast==='srm'?SRM:PIS;nar.name=cast==='srm'?'📖 ស្រីមុំ (និទាន)':'📖 ពិសិដ្ឋ (និទាន)'}renderSpeakers();return}
