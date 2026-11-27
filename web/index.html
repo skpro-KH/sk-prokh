@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.5';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.6';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -781,7 +781,7 @@ const S={media:[],clips:[],
  style:{font:'Kantumruy Pro',size:66,bold:true,color:'#ffffff',stroke:'#000000',sw:8,bg:false,bgc:'#000000',bga:.6,y:.8,maxW:.9,anim:'pop',hl:'#ffe600',shadow:true,tag:false,show:true,...LS.get('style',{})},
  title:LS.get('title',''),
  box:{on:false,x:.06,y:.8,w:.88,h:.13,s:22,...LS.get('box',{})},
- ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:4,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{})},
+ ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:2,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{}),...(LS.get('v76ocr',false)?{}:(LS.set('v76ocr',true),{speed:2}))},
  fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ai:{eng:'',model:'',...LS.get('ai',{})},ov:{on:false,x:.62,y:.62,w:.34,op:1,key:'none',...LS.get('ov',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:50,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
@@ -891,7 +891,7 @@ const speakable=t=>/[\p{L}\p{N}]/u.test(t||'');
 const needsTr=s=>!!s.km&&CJK.test(s.km)&&!hasKh(s.km);
 function lineParams(s){const sp=spOf(s);const j=S.mix.jit?{p:hashN(s.id)%30-8,r:hashN(s.id+'r')%9}:{p:0,r:0};const st=SPEAK[s.sty||sp.sty||'normal']||SPEAK.normal,em=S.mix.emo!==false?emoOf(s.km):{r:0,p:0,v:1};
  return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
-function roomOf(s){const d=Math.max(.4,s.end-s.start);if(S.mix.sync!==false){const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;return Math.max(.4,Math.min(d+.12,n?n.start-s.start-.04:d+.12))}if(S.mix.smart===false)return d;const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const lim=n?n.start-s.start-.08:Math.min(d+1.5,(total()||1e9)-s.start);return Math.max(d,Math.min(d+1.5,lim))}
+function roomOf(s){const d=Math.max(.4,s.end-s.start);if(S.mix.sync!==false){const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const gap=n?n.start-s.end:.8;return Math.max(.4,Math.min(d+Math.min(.8,Math.max(.12,gap)),n?n.start-s.start-.04:d+.8))}if(S.mix.smart===false)return d;const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const lim=n?n.start-s.start-.08:Math.min(d+1.5,(total()||1e9)-s.start);return Math.max(d,Math.min(d+1.5,lim))}
 const lineKey=s=>s.hum?'hum:'+s.hum:JSON.stringify(lineParams(s));
 const hasBuf=s=>!speakable(ttsText(s.km))||spOf(s).voice==='phone'||!!(s.buf&&s.key===lineKey(s));
 async function genLine(s){if(s.hum)return;const q=lineParams(s);if(!speakable(q.text)||q.voice==='phone')return;const key=JSON.stringify(q);if(s.buf&&s.key===key)return;
@@ -912,7 +912,7 @@ function dedupeSubs(){sortSubs();let n=0;const norm=t=>String(t||'').replace(/[\
  for(let i=1;i<S.subs.length;){const a=S.subs[i-1],b=S.subs[i];const ov=b.start<a.end-.05,same=(norm(a.src)&&norm(a.src)===norm(b.src))||(norm(a.km)&&norm(a.km)===norm(b.km));
   if(same&&(ov||b.start-a.end<.3)){a.end=Math.max(a.end,b.end);a.buf=null;S.subs.splice(i,1);n++}else{if(ov&&b.start>a.start+.3){a.end=Math.max(a.start+.3,b.start-.02);a.buf=null}i++}}
  if(n)subChanged();return n}
-function joinShort(){if(S.mix.join===false)return 0;sortSubs();let n=0;
+function joinShort(){if(S.mix.join!==true)return 0;/* v7.6: off — every subtitle line keeps its own voice */sortSubs();let n=0;
  for(let i=0;i<S.subs.length-1;){const a=S.subs[i],b=S.subs[i+1];const gap=b.start-a.end,dur=b.end-a.start,ka=cleanTags(a.km||''),kb=cleanTags(b.km||'');
   if(a.sp===b.sp&&!a.sty===!b.sty&&a.sty==b.sty&&ka&&kb&&gap<.45&&dur<=7&&(ka+kb).length<=95&&(a.end-a.start<2.2||b.end-b.start<2.2)&&!/[?？!！]\s*$/.test(ka)){
    a.km=(ka.replace(/[។.]\s*$/,'')+' '+kb).trim();a.src=((a.src||'')+' '+(b.src||'')).trim();a.end=b.end;a.buf=null;S.subs.splice(i+1,1);n++}else i++}
@@ -1796,7 +1796,7 @@ async function trEdge(lines){if(!EDGE_TOK||Date.now()-EDGE_TOK.t>8*60e3){const r
  if(!r.ok){if(r.status===401)EDGE_TOK=null;throw Error('Edge '+r.status)}return JSON.parse(r.text).map(x=>(x.translations&&x.translations[0]?x.translations[0].text:'').trim())}
 async function trDict(lines){const r=await xfetch('https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl='+slCode()+'&tl=km&'+lines.map(l=>'q='+encodeURIComponent(l)).join('&'),{headers:UAH});
  if(!r.ok)throw Error('Google2 '+r.status);let d=JSON.parse(r.text);if(!Array.isArray(d))d=[d];return d.map(x=>(Array.isArray(x)?x[0]:typeof x==='string'?x:'').trim())}
-let TR_ORDER=[trGtx,trEdge,trDict];
+let TR_ORDER=[trDict,trEdge,trGtx];/* v7.6: engines that translate every line separately come first — a line can never take words from the next one */
 async function trFree(lines,depth=0){const errs=[];for(const f of TR_ORDER){try{const o=await f(lines);if(o.length===lines.length&&o.some(Boolean)){if(f!==TR_ORDER[0])TR_ORDER=[f,...TR_ORDER.filter(x=>x!==f)];return o}}catch(e){if(busy.cancel)throw e;errs.push(e.message)}}
  if(lines.length>1&&depth===0){const out=[];for(const l of lines)out.push((await trFree([l],1))[0]);return out}
  throw Error('បកប្រែមិនបាន — សូមពិនិត្យ internet ('+errs.join(' · ')+')')}
@@ -1823,7 +1823,12 @@ async function cloudTr(b){const k=LS.get('licKey','')||'';const prev=S.subs.slic
  const spk=s=>{const p=spOf(s);return p?String(p.role||p.name||''):''};
  const r=await fetch(STAT_HOST+'/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(90000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),task:'tr',ctx:prev,lines:b.map(s=>({zh:prepSrc(s.src)||s.src,sec:+Math.max(.6,s.end-s.start).toFixed(1),who:spk(s)}))})});
  const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok||!Array.isArray(d.km)){const e=Error(d.error||('AI server '+r.status));e.st=r.status;throw e}return d.km}
-async function translate(list,forceFree){list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&aiKey();if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
+/* v7.6: OCR often reads one subtitle as 2–3 pieces (the text flickers, a character is misread) — glue the pieces back into one line so the translation and the voice are whole, not cut */
+function fragMerge(){sortSubs();const nz=t=>String(t||'').replace(/[\s\p{P}\p{S}]/gu,'');const big=t=>{const a=new Set();for(let i=0;i<t.length-1;i++)a.add(t.slice(i,i+2));return a};
+ const sim=(x,y)=>{x=nz(x);y=nz(y);if(!x||!y)return 0;if(x.includes(y)||y.includes(x))return 1;if(x.length<2||y.length<2)return 0;const A=big(x),B=big(y);let c=0;for(const g of A)if(B.has(g))c++;return 2*c/(A.size+B.size)};
+ let n=0;for(let i=1;i<S.subs.length;){const a=S.subs[i-1],b=S.subs[i];if(!a.km&&!b.km&&a.src&&b.src&&b.start-a.end<.45&&sim(a.src,b.src)>=.5){if(nz(b.src).length>nz(a.src).length)a.src=b.src;a.end=Math.max(a.end,b.end);a.buf=null;S.subs.splice(i,1);n++}else i++}
+ if(n){subChanged();console.log('fragMerge',n)}return n}
+async function translate(list,forceFree){if(list.some(s=>!s.km)){fragMerge();list=list.filter(s=>S.subs.includes(s))}list=list.filter(s=>s.src.trim());const useG=!forceFree&&S.tr.eng==='gemini'&&aiKey();if(!list.length){toast('គ្មានអត្ថបទដើមត្រូវបកប្រែ');return true}busy.on('🌐 កំពុងបកប្រែ...',0);let done=0;
  if((!forceFree||forceFree==='srv')&&!useG&&S.tr.cloud!==false&&Date.now()>CAI.off){const B=25,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));let fail=null;const t0=performance.now();
   /* v5.8: 3 batches at the same time → ~3× faster; a failed batch is retried once, then the rest falls back to Google */
   busy.set(`🧠 AI កំពុងបកប្រែតាមសាច់រឿង 0/${list.length}`,0);
@@ -2442,7 +2447,7 @@ function subLines(mk){const{M,w,h}=mk,rows=new Uint16Array(h);for(let y=0;y<h;y+
  const thr=Math.max(3,w*.006),lines=[];let y0=-1,gap=0;for(let y=0;y<=h;y++){const on=y<h&&rows[y]>thr;if(on){if(y0<0)y0=y;gap=0}else if(y0>=0){if(++gap>3||y===h){const y1=y-gap+1;if(y1-y0>=8)lines.push([y0,y1]);y0=-1;gap=0}}}
  return lines.map(([a,b])=>{let x0=w,x1=0;for(let y=a;y<b;y++)for(let x=0;x<w;x++)if(M[y*w+x]){if(x<x0)x0=x;if(x>x1)x1=x}const pad=Math.round((b-a)*.35);
   return{x:Math.max(0,x0-pad),y:Math.max(0,a-pad),w:Math.min(w,x1+pad)-Math.max(0,x0-pad),h:Math.min(h,b+pad)-Math.max(0,a-pad)}}).filter(l=>l.w>l.h*.8)}
-function subSig(mk){const{M,w,h}=mk,GX=40,GY=6,s=new Uint8Array(GX*GY);for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(M[y*w+x])s[Math.floor(y*GY/h)*GX+Math.floor(x*GX/w)]++;
+function subSig(mk){const{M,w,h}=mk,GX=160,GY=16,s=new Uint8Array(GX*GY);/* v7.6: fine grid — two different lines of the same length no longer look the same */for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(M[y*w+x])s[Math.floor(y*GY/h)*GX+Math.floor(x*GX/w)]++;
  const t=Math.max(2,(w/GX)*(h/GY)*.04);return s.map(v=>v>t?1:0)}
 const sigDiff=(a,b)=>{let x=0,u=0;for(let i=0;i<a.length;i++){x+=a[i]^b[i];u+=a[i]|b[i]}return u?x/u:0};
 
@@ -2509,19 +2514,21 @@ async function ocrScan0(only){await ocrInit();const GV=gvOn();
   else toast('⚠ រក Subtitle មិនឃើញច្បាស់ — អានតាមប្រអប់លឿង 📖 (អាចអូសកែបាន)',5000)}const segs=[],T=total();let off=0,chain=Promise.resolve();
  for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci];if(busy.cancel)break;if(only&&!only.has(c.id)){off+=c.out-c.in;continue}const m=c.m,el=m.el,reg=boxToVideo(S.ocrBox,m);const k=Math.min(1280/reg.w,Math.max(1,110/reg.h),2),cw=Math.max(32,Math.round(reg.w*k)),ch=Math.max(16,Math.round(reg.h*k));
   const cc=document.createElement('canvas');cc.width=cw;cc.height=ch;const cx=cc.getContext('2d',{willReadFrequently:true});
-  await setClip(ci,c.in);el.playbackRate=+S.ocr.speed||4;let cur=null,lastT=-1,fr=0;
+  await setClip(ci,c.in);el.playbackRate=+S.ocr.speed||2;let cur=null,lastT=-1,fr=0,pst=null;
   const finish=(seg,end)=>{seg.end=end;if(seg.end-seg.start<.2||!seg.snap)return;segs.push(seg);const snap=seg.snap;seg.snap=null;
    if(GV){seg.snapBk=snap;return}chain=chain.then(()=>recSnap(seg,snap))};
   try{await el.play()}catch(e){}
-  await new Promise(res=>{const step=()=>{if(busy.cancel){el.pause();return res()}const t=el.currentTime,st=off+(t-c.in);
+  /* v7.6: read the exact time of the frame being looked at (requestVideoFrameCallback) — currentTime runs ahead of the picture and made every line start late */
+  const vNext=f=>{let d=false;const g=(n,m)=>{if(!d){d=true;f(m||null)}};if(el.requestVideoFrameCallback&&!bgHidden())el.requestVideoFrameCallback(g);else requestAnimationFrame(()=>g());setTimeout(()=>g(),bgHidden()?40:300)};
+  await new Promise(res=>{const step=meta=>{if(busy.cancel){el.pause();return res()}const t=meta&&meta.mediaTime!=null?meta.mediaTime:el.currentTime,st=off+(t-c.in);
     if(t>=c.out-.03||el.ended){if(cur)finish(cur,off+(c.out-c.in));cur=null;el.pause();return res()}
     if(el.paused&&!el.ended){el.play().catch(()=>{})}
-    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);const on=mk.cnt>cw*ch*.004;const sig=on?subSig(mk):null;
-     if(!on){if(cur){finish(cur,st);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.38){if(cur)finish(cur,st);cur={start:st,sig,n:0,snap:null}}
+    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);const on=mk.cnt>cw*ch*.004;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
+     if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.45){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
      if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
        const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
      if(fr%4===0&&!bgHidden()){P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
-    nextFrame(step)};nextFrame(step)});
+    vNext(step)};vNext(step)});
   el.playbackRate=1;el.pause();off+=c.out-c.in}
  busy.set('🔤 កំពុងបញ្ចប់ការអាន...',null);await chain;if(GV)await gvRead(segs);if(busy.cancel)throw Error('បានបោះបង់');
  let out=[];for(const s of segs){if(!s.text||s.text.replace(/[\s\p{P}\p{S}]/gu,'').length<1)continue;const l=out[out.length-1];
