@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -785,7 +785,7 @@ const S={media:[],clips:[],
  fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ai:{eng:'',model:'',...LS.get('ai',{})},ov:{on:false,x:.62,y:.62,w:.34,op:1,key:'none',...LS.get('ov',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:50,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
- tr:{eng:'free',style:'normal',sl:'auto',...LS.get('tr',{}),...(LS.get('v45tr',false)?{}:(LS.set('v45tr',true),{short:false,style:'normal'}))},
+ tr:{eng:'free',style:'normal',sl:'auto',...LS.get('tr',{}),...(LS.get('v45tr',false)?{}:(LS.set('v45tr',true),{short:false,style:'normal'})),...(LS.get('v75tr',false)?{}:(LS.set('v75tr',true),{eng:'free',cloud:false}))},
  asr:{eng:'auto',lang:'auto',wm:'onnx-community/whisper-base',gender:true,cast:'simple',...LS.get('asr',{}),...(LS.get('asr',{}).eng==='gemini'?{eng:'auto'}:{})},
  keys:LS.get('keys',{}),server:LS.get('server',null)};
 S.speakers.forEach(sp=>{if(sp.vm==='real')sp.vm='off';if(sp.voice==='phone')sp.voice='km-KH-PisethNeural'});
@@ -2162,6 +2162,13 @@ html.apk .ak-cfg input[type=range]{width:100%;accent-color:#3b82f6}
 html.apk .ak-ck{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;font-weight:700;color:#a5c8ff}html.apk .ak-ck input{width:18px;height:18px;accent-color:#3b82f6}
 html.apk #pg-me .ak-acc{margin-bottom:12px}
 html.apk #pg-me #actBar{display:none!important}
+/* v7.5 simple APK: only what is needed */
+html.apk #akChips,html.apk #akCol,html.apk #akAsp,html.apk #actBar{display:none!important}
+html.apk .ak-ctl{justify-content:center;gap:26px}
+html.apk #pg-sub>.card:not(.ak-keep),html.apk #pg-sub>.au-hero{display:none!important}
+html.apk :is(.ak-chips button,#railL button,.ak-ctl .pill,.ak-menu button,.btn,.ak-more,.ak-ib.sv)::before{animation:none!important;background:none!important}
+html.apk #railL button[data-r=auto]::before,html.apk .ak-qh .go:not(.run)::before{animation:lxr 3s linear infinite!important;background:conic-gradient(from var(--la),transparent 0 55%,#22d3ee 72%,#e0fbff 76%,#3b82f6 82%,transparent 92%)!important}
+
 /* v6.6: whole app in the same neon-navy system */
 html.apk{--gold:linear-gradient(135deg,#7dd3fc,#3b82f6 60%,#2563eb);--purp:linear-gradient(135deg,#5eead4,#22c39a 60%,#0f9d7a);--silv:linear-gradient(135deg,#67e8f9,#3b5bdb);--rb:linear-gradient(90deg,#22d3ee,#3b82f6,#22d3ee);--bg:#070b1d;--fg:#e8eeff;--card:#0f1b42;--card2:#13204b;--line:rgba(140,160,255,.24);--mute:#8fa3d8}
 html.apk body{--acc:#22d3ee!important;--onacc:#04121f!important}
@@ -2216,7 +2223,7 @@ html.apk .ak-menu button{width:100%;display:flex;gap:12px;align-items:center;tex
 html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-align:center}html.apk .ak-menu button small{display:block;color:#8fa3d8;font-weight:500;font-size:11.5px;margin-top:3px}
 </style>`);
  /* left tool rail */
- $('#railL').innerHTML=`<button data-r="sty" title="Subtitle Style"><b>☰</b></button><button data-r="add" title="ដាក់វីដេអូ"><b>📄</b></button><button data-r="clean" title="សម្អាត"><b>⟳</b></button><button data-r="auto" title="Auto Run"><b>✨</b></button><div class="akVol" title="សំឡេងខ្មែរ"><input type="range" id="akVol" min="0" max="2" step=".05"><small>🔊</small></div>`;
+ $('#railL').innerHTML=`<button data-r="add" title="ដាក់វីដេអូ"><b>📄</b></button><button data-r="clean" title="សម្អាត"><b>⟳</b></button><button data-r="auto" title="Auto Run"><b>✨</b></button><div class="akVol" title="សំឡេងខ្មែរ"><input type="range" id="akVol" min="0" max="2" step=".05"><small>🔊</small></div>`;
  $('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
   if(r==='add')return $('#auFile').click();if(r==='auto')return akCfg(true);if(r==='clean')return $('#cleanDev').click();
   if(r==='sty')openCard('pg-exp',/រចនា Subtitle/,'☰ រចនា Subtitle · Style & Font')};
@@ -2240,16 +2247,14 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
  const sk=$('#akSeek');sk.oninput=()=>{skD=true;const T=total();if(T)seek(T*sk.value/1000)};sk.onchange=()=>skD=false;
  window.akTick=()=>{const T=total();$('#akNow').textContent=mm(P.t);$('#akAll').textContent=mm(T);if(!skD)sk.value=T?Math.round(P.t/T*1000):0;$('#akPlay').textContent=P.playing?'❚❚':'▶';$('#akAspT').textContent=S.out.aspect==='src'?'ដើម':S.out.aspect;akChipPaint()};setInterval(akTick,250);
  /* bottom nav: Home · Dubbed · Sub · Voice · Me */
- const nav=$('#nav');nav.innerHTML=`<span class="pill"></span><button data-p="pg-vid"><i>🏠</i>Home</button><button data-p="pg-auto"><i>🎞</i>Dubbed</button><button data-p="pg-sub"><i>💬</i>Sub</button><button data-p="pg-voice"><i>🎙</i>សំឡេង</button><button data-p="pg-me"><i>👤</i>ខ្ញុំ</button>`;
+ const nav=$('#nav');nav.innerHTML=`<span class="pill"></span><button data-p="pg-auto"><i>🎞</i>Dubbed</button><button data-p="pg-sub"><i>💬</i>អត្ថបទ</button><button data-p="pg-me"><i>👤</i>ខ្ញុំ</button>`;
+ {const k=[...$$('#pg-sub>.card')].find(c=>/Subtitle/.test(c.querySelector('h3')?.textContent||'')&&/^\s*3/.test(c.querySelector('h3 .n')?.textContent||''));if(k)k.classList.add('ak-keep')}
  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{GP_USER=true;try{goPage(b.dataset.p)}finally{GP_USER=false}const pg=$('#pages');window.scrollTo({top:b.dataset.p==='pg-auto'||b.dataset.p==='pg-vid'?0:Math.max(0,pg.offsetTop-70),behavior:'smooth'})});
  /* Me page */
  $('#pg-auto').insertAdjacentHTML('afterend',`<section class="page" id="pg-me"><div class="ak-acc" id="meAcc"></div><div class="ak-menu">
-  <button data-m="exp"><i>⬇</i><span>ទាញយក / Export<small>ទំហំ · ភាពច្បាស់ · 60fps · MP3 · Logo · Blur</small></span></button>
-  <button data-m="key"><i>🔑</i><span>API Key<small>Claude · Gemini · OpenRouter — បកប្រែច្បាស់ជាង</small></span></button>
-  <button data-m="poster"><i>🖼</i><span>បកប្រែ Poster<small>រូបចិន → ខ្មែរ</small></span></button>
   <button data-m="clean"><i>🧹</i><span>សម្អាតទូរសព្ទ<small>លុប Cache · ទំនេរកន្លែង</small></span></button>
-  <button data-m="set"><i>⚙</i><span>ការកំណត់<small>Server សំឡេង · License</small></span></button>
-  <button data-m="help"><i>❓</i><span>របៀបប្រើ</span></button>
+  <button data-m="exp"><i>⬇</i><span>Export ខ្លួនឯង<small>សម្រាប់វីដេអូដែលកំពុងបើក</small></span></button>
+  <button data-m="set"><i>⚙</i><span>ការកំណត់<small>License · Server សំឡេង</small></span></button>
   <button data-m="tg"><i>✈</i><span>Telegram @wang_linkh<small>ទិញ Key · សួរជំនួយ</small></span></button></div></section>`);
  $('#pg-me .ak-menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const m=b.dataset.m;
   if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
@@ -2281,7 +2286,7 @@ function gemLink(){const u='https://aistudio.google.com/apikey';sheet(`<div clas
  b.querySelector('#gmGo').onclick=()=>{gemWatch(true);try{if(window.DubNative&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')}catch(e){}toast('🔷 Login Gmail → Create API key → Copy → ត្រឡប់មកវិញ',5000)};
  b.querySelector('#gmPaste').onclick=async()=>{const c=await gemClip();if(!/AIza/.test(c))return toast('📋 មិនទាន់ Copy Key (AIza...) ទេ',3000);if(await gemTry(c))closeSheet()}})}
 function gemRepaint(){$$('.kGemBox').forEach(x=>x.outerHTML=gemAccHTML())}
-function gemAccHTML(){const on=!!K('kGem'),srv=!!window.SRVGEM;
+function gemAccHTML(){if(window.__apk)return`<div class="ak-tg kGemBox" style="margin-top:10px"><span style="font-size:22px">🌐</span><div>បកប្រែដូច Google Translate ✓<small>ត្រូវតាមអត្ថន័យ · គ្រប់បន្ទាត់ · និយាយគ្រប់បន្ទាត់ — មិនបាច់ API Key</small></div></div>`;const on=!!K('kGem'),srv=!!window.SRVGEM;
  if(on)return`<div class="ak-tg kGemBox" style="margin-top:10px"><span style="font-size:22px">🔷</span><div>Gemini (Key ផ្ទាល់ខ្លួន) ✓<small>បកប្រែ · អាន Sub · សម្រាយ ដោយ Gemini</small></div><button class="ak-ib sv" onclick="S.keys.kGem='';LS.set('keys',S.keys);if(!aiKey())S.tr.eng='free';save();gemRepaint();try{aiPaint();meAccPaint()}catch(e){}">ដក</button></div>`;
  return`<div class="ak-tg kGemBox" style="margin-top:10px;border-color:${srv?'rgba(52,211,153,.7)':'rgba(96,165,250,.6)'}"><span style="font-size:22px">🔷</span><div>${srv?'Gemini AI · ដំណើរការស្វ័យប្រវត្តិ ✓':'AI បកប្រែ · ដំណើរការស្វ័យប្រវត្តិ ✓'}<small>${srv?'មិនបាច់ Login មិនបាច់ Key — បកប្រែ និងសម្រាយដោយ Gemini ពី Server SK ProKH':'បកប្រែតាមសាច់រឿង ពី Server SK ProKH — មិនបាច់ Key'}</small></div></div>`}
 window.addEventListener('focus',async()=>{if(GEMW.t){const c=await gemClip();if(/AIza[\w-]{30,}/.test(c))gemTry(c,true)}});
@@ -2310,8 +2315,8 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   <label class="k">📋 របៀបធ្វើ:</label><select id="kKind">${o('dub','🌐 បកប្រែតួ (Dub តាមសាច់រឿង)',c.kind||'dub')}${o('recap','📖 សម្រាយរឿង (អ្នកនិទានខ្មែរ)',c.kind)}</select>
   <label class="k">🤖 Transcript Model (យកអត្ថបទដើម):</label><select id="kSrc">${o('ocr','🔤 AI អាន Sub លើវីដេអូ (OCR · លឿន ត្រូវ)',c.src)}${o('whisper','🎧 Whisper ស្ដាប់សំឡេង (វីដេអូគ្មាន Sub)',c.src)}</select>
   <label class="k">🗣 ភាសានិយាយក្នុងវីដេអូ:</label><select id="kLang">${o('zh','🇨🇳 ចិន (Chinese - zh)',c.lang||'zh')}${o('en','🇬🇧 អង់គ្លេស (English - en)',c.lang)}${o('ko','🇰🇷 កូរ៉េ (Korean - ko)',c.lang)}${o('ja','🇯🇵 ជប៉ុន (Japanese - ja)',c.lang)}${o('auto','🌐 ស្គាល់ Auto',c.lang)}</select>
-  <label class="k">🔵 Model បកប្រែ:</label><select id="kTr">${o('free',window.SRVGEM?'🔷 Gemini AI · Server (ល្អ · គ្មាន Key)':'⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
-  <label class="k">🎭 សម្លេងបកប្រែ:</label><select disabled>${o('km','🇰🇭 ខ្មែរ (Khmer - km)','km')}</select>
+  <div hidden><select id="kTr">${o('free',window.SRVGEM?'🔷 Gemini AI · Server (ល្អ · គ្មាន Key)':'⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
+</div>
   <label class="k">👥 សម្លេងតួអង្គ:</label><div class="ak-vc" id="kVc"><button data-v="m">👨 Piseth (ប្រុស)</button><button data-v="f">👩 Sreymom (ស្រី)</button><button data-v="detect">👫 ប្រុស/ស្រី (Auto)</button></div>
   <div class="ak-tg" id="kGoT"><span style="font-size:20px">⚡</span><div>ដាក់វីដេអូ → ធ្វើភ្លាមដោយខ្លួនឯង<small>មិនបាច់ចុច ▶ — App អាន បកប្រែ បញ្ចូលសំឡេង ហើយ Save ចូល Photos</small></div><span class="ak-sw${c.go!==false?' on':''}" id="kGo"></span></div>
   <div class="ak-tg" id="kCleanT"><span style="font-size:20px">🎬</span><div>វីដេអូស្អាត ដូចដើម (Clean)<small>រូបភាពពេញអេក្រង់ដូចវីដេអូដើម · គ្មាន Sub ខ្មែរ · គ្មាន Blur · គ្មានស៊ុម — ប្ដូរតែសំឡេងជាខ្មែរ</small></div><span class="ak-sw${c.clean!==false?' on':''}" id="kClean"></span></div>
@@ -2332,7 +2337,7 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   q('#kTr').onchange=e=>{if(e.target.value==='gemini'&&!aiKey()){e.target.value='free';toast('🔑 ដាក់ API Key សិន: 👤 ខ្ញុំ → API Key',3500)}};
   q('#kNo').onclick=closeSheet;
   q('#kOk').onclick=()=>{const[res,fps]=q('#kRes').value.split('_').map(Number);Object.assign(c,{go,clean:cl,kind:q('#kKind').value,src:q('#kSrc').value,lang:q('#kLang').value,voice:vc,burn:q('#kBurn').checked,erase:q('#kErase').checked,save:sv,orig:q('#kOrig').value,res,fps,rate:+q('#kRate').value,bgm:+q('#kBgm').value,dub:+q('#kDub').value});
-   S.tr.eng=q('#kTr').value==='gemini'&&aiKey()?'gemini':'free';try{trChipsPaint()}catch(e){}LS.set('autoCfg',c);save();closeSheet();buzz(20);toast('✓ រក្សាទុកការកំណត់ Auto Run');akChipPaint();
+   S.tr.eng='free';S.tr.cloud=false;try{trChipsPaint()}catch(e){}LS.set('autoCfg',c);save();closeSheet();buzz(20);toast('✓ រក្សាទុកការកំណត់ Auto Run');akChipPaint();
    if(start){if(!AUTO.list.some(x=>x.st==='wait'))return toast('📄 សូមជ្រើសវីដេអូសិន',3000);autoRun()}}})}
 if(APKS){
  $('#auSet').onclick=()=>akCfg(false);
@@ -2342,12 +2347,12 @@ if(APKS){
   if(!AUTO.run){if(AUTO.cfg.go!==false){setTimeout(()=>autoRun(),400);return}await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}}};
  setTimeout(()=>{try{meAccPaint();akChipPaint();auPaint(true);if(!LS.get('page',''))goPage('pg-auto')}catch(e){console.warn(e)}},60);
  /* v7.2 first launch: everything set up the best way, one screen, one tap */
- if(!LS.get('welcome72',false)){const wt=setInterval(()=>{if($('#sheet').classList.contains('on')||$('#lic')?.classList?.contains('on')||$('#splash')&&!$('#splash').classList.contains('off'))return;clearInterval(wt);LS.set('welcome72',true);
+ if(!LS.get('welcome75',false)){const wt=setInterval(()=>{if($('#sheet').classList.contains('on')||$('#lic')?.classList?.contains('on')||$('#splash')&&!$('#splash').classList.contains('off'))return;clearInterval(wt);LS.set('welcome75',true);
   Object.assign(AUTO.cfg,{clean:true,orig:'mute',save:true,voice:'detect',kind:AUTO.cfg.kind||'dub'});LS.set('autoCfg',AUTO.cfg);Object.assign(FLOW,{clean:true,orig:'mute',cast:'simple'});LS.set('flow',FLOW);
   sheet(`<div class="ak-cfg" style="text-align:center"><div style="font-size:44px;margin:4px 0">🎬</div><h4 style="justify-content:center;font-size:19px">សូមស្វាគមន៍មក SK ProKH</h4>
   <div class="note" style="margin-bottom:12px">App រៀបចំរួចជាស្រេច — គ្រាន់តែដាក់វីដេអូ ហើយចុច ▶</div></div>
   <div class="ak-ls" style="max-height:none;line-height:2;font-size:13.5px">
-   <div>${window.SRVGEM?'🔷 <b>Gemini AI</b> បកប្រែ & សម្រាយ — ស្វ័យប្រវត្តិ មិនបាច់ Login':'🧠 <b>AI</b> បកប្រែ & សម្រាយតាមសាច់រឿង — ស្វ័យប្រវត្តិ មិនបាច់ Key'}</div>
+   <div>🌐 បកប្រែ <b>ត្រូវដូច Google Translate</b> គ្រប់បន្ទាត់ — មិនបាច់ API Key</div>
    <div>👫 សំឡេង <b>ពិសិដ្ឋ</b> (ប្រុស) និង <b>ស្រីមុំ</b> (ស្រី) — ស្គាល់តួដោយខ្លួនឯង</div>
    <div>⏱ សំឡេងនិយាយទាន់ Sub មិនជាន់គ្នា</div>
    <div>🔇 បិទសំឡេងចិនដើម — លឺតែខ្មែរ</div>
