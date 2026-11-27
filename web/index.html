@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.8';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.9';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -760,7 +760,12 @@ const sigT=ms=>AbortSignal.any?AbortSignal.any([busy.signal,AbortSignal.timeout(
 async function pool(items,n,fn){let i=0;const run=async()=>{while(i<items.length){if(busy.cancel)return;const k=i++;await fn(items[k],k)}};await Promise.all(Array.from({length:Math.min(n,items.length)},run))}
 function sheet(html,onOpen){cardBack();$('#sheetBody').innerHTML=html;$('#sheet').classList.add('on');$('#back').classList.add('on');onOpen&&onOpen($('#sheetBody'));$('#sheet').scrollTop=0}
 /* v6.9: a tool button opens its own panel — the real card is lifted into the sheet and put back when it closes */
-let CARDH=null;function cardBack(){if(!CARDH)return;const{card,ph}=CARDH;CARDH=null;try{ph.parentNode.insertBefore(card,ph);ph.remove()}catch(e){}card.classList.remove('in-sheet')}
+let CARDH=null;function cardBack(){if(!CARDH)return;try{const dk=$('#akDock');if(dk&&dk.contains(CARDH.card))dk.hidden=true}catch(e){}const{card,ph}=CARDH;CARDH=null;try{ph.parentNode.insertBefore(card,ph);ph.remove()}catch(e){}card.classList.remove('in-sheet')}
+function openDock(pg,re,title){const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));const dk=$('#akDock');if(!c||!dk)return openCard(pg,re,title);
+ if(CARDH&&CARDH.card===c&&!dk.hidden){cardBack();dk.hidden=true;return}cardBack();try{closeSheet()}catch(e){}dk.innerHTML=`<div class="ak-ph"><b>${title||''}</b><button class="ak-x" id="akDockX">✕</button></div>`;const ph=document.createComment('card');c.parentNode.insertBefore(ph,c);CARDH={card:c,ph};c.classList.add('in-sheet');dk.appendChild(c);dk.hidden=false;
+ $('#akDockX').onclick=()=>{cardBack();dk.hidden=true;buzz(8)};buzz(12);setTimeout(()=>dk.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
+ /* a tool that draws on the picture → the "clean" copy export is switched off for you */
+ if(typeof AUTO!=='undefined'&&(AUTO.cfg.clean!==false||FLOW.clean)){AUTO.cfg.clean=false;FLOW.clean=false;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW);toast('🎬 បិទ "វីដេអូស្អាត" ដើម្បីឲ្យ Blur / Logo ចេញលើវីដេអូ',3500)}}
 function openCard(pg,re,title){const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));if(!c){goPage(pg);return}
  sheet(`<div class="ak-ph"><b>${title||''}</b><button class="ak-x" onclick="closeSheet()">✕</button></div>`);const ph=document.createComment('card');c.parentNode.insertBefore(ph,c);CARDH={card:c,ph};c.classList.add('in-sheet');$('#sheetBody').appendChild(c);buzz(12)}
 function closeSheet(){cardBack();document.body.classList.remove('adm');$('#sheet').classList.remove('on');$('#back').classList.remove('on')}
@@ -2077,7 +2082,7 @@ async function autoRun(){if(AUTO.run)return;AUTO.run=true;AUTO.stop=false;busy.m
  finally{AUTO.run=false;AUTO.cur=null;busy.mini=false;document.body.classList.remove('aurun');$('#busy').classList.remove('mini');$('#busyPill').hidden=true;try{DubNative.keepAwake(false)}catch(e){}auPaint(true);goPage('pg-auto')}
  if(n){BG.done=`Auto រួច ${n} វីដេអូ`;toast(`✅ Auto រួច ${n} វីដេអូ — រក្សាទុកក្នុង Gallery`,5000)}}
 /* v6.1 PC workspace layout */
-if(document.documentElement.classList.contains('pc')){const R=document.documentElement;R.classList.add('ws');
+if(document.documentElement.classList.contains('pc')&&!window.DubNative&&!window.__APKSKIN){const R=document.documentElement;R.classList.add('ws');
  const top=document.querySelector('.top'),logo=top.querySelector('.logo');
  logo.insertAdjacentHTML('afterend',`<div class="ws-tools ws-only"><button class="wsb cy" id="wsExpT">⬇ Export</button><select id="wsLang" title="ភាសាដើម"></select><button class="wsb or" id="wsTr">📝 Transcript ចិន → ខ្មែរ</button><button class="wsb gr" id="wsTl">🎞 Timeline</button><button class="wsb" id="wsMp3">🎵 MP3</button></div>`);
  const pl=document.querySelector('.player');pl.insertAdjacentHTML('afterbegin',`<div class="ws-ph ws-only"><span>🎬 Preview</span><span class="ws-chip" id="wsInfo">0:00 · MP4</span><span class="sp"></span><button class="wsb" id="wsNew">＋ New Video</button><button class="wsb or" id="wsSub">🤖 Sub</button><button class="wsb gr" id="wsExp">⬇ Export</button></div>`);
@@ -2121,8 +2126,8 @@ if(document.documentElement.classList.contains('ws')){
  setInterval(()=>{txPaint();tlPaint()},700);(function loop(){phPaint();requestAnimationFrame(loop)})()}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 /* ============ v6.5 APK skin (phone app only): neon-navy "Dubbed" layout — tool rail, chip row, 9:16 preview, All-Video queue, Merge dialog, Auto Run settings ============ */
-const APKS=NATIVE&&!PC||!!window.__APKSKIN;
-if(APKS){window.__apk=true;const R=document.documentElement;R.classList.add('apk');
+const APKS=NATIVE||!!window.__APKSKIN;
+if(APKS){window.__apk=true;const R=document.documentElement;R.classList.add('apk');if(PC||R.classList.contains('pc')){R.classList.remove('pc');R.classList.add('apkpc')}
  document.head.insertAdjacentHTML('beforeend',`<style id="apkCss">
 html.apk{--cy:#22d3ee;--gr:#34d399;--nv:#0b1330;--nv2:#111c44;--bl:#2f6bff}
 html.apk body{background:radial-gradient(130% 55% at 50% 0,#14245a 0,#070b1d 62%) fixed!important;color:#e8eeff}
@@ -2250,6 +2255,34 @@ html.apk .sl span,html.apk .l{color:#c7d4ff}
 html.apk .dlq .fmt button.on{background:linear-gradient(#13204b,#13204b) padding-box,linear-gradient(135deg,#22d3ee,#3b82f6) border-box!important}
 html.apk .bro-t,html.apk .spk,html.apk .item{background:#13204b!important;border-color:rgba(140,160,255,.2)!important}
 html.apk details.more summary{color:#a5c8ff}
+/* v7.9: tools, mixer, dock, PC layout, animations */
+html.apk #railL{gap:8px}
+html.apk #railL button{height:52px;flex:0 0 52px;flex-direction:column;gap:2px}
+html.apk #railL button span{display:block!important;font:700 9.5px/1 system-ui,sans-serif;color:#9fb2e6;letter-spacing:0}
+html.apk #railL button b{font-size:17px}
+html.apk .ak-mix{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+html.apk .ak-mix label{display:flex;flex-direction:column;gap:4px;background:#0d1838;border:1px solid rgba(140,160,255,.22);border-radius:16px;padding:8px 12px 6px;position:relative}
+html.apk .ak-mix span{font:700 12px/1 system-ui,sans-serif;color:#c7d4ff}html.apk .ak-mix b{position:absolute;right:12px;top:8px;font:800 11.5px/1 system-ui,sans-serif;color:#67e8f9}
+html.apk .ak-mix input{width:100%;margin:0;accent-color:#22d3ee;height:22px;background:transparent;border:0}
+html.apk #akDock{margin-top:10px;border:1.5px solid rgba(34,211,238,.45);border-radius:20px;padding:12px;background:linear-gradient(180deg,#0f1e4a,#0a1433);animation:akDrop .35s cubic-bezier(.2,1.2,.4,1)}
+html.apk #akDock .card{background:none!important;border:0!important;padding:0!important;margin:0!important;box-shadow:none!important}
+html.apk #akDock .card>h3{display:none}
+@keyframes akDrop{from{opacity:0;transform:translateY(-10px) scale(.98)}}
+html.apk .au-it{animation:akUp .4s both}html.apk .au-it:nth-child(2){animation-delay:.05s}html.apk .au-it:nth-child(3){animation-delay:.1s}html.apk .au-it:nth-child(4){animation-delay:.15s}
+@keyframes akUp{from{opacity:0;transform:translateY(12px)}}
+html.apk .player{background:linear-gradient(180deg,#0f1c45,#0a1231) padding-box,linear-gradient(var(--pa,120deg),rgba(34,211,238,.55),rgba(59,130,246,.15),rgba(52,211,153,.5)) border-box!important;border:1.5px solid transparent!important;animation:akPa 8s linear infinite}
+@property --pa{syntax:'<angle>';inherits:false;initial-value:0deg}@keyframes akPa{to{--pa:360deg}}
+html.apk .au-it.run .ak-bar i{background:linear-gradient(90deg,#22d3ee,#3b82f6,#22d3ee);background-size:200% 100%;animation:akBar 1.4s linear infinite}@keyframes akBar{to{background-position:-200% 0}}
+html.apkpc body{overflow-y:auto}
+html.apkpc .app{max-width:1240px;margin:0 auto!important;display:grid!important;grid-template-columns:minmax(430px,540px) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:22px;padding:0 20px!important;height:auto!important}
+html.apkpc .top{grid-column:1/-1}
+html.apkpc .player{grid-column:1;grid-row:2;position:sticky;top:10px;align-self:start;margin:4px 0 20px!important}
+html.apkpc .pages{grid-column:2;grid-row:2;margin-top:4px!important}
+html.apkpc .page{padding:0 0 120px!important}
+html.apkpc #cv{max-height:58vh!important}
+html.apkpc nav{max-width:560px;margin:0 auto;left:0!important;right:0!important}
+html.apkpc :is(#railL button,.ak-menu button,.au-it,.ak-more,.ak-mix label):hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(34,211,238,.25)!important;transition:transform .15s,box-shadow .15s}
+
 /* v6.9: running neon light on buttons + press glow + panels */
 @property --la{syntax:'<angle>';inherits:false;initial-value:0deg}
 @keyframes lxr{to{--la:360deg}}
@@ -2272,15 +2305,23 @@ html.apk .ak-menu button{width:100%;display:flex;gap:12px;align-items:center;tex
 html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-align:center}html.apk .ak-menu button small{display:block;color:#8fa3d8;font-weight:500;font-size:11.5px;margin-top:3px}
 </style>`);
  /* left tool rail */
- $('#railL').innerHTML=`<button data-r="add" title="ដាក់វីដេអូ"><b>📄</b></button><button data-r="clean" title="សម្អាត"><b>⟳</b></button><button data-r="auto" title="Auto Run"><b>✨</b></button><div class="akVol" title="សំឡេងខ្មែរ"><input type="range" id="akVol" min="0" max="2" step=".05"><small>🔊</small></div>`;
+ $('#railL').innerHTML=`<button data-r="add" title="ដាក់វីដេអូ"><b>📄</b><span>វីដេអូ</span></button><button data-r="auto" title="Auto Run"><b>✨</b><span>Auto</span></button><button data-r="blur" title="Blur"><b>◐</b><span>Blur</span></button><button data-r="logo" title="Logo"><b>🏷</b><span>Logo</span></button><button data-r="vlogo" title="Video Logo"><b>🎞</b><span>V-Logo</span></button><button data-r="clean" title="សម្អាត"><b>⟳</b><span>សម្អាត</span></button>`;
  $('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
   if(r==='add')return $('#auFile').click();if(r==='auto')return akCfg(true);if(r==='clean')return $('#cleanDev').click();
+  if(r==='blur')return openDock('pg-exp',/Blur — បិទអក្សរ/,'◐ Blur — បិទអក្សរចាស់ (អូសប្រអប់លើវីដេអូ)');if(r==='logo')return openDock('pg-exp',/Logo \/ Watermark/,'🏷 Logo — ដាក់ Logo · លុបផ្ទៃខាងក្រោយ');if(r==='vlogo')return openDock('pg-exp',/វីដេអូ \/ រូប/,'🎞 វីដេអូ Logo — លុបផ្ទៃខាងក្រោយ (Green screen / AI)');
   if(r==='sty')openCard('pg-exp',/រចនា Subtitle/,'☰ រចនា Subtitle · Style & Font')};
- const vol=$('#akVol');vol.value=S.mix.dub;vol.oninput=()=>{S.mix.dub=+vol.value;MIX.dirty=true;try{$('#mixDub').value=vol.value}catch(e){}};vol.onchange=()=>{save();toast('🔊 សំឡេងខ្មែរ '+Math.round(S.mix.dub*100)+'%')};
+ /* v7.9 mixer: original sound + Khmer voice */
+ const mixHTML=`<div class="ak-mix"><label><span>🔈 សំឡេងដើម</span><input type="range" id="akOrig" min="0" max="1.5" step=".05"><b id="akOrigV"></b></label><label><span>🔊 សំឡេងខ្មែរ</span><input type="range" id="akDub" min="0" max="2" step=".05"><b id="akDubV"></b></label></div><div id="akDock" hidden></div>`;
+ window.__mixHTML=mixHTML;
  /* chip row above the preview */
  const sw=$('#stageWrap');sw.insertAdjacentHTML('afterbegin',`<div class="ak-chips" id="akChips"><button data-c="blur">◐ Blur</button><button data-c="text">✎ Text</button><button data-c="sub">▤ Sub</button><button data-c="med">▣ Med</button><button data-c="sav">✓ Sav</button></div>`);
  sw.insertAdjacentHTML('beforeend',`<div class="ak-time"><span id="akNow">0:00</span><input type="range" id="akSeek" min="0" max="1000" value="0"><span id="akAll">0:00</span></div>
-  <div class="ak-ctl"><button class="pill" id="akCol"><span class="ak-dot"></span>Color</button><button id="akB5">⏮</button><button class="pl" id="akPlay">▶</button><button id="akF5">⏭</button><button class="pill" id="akAsp">▭ <span id="akAspT">9:16</span> ▾</button></div>`);
+  <div class="ak-ctl"><button class="pill" id="akCol"><span class="ak-dot"></span>Color</button><button id="akB5">⏮</button><button class="pl" id="akPlay">▶</button><button id="akF5">⏭</button><button class="pill" id="akAsp">▭ <span id="akAspT">9:16</span> ▾</button></div>`+window.__mixHTML);
+ {const o=$('#akOrig'),d=$('#akDub'),pv=()=>{const ov=S.mix.mode==='mute'?0:S.mix.orig;o.value=ov;d.value=S.mix.dub;$('#akOrigV').textContent=Math.round(ov*100)+'%';$('#akDubV').textContent=Math.round(S.mix.dub*100)+'%'};window.akMixPaint=pv;pv();
+  o.oninput=()=>{const v=+o.value;S.mix.orig=v||S.mix.orig;if(v<=0.001){if(S.mix.mode!=='mute')setMode('mute')}else{S.mix.orig=v;if(S.mix.mode==='mute')setMode(FLOW.orig==='ai'?'ai':'full')}MIX.dirty=true;$('#akOrigV').textContent=Math.round(v*100)+'%'};
+  o.onchange=()=>{const v=+o.value;AUTO.cfg.orig=v>0?(S.mix.mode==='mute'?'full':S.mix.mode):'mute';AUTO.cfg.bgm=v>0?v:AUTO.cfg.bgm;FLOW.orig=AUTO.cfg.orig==='mute'?'mute':'ai';LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW);save();toast(v>0?'🔈 សំឡេងដើម '+Math.round(v*100)+'%':'🔇 បិទសំឡេងដើម')};
+  d.oninput=()=>{S.mix.dub=+d.value;MIX.dirty=true;$('#akDubV').textContent=Math.round(S.mix.dub*100)+'%'};d.onchange=()=>{AUTO.cfg.dub=S.mix.dub;LS.set('autoCfg',AUTO.cfg);save();toast('🔊 សំឡេងខ្មែរ '+Math.round(S.mix.dub*100)+'%')};
+  setInterval(()=>{if(document.activeElement!==o&&document.activeElement!==d)pv()},1500)}
  $('#empty').innerHTML='<div><b>9:16 Video Preview</b>( ជ្រើសរើសវីដេអូដើម្បី Preview )</div><div class="ak-subpos">( ទីតាំង Subtitle / ពុម្ពអក្សរ Style & Font )</div>';
  $('#empty').onclick=()=>$('#auFile').click();$('.stage').appendChild($('#empty'));
  const goCard=(pg,re)=>{goPage(pg);setTimeout(()=>{const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.animate([{boxShadow:'0 0 0 3px #22d3ee'},{boxShadow:'0 0 0 0 transparent'}],{duration:1400})}},250)};
