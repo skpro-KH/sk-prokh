@@ -697,7 +697,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1769,7 +1769,7 @@ $('#asrBtn').onclick=runASR;
 
 /* ============ translate ============ */
 chips($('#styChips'),Object.entries(STYLES).map(([k,v])=>[k,v[0]]),()=>S.tr.style,v=>{S.tr.style=v;save()});
-function trChipsPaint(){chips($('#trChips'),[['free','🧠 AI Server (គ្មាន key)'],['gemini','🔑 AI Key របស់ខ្ញុំ (ច្បាស់ជាង)']],()=>{try{return S.tr.eng==='gemini'&&aiKey()?'gemini':'free'}catch(e){return S.tr.eng==='gemini'?'gemini':'free'}},v=>{if(v==='gemini'&&!aiKey()){toast('🔑 សូមដាក់ API Key ខាងលើសិន',3000);try{$('#aiCard').scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}return}S.tr.eng=v;save();try{aiPaint()}catch(e){}})}trChipsPaint();
+function trChipsPaint(){chips($('#trChips'),[['free',window.SRVGEM?'🔷 Gemini AI (គ្មាន key)':'🧠 AI Server (គ្មាន key)'],['gemini','🔑 AI Key របស់ខ្ញុំ (ច្បាស់ជាង)']],()=>{try{return S.tr.eng==='gemini'&&aiKey()?'gemini':'free'}catch(e){return S.tr.eng==='gemini'?'gemini':'free'}},v=>{if(v==='gemini'&&!aiKey()){toast('🔑 សូមដាក់ API Key ខាងលើសិន',3000);try{$('#aiCard').scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}return}S.tr.eng=v;save();try{aiPaint()}catch(e){}})}trChipsPaint();
 /* ---- free translation (no key): Google → Microsoft Edge → Google dict, via native HTTP in the APK (no CORS) ---- */
 const nHttp=new Map();window.__dubHttp=(id,status,text,err,fin)=>{const f=nHttp.get(id);if(f){nHttp.delete(id);f({status,text,err,fin})}};
 async function xfetch(url,o={}){if(busy.cancel)throw Error('បានបោះបង់');
@@ -2272,8 +2272,11 @@ function gemLink(){const u='https://aistudio.google.com/apikey';sheet(`<div clas
  b.querySelector('#gmGo').onclick=()=>{gemWatch(true);try{if(window.DubNative&&DubNative.openUrl)DubNative.openUrl(u);else window.open(u,'_blank','noopener')}catch(e){}toast('🔷 Login Gmail → Create API key → Copy → ត្រឡប់មកវិញ',5000)};
  b.querySelector('#gmPaste').onclick=async()=>{const c=await gemClip();if(!/AIza/.test(c))return toast('📋 មិនទាន់ Copy Key (AIza...) ទេ',3000);if(await gemTry(c))closeSheet()}})}
 function gemRepaint(){$$('.kGemBox').forEach(x=>x.outerHTML=gemAccHTML())}
-function gemAccHTML(){const on=!!K('kGem');return`<div class="ak-tg kGemBox" style="margin-top:10px;border-color:${on?'rgba(52,211,153,.7)':'rgba(96,165,250,.7)'}"><span style="font-size:22px">🔷</span><div>${on?'Gemini ភ្ជាប់រួច ✓':'Login Gmail → Gemini Auto'}<small>${on?'បកប្រែ · អាន Sub · សម្រាយ ដោយ Gemini (ច្បាស់បំផុត)':'ចុចដើម្បីភ្ជាប់ Gmail — បកប្រែល្អខ្លាំង ឥតគិតថ្លៃ'}</small></div><button class="ak-ib sv" onclick="${on?"S.keys.kGem='';LS.set('keys',S.keys);if(!aiKey())S.tr.eng='free';save();gemRepaint();try{aiPaint();meAccPaint()}catch(e){}":'gemLink()'}">${on?'ដក':'Login'}</button></div>`}
+function gemAccHTML(){const on=!!K('kGem'),srv=!!window.SRVGEM;
+ if(on)return`<div class="ak-tg kGemBox" style="margin-top:10px"><span style="font-size:22px">🔷</span><div>Gemini (Key ផ្ទាល់ខ្លួន) ✓<small>បកប្រែ · អាន Sub · សម្រាយ ដោយ Gemini</small></div><button class="ak-ib sv" onclick="S.keys.kGem='';LS.set('keys',S.keys);if(!aiKey())S.tr.eng='free';save();gemRepaint();try{aiPaint();meAccPaint()}catch(e){}">ដក</button></div>`;
+ return`<div class="ak-tg kGemBox" style="margin-top:10px;border-color:${srv?'rgba(52,211,153,.7)':'rgba(96,165,250,.6)'}"><span style="font-size:22px">🔷</span><div>${srv?'Gemini AI · ដំណើរការស្វ័យប្រវត្តិ ✓':'AI បកប្រែ · ដំណើរការស្វ័យប្រវត្តិ ✓'}<small>${srv?'មិនបាច់ Login មិនបាច់ Key — បកប្រែ និងសម្រាយដោយ Gemini ពី Server SK ProKH':'បកប្រែតាមសាច់រឿង ពី Server SK ProKH — មិនបាច់ Key'}</small></div></div>`}
 window.addEventListener('focus',async()=>{if(GEMW.t){const c=await gemClip();if(/AIza[\w-]{30,}/.test(c))gemTry(c,true)}});
+setTimeout(async()=>{try{const r=await fetch(STAT_HOST+'/health',{signal:AbortSignal.timeout(6000)});const h=await r.json();window.SRVGEM=!!(h.features&&h.features.gem);if(window.SRVGEM){gemRepaint();try{trChipsPaint()}catch(e){}}}catch(e){}},300);
 async function akPreview(it){try{auReset();const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}}catch(e){toast('✕ '+(e.message||e))}}
 function akMerge(fs){return new Promise(r=>{sheet(`<div class="ak-mg"><span class="ic">⛙</span><div><h4>បញ្ចូលវីដេអូច្រើន (Merge Videos)</h4><small>អ្នកបានជ្រើសរើសវីដេអូច្រើន</small></div></div>
   <div style="margin-top:12px;font-size:14px;line-height:1.7">តើអ្នកចង់បញ្ចូល (Merge) វីដេអូទាំង ${fs.length} នេះបញ្ចូលគ្នាជាវីដេអូតែមួយ មុនពេលបកប្រែឬទេ?</div>
@@ -2298,7 +2301,7 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   <label class="k">📋 របៀបធ្វើ:</label><select id="kKind">${o('dub','🌐 បកប្រែតួ (Dub តាមសាច់រឿង)',c.kind||'dub')}${o('recap','📖 សម្រាយរឿង (អ្នកនិទានខ្មែរ)',c.kind)}</select>
   <label class="k">🤖 Transcript Model (យកអត្ថបទដើម):</label><select id="kSrc">${o('ocr','🔤 AI អាន Sub លើវីដេអូ (OCR · លឿន ត្រូវ)',c.src)}${o('whisper','🎧 Whisper ស្ដាប់សំឡេង (វីដេអូគ្មាន Sub)',c.src)}</select>
   <label class="k">🗣 ភាសានិយាយក្នុងវីដេអូ:</label><select id="kLang">${o('zh','🇨🇳 ចិន (Chinese - zh)',c.lang||'zh')}${o('en','🇬🇧 អង់គ្លេស (English - en)',c.lang)}${o('ko','🇰🇷 កូរ៉េ (Korean - ko)',c.lang)}${o('ja','🇯🇵 ជប៉ុន (Japanese - ja)',c.lang)}${o('auto','🌐 ស្គាល់ Auto',c.lang)}</select>
-  <label class="k">🔵 Model បកប្រែ:</label><select id="kTr">${o('free','⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
+  <label class="k">🔵 Model បកប្រែ:</label><select id="kTr">${o('free',window.SRVGEM?'🔷 Gemini AI · Server (ល្អ · គ្មាន Key)':'⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
   <label class="k">🎭 សម្លេងបកប្រែ:</label><select disabled>${o('km','🇰🇭 ខ្មែរ (Khmer - km)','km')}</select>
   <label class="k">👥 សម្លេងតួអង្គ:</label><div class="ak-vc" id="kVc"><button data-v="m">👨 Piseth (ប្រុស)</button><button data-v="f">👩 Sreymom (ស្រី)</button><button data-v="detect">👫 ប្រុស/ស្រី (Auto)</button></div>
   <div class="ak-tg" id="kCleanT"><span style="font-size:20px">🎬</span><div>វីដេអូស្អាត ដូចដើម (Clean)<small>រូបភាពពេញអេក្រង់ដូចវីដេអូដើម · គ្មាន Sub ខ្មែរ · គ្មាន Blur · គ្មានស៊ុម — ប្ដូរតែសំឡេងជាខ្មែរ</small></div><span class="ak-sw${c.clean!==false?' on':''}" id="kClean"></span></div>
@@ -2327,6 +2330,19 @@ if(APKS){
   GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}auPaint(true);buzz(20);toast(`បានបញ្ចូលវីដេអូចំនួន ${fs.length} ទៅក្នុងបញ្ជីបកប្រែ (សរុប ${AUTO.list.length})!`,3500);
   if(!AUTO.run){await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}}};
  setTimeout(()=>{try{meAccPaint();akChipPaint();auPaint(true);if(!LS.get('page',''))goPage('pg-auto')}catch(e){console.warn(e)}},60);
+ /* v7.2 first launch: everything set up the best way, one screen, one tap */
+ if(!LS.get('welcome72',false)){const wt=setInterval(()=>{if($('#sheet').classList.contains('on')||$('#lic')?.classList?.contains('on')||$('#splash')&&!$('#splash').classList.contains('off'))return;clearInterval(wt);LS.set('welcome72',true);
+  Object.assign(AUTO.cfg,{clean:true,orig:'mute',save:true,voice:'detect',kind:AUTO.cfg.kind||'dub'});LS.set('autoCfg',AUTO.cfg);Object.assign(FLOW,{clean:true,orig:'mute',cast:'simple'});LS.set('flow',FLOW);
+  sheet(`<div class="ak-cfg" style="text-align:center"><div style="font-size:44px;margin:4px 0">🎬</div><h4 style="justify-content:center;font-size:19px">សូមស្វាគមន៍មក SK ProKH</h4>
+  <div class="note" style="margin-bottom:12px">App រៀបចំរួចជាស្រេច — គ្រាន់តែដាក់វីដេអូ ហើយចុច ▶</div></div>
+  <div class="ak-ls" style="max-height:none;line-height:2;font-size:13.5px">
+   <div>${window.SRVGEM?'🔷 <b>Gemini AI</b> បកប្រែ & សម្រាយ — ស្វ័យប្រវត្តិ មិនបាច់ Login':'🧠 <b>AI</b> បកប្រែ & សម្រាយតាមសាច់រឿង — ស្វ័យប្រវត្តិ មិនបាច់ Key'}</div>
+   <div>👫 សំឡេង <b>ពិសិដ្ឋ</b> (ប្រុស) និង <b>ស្រីមុំ</b> (ស្រី) — ស្គាល់តួដោយខ្លួនឯង</div>
+   <div>⏱ សំឡេងនិយាយទាន់ Sub មិនជាន់គ្នា</div>
+   <div>🔇 បិទសំឡេងចិនដើម — លឺតែខ្មែរ</div>
+   <div>🎬 វីដេអូចេញស្អាតដូច Original</div>
+   <div>💾 Save ចូល Photos ដោយខ្លួនឯង</div></div>
+  <div class="ak-row"><button class="ak-b3" id="wlGo" style="flex:1">📄 ជ្រើសវីដេអូ & ចាប់ផ្ដើម</button></div>`,b=>{b.querySelector('#wlGo').onclick=()=>{closeSheet();$('#auFile').click()}})},1500)}
 }
 
 $('#expBtn').textContent=NATIVE&&!PC?'⬇ រក្សាទុកចូលទូរសព្ទ':PC?'⬇ រក្សាទុកចូលកុំព្យូទ័រ':'⬇ ទាញយកចូលម៉ាស៊ីន';

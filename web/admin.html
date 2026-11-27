@@ -46,6 +46,9 @@ input{background:#0d0b15;border:1px solid var(--line);color:var(--fg);border-rad
    <div class="tile" style="--c:#ffd23f"><div class="l">✨ អ្នកប្រើថ្មីថ្ងៃនេះ</div><div class="v" id="tN">0</div><div class="s" id="tNs"></div></div>
    <div class="tile" style="--c:#b06bff"><div class="l">🔑 Key កំពុងប្រើ</div><div class="v" id="tK">0</div><div class="s" id="tKs"></div></div>
   </div>
+  <div class="card"><h2>🔷 Gemini AI សម្រាប់អ្នកប្រើទាំងអស់</h2><div class="note" id="gmSt">...</div>
+   <textarea id="gmK" rows="3" placeholder="AIza... (ដាក់ Key ច្រើនបាន មួយបន្ទាត់មួយ — App ប្ដូរ Key ឲ្យខ្លួនឯងពេលអស់កូតា)" style="width:100%;margin-top:8px;background:#0c0a14;color:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;font:13px monospace"></textarea>
+   <div class="row" style="margin-top:8px"><button class="btn" id="gmSave">💾 រក្សាទុក</button><a class="note" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">→ យក Key ពី aistudio.google.com/apikey</a></div></div>
   <div class="card"><h2>📈 អ្នកប្រើថ្មី ១៤ ថ្ងៃចុងក្រោយ</h2><div class="bars" id="bars"></div><div class="bl" id="bl"></div></div>
   <div class="card"><div class="row" style="margin-bottom:10px"><h2 style="margin:0">🔑 License Keys</h2><div class="sp"></div><input id="qk" placeholder="🔍 ស្វែងរក Key / ចំណាំ"></div>
    <div class="note" style="margin-bottom:8px">Key បង្កើតក្នុង App (⚙ → Admin) ដូចមុន — Key នីមួយៗលេចនៅទីនេះពេលមានអ្នកចូលប្រើដំបូង។ <b>ឧបករណ៍អតិបរមា</b>: 0 = គ្មានកំណត់។</div>
@@ -61,6 +64,9 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const ago=t=>{if(!t)return'—';const s=(Date.now()-t)/1e3;return s<60?'ឥឡូវ':s<3600?Math.floor(s/60)+' នាទីមុន':s<86400?Math.floor(s/3600)+' ម៉ោងមុន':Math.floor(s/86400)+' ថ្ងៃមុន'};
 const day=t=>t?new Date(t).toLocaleDateString('en-GB'):'—';
 const flag=c=>c&&c.length===2?String.fromCodePoint(...[...c.toUpperCase()].map(x=>127397+x.charCodeAt(0)))+' '+c:'—';
+async function gmLoad(){try{const d=await api('gem');document.getElementById('gmSt').textContent=d.n?`✅ Gemini បើក · ${d.n} Key (${d.keys.join(', ')})${d.secret?' + Secret':''} — អ្នកប្រើទាំងអស់បកប្រែ/សម្រាយដោយ Gemini`:'⚪ មិនទាន់មាន Key — ប្រើ Cloudflare AI ជំនួស';}catch(e){}}
+document.addEventListener('click',async e=>{if(e.target&&e.target.id==='gmSave'){try{const d=await api('gem',{keys:document.getElementById('gmK').value});document.getElementById('gmK').value='';await gmLoad();alert('✅ រក្សាទុករួច · '+d.n+' Key')}catch(x){alert('✕ '+(x.message||x))}}});
+setInterval(()=>{const st=document.getElementById('gmSt');if(st&&st.textContent==='...'&&PW)gmLoad()},1500);
 async function api(path,body){const r=await fetch('/admin/api/'+path,{method:body?'POST':'GET',headers:{'X-Pass':PW,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({error:'HTTP '+r.status}));if(r.status===401)throw Object.assign(Error(j.error),{auth:1});return j}
 async function load(){try{const j=await api('stats');if(j.error==='nokv'){$('#nokv').hidden=false;D={devs:[],keys:[],now:Date.now()}}else if(j.error)throw Error(j.error);else{$('#nokv').hidden=true;D=j}
   $('#login').hidden=true;$('#app').hidden=false;render();$('#upd').textContent='Live · '+new Date().toLocaleTimeString()}
