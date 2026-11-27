@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -838,11 +838,48 @@ async function checkServer(silent){const u=srv();SRV.ok=false;if(NATIVE&&!u){SRV
  $('#sdot').classList.toggle('on',SRV.ok);
  if(!silent)toast(SRV.ok?'✓ ភ្ជាប់ Server សំឡេង ពិសិដ្ឋ/ស្រីមុំ':'✕ មិនអាចភ្ជាប់ Server សំឡេង');return SRV.ok}
 let natLast=0;
-async function ttsFetch(text,voice,rate,pitch){if(NATIVE&&!srv()){let e;for(let a=0;a<3;a++){const w=natLast+180-Date.now();natLast=Math.max(Date.now(),natLast+180);if(w>0)await sleep(w);try{return await nativeTTS(text,voice,rate,pitch)}catch(x){e=x;if(busy.cancel)throw x;if(a<2)await sleep(500*(a+1)+Math.random()*300)}}throw e}let last;for(let a=0;a<3;a++){try{const r=await fetch(srv()+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice,rate,pitch}),signal:sigT(40000)});
+/* ============ v8.3 Kiri TTS (kiritts.com) — the user's own API key; Piseth/Sreymom lines are spoken by the chosen Kiri male/female voice ============ */
+const KIRI=Object.assign({key:'',on:false,m:'Bora',f:'Maly',via:''},LS.get('kiri',{}));
+const KIRI_V=[['Maly','👩 Maly','f'],['Nita','👩 Nita','f'],['Chanda','👩 Chanda','f'],['Bora','👨 Bora','m'],['Arun','👨 Arun','m']];
+const kiriOn=()=>!!(KIRI.on&&KIRI.key);
+const kiriVoice=v=>!kiriOn()?'':v===SRM_V?KIRI.f:v===PIS_V?KIRI.m:'';
+const SRM_V='km-KH-SreymomNeural',PIS_V='km-KH-PisethNeural';
+async function kiriCall(body,key){key=key||KIRI.key;const B=JSON.stringify(body);let last;
+ for(let a=0;a<4;a++){try{let r;
+   if(KIRI.via!=='relay'){try{r=await fetch('https://api.kiritts.com/v1/audio/speech',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:B,signal:sigT(60000)});if(!KIRI.via){KIRI.via='direct'}}catch(e){if(busy.cancel)throw e;if(KIRI.via!=='direct'){KIRI.via='relay'}else throw e}}
+   if(!r)r=await fetch(STAT_HOST+'/kiri',{method:'POST',headers:{'x-kiri-key':key,'Content-Type':'application/json'},body:B,signal:sigT(60000)});
+   if(r.ok){const ab=await r.arrayBuffer();if(ab.byteLength>200)return ab;last=Error('Kiri: សំឡេងទទេ')}
+   else{let m='';try{const j=await r.json();m=(j.error&&(j.error.message||j.error))||j.message||''}catch(e){}
+    if(r.status===401||r.status===403)throw Object.assign(Error('Kiri: API Key ខុស ឬផុតកំណត់'),{fatal:1});
+    if(r.status===402)throw Object.assign(Error('Kiri: Credit អស់ — បញ្ចូល Credit នៅ kiritts.com'),{fatal:1});
+    last=Error('Kiri '+r.status+(m?': '+String(m).slice(0,80):''));if(r.status===429){await sleep(2500*(a+1));continue}if(r.status<500)throw last}}
+  catch(e){if(e.fatal||busy.cancel)throw e;last=e}await sleep(800*(a+1))}throw last}
+const kiriTTS=(text,name,rate)=>kiriCall({model:'kiritts',voice:name,input:text,response_format:'mp3',speed:+Math.max(.7,Math.min(2,1+(+rate||0)/100)).toFixed(2)});
+function kiriSheet(){const vs=g=>KIRI_V.filter(v=>v[2]===g).map(([n,l])=>`<button data-g="${g}" data-v="${n}" class="${(g==='m'?KIRI.m:KIRI.f)===n?'on':''}">${l}</button>`).join('');
+ sheet(`<div class="ak-mg"><span class="ic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">🎙</span><div><h4>Kiri TTS — សំឡេងខ្មែរធម្មជាតិ</h4><small>ប្រើ API Key របស់អ្នកពី kiritts.com</small></div></div>
+ <label class="l" style="margin-top:12px">🔑 Kiri API Key</label><div class="row"><input id="kiK" type="password" autocomplete="off" placeholder="${KIRI.key?'•••• '+esc(KIRI.key.slice(-4)):'បិទភ្ជាប់ API Key'}"><button class="btn s" id="kiSave">✓ ដាក់</button></div>
+ <div class="row" style="margin-top:8px"><button class="btn g s" id="kiGet">🔗 យក Key នៅ kiritts.com</button>${KIRI.key?'<button class="btn g s" id="kiDel">✕ ដក Key</button>':''}</div>
+ <label class="k" style="display:block;margin:14px 0 6px;font-weight:700">👨 ជំនួសសំឡេង ពិសិដ្ឋ ដោយ:</label><div class="ak-vc" id="kiM">${vs('m')}</div>
+ <label class="k" style="display:block;margin:14px 0 6px;font-weight:700">👩 ជំនួសសំឡេង ស្រីមុំ ដោយ:</label><div class="ak-vc" id="kiF">${vs('f')}</div>
+ <div class="ak-tg" id="kiOnT"><span style="font-size:20px">🎙</span><div>ប្រើ Kiri TTS និយាយ<small>បិទ = ត្រឡប់ទៅ ពិសិដ្ឋ / ស្រីមុំ (ឥតគិតថ្លៃ)</small></div><span class="ak-sw${kiriOn()?' on':''}" id="kiOn"></span></div>
+ <div class="row" style="margin-top:12px"><button class="btn g s" id="kiTest">▶ ស្ដាប់សាក</button></div>
+ <div class="note" style="margin-top:8px">Kiri TTS គិត Credit តាមចំនួនអក្សរ (មើលនៅ kiritts.com)។ Key រក្សាទុកតែក្នុងឧបករណ៍របស់អ្នក។</div>`,b=>{
+  const q=x=>b.querySelector(x);const sv=()=>{LS.set('kiri',KIRI);MIX.dirty=true;try{subChanged()}catch(e){}};
+  q('#kiGet').onclick=()=>{const u='https://www.kiritts.com/dashboard/settings';try{NATIVE&&DubNative.openUrl?DubNative.openUrl(u):window.open(u,'_blank','noopener')}catch(e){}};
+  if(q('#kiDel'))q('#kiDel').onclick=()=>{KIRI.key='';KIRI.on=false;sv();toast('✕ ដក Kiri Key');kiriSheet()};
+  b.querySelectorAll('.ak-vc button').forEach(x=>x.onclick=()=>{if(x.dataset.g==='m')KIRI.m=x.dataset.v;else KIRI.f=x.dataset.v;sv();x.parentNode.querySelectorAll('button').forEach(y=>y.classList.toggle('on',y===x));buzz(8)});
+  q('#kiOnT').onclick=()=>{if(!KIRI.key)return toast('🔑 ដាក់ API Key សិន',2500);KIRI.on=!KIRI.on;q('#kiOn').classList.toggle('on',KIRI.on);sv();toast(KIRI.on?'🎙 Kiri TTS បើក':'ត្រឡប់ទៅ ពិសិដ្ឋ / ស្រីមុំ')};
+  const play=async ab=>{ensureAC();const bf=await decodeAB(ab);const src=AC.createBufferSource();src.buffer=bf;src.connect(AC.destination);src.start()};
+  q('#kiSave').onclick=async()=>{const v=q('#kiK').value.trim();if(v.length<8)return toast('Key មិនត្រឹមត្រូវ');busy.on('🎙 កំពុងពិនិត្យ Kiri Key...',null);
+   try{const ab=await kiriCall({model:'kiritts',voice:KIRI.f,input:'សួស្តី',response_format:'mp3'},v);KIRI.key=v;KIRI.on=true;sv();busy.off();toast('✅ Kiri TTS ភ្ជាប់រួច — សំឡេងខ្មែរធម្មជាតិ',3500);await play(ab);kiriSheet()}
+   catch(e){busy.off();toast('✕ '+(e.message||e),5000)}};
+  q('#kiTest').onclick=async()=>{if(!KIRI.key)return toast('🔑 ដាក់ API Key សិន',2500);busy.on('🎙 Kiri...',null);try{const a1=await kiriTTS('ឯងហ៊ានក្បត់ខ្ញុំមែនទេ?',KIRI.m,0);const a2=await kiriTTS('ខ្ញុំមិនបានធ្វើអ្វីខុសទេ។',KIRI.f,0);busy.off();await play(a1);setTimeout(()=>play(a2),1800)}catch(e){busy.off();toast('✕ '+(e.message||e),5000)}}})}
+async function ttsFetch(text,voice,rate,pitch){{const kv=kiriVoice(voice);if(kv)return kiriTTS(text,kv,rate)}if(NATIVE&&!srv()){let e;for(let a=0;a<3;a++){const w=natLast+180-Date.now();natLast=Math.max(Date.now(),natLast+180);if(w>0)await sleep(w);try{return await nativeTTS(text,voice,rate,pitch)}catch(x){e=x;if(busy.cancel)throw x;if(a<2)await sleep(500*(a+1)+Math.random()*300)}}throw e}let last;for(let a=0;a<3;a++){try{const r=await fetch(srv()+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice,rate,pitch}),signal:sigT(40000)});
   if(r.ok)return await r.arrayBuffer();let m=r.status;try{m=(await r.json()).error||m}catch(e){}last=Error('សំឡេង: '+m)}catch(e){last=e}await sleep(600*(a+1))}throw last}
 $('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>
  <div class="item"><div class="t"><div>🔐 License · ${LIC.info?licExpTxt(LIC.info):'—'}</div><div class="note" style="margin:0">Device ID: ${DEV_SHORT||'—'}</div></div><button class="btn g s" onclick="closeSheet();document.getElementById('lic').classList.add('on')">ប្ដូរ Key</button></div>
  <div class="row"><button class="btn g s" onclick="openUrl(TG_URL)">✈ Telegram @wang_linkh</button></div>
+ <div class="row"><button class="btn g s" onclick="closeSheet();setTimeout(kiriSheet,250)">🎙 Kiri TTS (API Key)</button></div>
  <label class="l">Server សំឡេង ពិសិដ្ឋ/ស្រីមុំ</label><input id="sSrv" value="${esc(srv())}" placeholder="https://dub-khmer.xxx.workers.dev">
  <div class="note">${NATIVE?'• App: ទុកទទេ = ប្រើសំឡេង ពិសិដ្ឋ/ស្រីមុំ ក្នុង App ផ្ទាល់ (គ្មាន key គ្មាន server)។<br>':''}• បើអ្នកបើក App នេះពី Cloudflare Worker ឬ AI Engine លើកុំព្យូទ័រ វាភ្ជាប់ដោយខ្លួនឯង។<br>• AI Engine លើកុំព្យូទ័រ (Wi-Fi តែមួយ): <b>http://IP-កុំព្យូទ័រ:7860</b></div>
  <input id="sGem" type="hidden" value=""><input id="sGemM" type="hidden" value="">
@@ -885,7 +922,7 @@ function decodeAB(ab,sr=24000){const c=new OfflineAudioContext(2,1,sr);return ne
 async function mediaAudio(m){if(m.abuf!==undefined)return m.abuf;try{m.abuf=await decodeAB(await m.file.arrayBuffer())}catch(e){m.abuf=null}return m.abuf}
 const MIX={buf:null,dirty:true};const BGM={buf:null,name:''};
 const TTSC=new Map();
-async function ttsBuf(text,voice,rate,pitch){const k=[text,voice,rate,pitch].join('|');if(TTSC.has(k))return TTSC.get(k);const b=await decodeAB(await ttsFetch(text,voice,rate,pitch));TTSC.set(k,b);return b}
+async function ttsBuf(text,voice,rate,pitch){const k=[text,voice,rate,pitch,kiriVoice(voice)].join('|');if(TTSC.has(k))return TTSC.get(k);const b=await decodeAB(await ttsFetch(text,voice,rate,pitch));TTSC.set(k,b);return b}
 function trimSilence(b){const d=b.getChannelData(0),sr=b.sampleRate,th=.012;let a=0,e=d.length-1;while(a<d.length&&Math.abs(d[a])<th)a++;while(e>a&&Math.abs(d[e])<th)e--;
  a=Math.max(0,a-Math.round(.06*sr));e=Math.min(d.length,e+Math.round(.12*sr));if(e-a<sr*.1)return b;const o=new OfflineAudioContext(1,1,sr).createBuffer(1,e-a,sr);o.copyToChannel(d.slice(a,e),0);return o}
 const peakNorm=b=>{const d=b.getChannelData(0);let p=0;for(let i=0;i<d.length;i+=2){const v=Math.abs(d[i]);if(v>p)p=v}return p>0?Math.min(4,.9/p):1};
@@ -895,7 +932,7 @@ function ttsText(t){return cleanTags(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u
 const speakable=t=>/[\p{L}\p{N}]/u.test(t||'');
 const needsTr=s=>!!s.km&&CJK.test(s.km)&&!hasKh(s.km);
 function lineParams(s){const sp=spOf(s);const j=S.mix.jit?{p:hashN(s.id)%30-8,r:hashN(s.id+'r')%9}:{p:0,r:0};const st=SPEAK[s.sty||sp.sty||'normal']||SPEAK.normal,em=S.mix.emo!==false?emoOf(s.km):{r:0,p:0,v:1};
- return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
+ return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,kv:kiriVoice(sp.voice),vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
 function roomOf(s){const d=Math.max(.4,s.end-s.start);if(S.mix.sync!==false){const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const gap=n?n.start-s.end:.8;return Math.max(.4,Math.min(d+Math.min(.8,Math.max(.12,gap)),n?n.start-s.start-.04:d+.8))}if(S.mix.smart===false)return d;const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const lim=n?n.start-s.start-.08:Math.min(d+1.5,(total()||1e9)-s.start);return Math.max(d,Math.min(d+1.5,lim))}
 const lineKey=s=>s.hum?'hum:'+s.hum:JSON.stringify(lineParams(s));
 const hasBuf=s=>!speakable(ttsText(s.km))||spOf(s).voice==='phone'||!!(s.buf&&s.key===lineKey(s));
@@ -909,7 +946,7 @@ async function genLine(s){if(s.hum)return;const q=lineParams(s);if(!speakable(q.
  let rate=q.rate,t=trimSilence(await synth(rate));
  /* v7.2: fit the slot — up to 3 tries, a long line may go up to +85 % so the Khmer stays with the picture and the subtitle */
  const HMAX=Math.max(q.max,85);let r0=rate;
- if(q.vm!=='real'&&t.duration>q.slot*1.03&&rate<HMAX){for(let k=0;k<3&&t.duration>q.slot*1.03&&r0<HMAX;k++){const need=Math.ceil(((1+r0/100)*t.duration/q.slot-1)*100)+3;r0=Math.min(HMAX,Math.max(r0+6,need));try{t=trimSilence(await synth(r0))}catch(e){if(busy.cancel)throw e;break}}}
+ if(q.vm!=='real'&&t.duration>q.slot*1.03&&rate<HMAX){for(let k=0;k<(q.kv?1:3)&&t.duration>q.slot*1.03&&r0<HMAX;k++){const need=Math.ceil(((1+r0/100)*t.duration/q.slot-1)*100)+3;r0=Math.min(HMAX,Math.max(r0+6,need));try{t=trimSilence(await synth(r0))}catch(e){if(busy.cancel)throw e;break}}}
  /* v5.1 sync: Khmer ends together with the Chinese — a line that is much shorter is spoken a bit slower (max −18 %) so both voices take the same time */
  else if(S.mix.sync!==false&&q.vm!=='real'&&t.duration<q.slot*.82&&q.slot-t.duration>.3){const want=q.slot*.94,need=Math.round(((1+rate/100)*t.duration/want-1)*100);const r2=Math.max(rate-25,Math.min(rate-3,need));if(r2<rate){try{t=trimSilence(await synth(r2))}catch(e){}}}
  if(gains)t=await eqMatch(t,gains);if(q.fx)t=await applyFx(t,q.fx);s.buf=t;s.key=key;s.norm=peakNorm(t)*(q.vol||1);MIX.dirty=true}
@@ -2386,11 +2423,12 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
  $('#pg-auto').insertAdjacentHTML('afterend',`<section class="page" id="pg-me"><div class="ak-acc" id="meAcc"></div><div class="ak-menu">
   <button data-m="clean"><i>🧹</i><span>សម្អាតទូរសព្ទ<small>លុប Cache · ទំនេរកន្លែង</small></span></button>
   <button data-m="exp"><i>⬇</i><span>Export ខ្លួនឯង<small>សម្រាប់វីដេអូដែលកំពុងបើក</small></span></button>
+  <button data-m="kiri"><i>🎙</i><span>Kiri TTS<small>សំឡេងខ្មែរធម្មជាតិ · API Key</small></span></button>
   <button data-m="upd"><i>🔄</i><span>ពិនិត្យ Update<small>កំណែបច្ចុប្បន្ន v${APP_VER}</small></span></button>
   <button data-m="set"><i>⚙</i><span>ការកំណត់<small>License · Server សំឡេង</small></span></button>
   <button data-m="tg"><i>✈</i><span>Telegram @wang_linkh<small>ទិញ Key · សួរជំនួយ</small></span></button></div></section>`);
  $('#pg-me .ak-menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const m=b.dataset.m;
-  if(m==='upd')return updCheck(true);if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
+  if(m==='kiri')return kiriSheet();if(m==='upd')return updCheck(true);if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
   if(m==='poster')return goPage('pg-poster');if(m==='clean')return $('#cleanDev').click();if(m==='set')return $('#setBtn').click();if(m==='help')return $('#helpBtn').click();if(m==='tg')return $('#tgBtn').click()};
  window.meAccPaint=()=>{const i=LIC.info||{};try{const g=$('#meGem');if(g)g.innerHTML=gemAccHTML();else $('#meAcc').insertAdjacentHTML('afterend','<div id="meGem">'+gemAccHTML()+'</div>')}catch(e){}$('#meAcc').innerHTML=`<span class="sh">🛡</span><div><b>${esc(i.name||i.email||'SK ProKH')}</b><br><small>${LIC.ok?'✓ កញ្ចប់សកម្ម · '+esc(licExpTxt(i)||''):'មិនទាន់មាន License'}</small></div><span style="font-size:11px;color:#8fa3d8">v${APP_VER}</span>`};
  /* All Video queue card */
@@ -2429,11 +2467,11 @@ setTimeout(async()=>{try{const r=await fetch(STAT_HOST+'/health',{signal:AbortSi
 if(window.__apk&&document.documentElement.classList.contains('apkpc')){
  const fit=()=>{try{if(DubNative.zoom){const w=(screen.availWidth||screen.width||1600);const f=Math.max(1,Math.min(1.8,w/1600));const u=+LS.get('pcZoom',0);DubNative.zoom(u||f)}}catch(e){}};fit();
  /* tool panel */
- const T=[['add','📄','ដាក់វីដេអូ','ជ្រើសវីដេអូ (ច្រើនបាន)'],['auto','✨','Auto Run','ការកំណត់ & ចាប់ផ្ដើម'],['blur','◐','Blur','បិទអក្សរចាស់'],['erase','🧠','AI លុប Sub ចិន','លុបអក្សរចិនដោយ AI'],['logo','🏷','Logo','លុបផ្ទៃខាងក្រោយ'],['vlogo','🎞','វីដេអូ Logo','Green screen / AI'],['mq','📢','អក្សររត់','អក្សររត់ / នៅស្ងៀម'],['sty','🔤','Subtitle ខ្មែរ','ពុម្ពអក្សរ · ពណ៌'],['txt','💬','អត្ថបទ','មើល & កែការបកប្រែ'],['exp','⬇','Export ខ្លួនឯង','ទំហំ · fps · MP3'],['clean','🧹','សម្អាត','លុប Cache'],['upd','🔄','ពិនិត្យ Update','v'+APP_VER],['set','⚙','ការកំណត់','License · Server']];
+ const T=[['add','📄','ដាក់វីដេអូ','ជ្រើសវីដេអូ (ច្រើនបាន)'],['auto','✨','Auto Run','ការកំណត់ & ចាប់ផ្ដើម'],['blur','◐','Blur','បិទអក្សរចាស់'],['erase','🧠','AI លុប Sub ចិន','លុបអក្សរចិនដោយ AI'],['logo','🏷','Logo','លុបផ្ទៃខាងក្រោយ'],['vlogo','🎞','វីដេអូ Logo','Green screen / AI'],['mq','📢','អក្សររត់','អក្សររត់ / នៅស្ងៀម'],['sty','🔤','Subtitle ខ្មែរ','ពុម្ពអក្សរ · ពណ៌'],['txt','💬','អត្ថបទ','មើល & កែការបកប្រែ'],['exp','⬇','Export ខ្លួនឯង','ទំហំ · fps · MP3'],['kiri','🎙','Kiri TTS','សំឡេងខ្មែរ · API Key'],['clean','🧹','សម្អាត','លុប Cache'],['upd','🔄','ពិនិត្យ Update','v'+APP_VER],['set','⚙','ការកំណត់','License · Server']];
  $('.app').insertAdjacentHTML('afterbegin',`<aside id="pcTools"><div class="pt-h">🛠 ឧបករណ៍</div>${T.map(([k,i,n,d])=>`<button data-t="${k}"><i>${i}</i><span><b>${n}</b><small>${d}</small></span></button>`).join('')}<div class="pt-z"><span>🔍 ទំហំ</span><button data-z="-">−</button><button data-z="0">Auto</button><button data-z="+">＋</button></div></aside>`);
  $('#pcTools').onclick=e=>{const z=e.target.closest('[data-z]');if(z){let f=1;try{f=DubNative.zoom()}catch(x){}const v=z.dataset.z==='0'?0:Math.max(.8,Math.min(2.2,f+(z.dataset.z==='+'?.1:-.1)));LS.set('pcZoom',v);fit();return}
-  const b=e.target.closest('[data-t]');if(!b)return;buzz();const t=b.dataset.t;$$('#pcTools [data-t]').forEach(x=>x.classList.toggle('on',x===b&&!['add','auto','clean','set','txt','upd'].includes(t)));
-  if(t==='upd')return updCheck(true);if(t==='add')return $('#auFile').click();if(t==='auto')return akCfg(false);if(t==='clean')return $('#cleanDev').click();if(t==='set')return $('#setBtn').click();
+  const b=e.target.closest('[data-t]');if(!b)return;buzz();const t=b.dataset.t;$$('#pcTools [data-t]').forEach(x=>x.classList.toggle('on',x===b&&!['add','auto','clean','set','txt','upd','kiri'].includes(t)));
+  if(t==='kiri')return kiriSheet();if(t==='upd')return updCheck(true);if(t==='add')return $('#auFile').click();if(t==='auto')return akCfg(false);if(t==='clean')return $('#cleanDev').click();if(t==='set')return $('#setBtn').click();
   if(t==='txt'){GP_USER=true;try{goPage('pg-sub')}finally{GP_USER=false}return}
   const M={blur:[/Blur — បិទអក្សរ/,'◐ Blur — អូសប្រអប់លើវីដេអូ'],erase:[/AI លុប Sub ចិន/,'🧠 AI លុប Sub ចិន'],logo:[/Logo \/ Watermark/,'🏷 Logo — លុបផ្ទៃខាងក្រោយ'],vlogo:[/វីដេអូ \/ រូប/,'🎞 វីដេអូ Logo — លុបផ្ទៃខាងក្រោយ'],mq:[/អក្សររត់/,'📢 អក្សររត់លើវីដេអូ'],sty:[/រចនា Subtitle/,'🔤 Subtitle ខ្មែរលើវីដេអូ'],exp:[/ទាញយក \(ការកំណត់/,'⬇ Export ខ្លួនឯង']}[t];
   if(M){if(t==='sty'&&!S.style.show){S.style.show=true;save();draw()}openDock('pg-exp',M[0],M[1])}};
@@ -2501,7 +2539,7 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   <label class="k">🗣 ភាសានិយាយក្នុងវីដេអូ:</label><select id="kLang">${o('zh','🇨🇳 ចិន (Chinese - zh)',c.lang||'zh')}${o('en','🇬🇧 អង់គ្លេស (English - en)',c.lang)}${o('ko','🇰🇷 កូរ៉េ (Korean - ko)',c.lang)}${o('ja','🇯🇵 ជប៉ុន (Japanese - ja)',c.lang)}${o('auto','🌐 ស្គាល់ Auto',c.lang)}</select>
   <div hidden><select id="kTr">${o('free',window.SRVGEM?'🔷 Gemini AI · Server (ល្អ · គ្មាន Key)':'⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
 </div>
-  <label class="k">👥 សម្លេងតួអង្គ:</label><div class="ak-vc" id="kVc"><button data-v="m">👨 Piseth (ប្រុស)</button><button data-v="f">👩 Sreymom (ស្រី)</button><button data-v="detect">👫 ប្រុស/ស្រី (Auto)</button></div>
+  <label class="k">👥 សម្លេងតួអង្គ: <button class="ak-ib sv" style="margin-left:auto" onclick="closeSheet();setTimeout(kiriSheet,250)">🎙 Kiri TTS${kiriOn()?' ✓ '+esc(KIRI.m+'/'+KIRI.f):''}</button></label><div class="ak-vc" id="kVc"><button data-v="m">👨 Piseth (ប្រុស)</button><button data-v="f">👩 Sreymom (ស្រី)</button><button data-v="detect">👫 ប្រុស/ស្រី (Auto)</button></div>
   <div class="ak-tg" id="kGoT"><span style="font-size:20px">⚡</span><div>ដាក់វីដេអូ → ធ្វើភ្លាមដោយខ្លួនឯង<small>មិនបាច់ចុច ▶ — App អាន បកប្រែ បញ្ចូលសំឡេង ហើយ Save ចូល Photos</small></div><span class="ak-sw${c.go!==false?' on':''}" id="kGo"></span></div>
   <div class="ak-tg" id="kCleanT"><span style="font-size:20px">🎬</span><div>វីដេអូស្អាត ដូចដើម (Clean)<small>រូបភាពពេញអេក្រង់ដូចវីដេអូដើម · គ្មាន Sub ខ្មែរ · គ្មាន Blur · គ្មានស៊ុម — ប្ដូរតែសំឡេងជាខ្មែរ</small></div><span class="ak-sw${c.clean!==false?' on':''}" id="kClean"></span></div>
   <div id="kDeco"${c.clean!==false?' style="opacity:.35;pointer-events:none"':''}><label class="ak-ck"><input type="checkbox" id="kBurn"${c.burn?' checked':''}> 💬 បង្ហាញ/ដុត Subtitle ខ្មែរលើវីដេអូ (Burn Subtitles)</label>
