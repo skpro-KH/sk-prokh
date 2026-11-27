@@ -708,7 +708,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.7';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.8';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2504,6 +2504,11 @@ if(window.__apk&&document.documentElement.classList.contains('apkpc')){
 const UPD_BASE='https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/';
 const vcmp=(a,b)=>{a=String(a||0).split('.').map(Number);b=String(b||0).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){const d=(a[i]||0)-(b[i]||0);if(d)return d>0?1:-1}return 0};
 const UPD={m:null,busy:false};
+/* v8.8 security: every in-app update is signed with SK ProKH's private key (kept offline). The app checks the signature before installing,
+   so even if someone takes over the GitHub account / server, they cannot push their own code to users. */
+const UPD_PUB={"kty": "EC", "crv": "P-256", "x": "66QaylhTTCjEpeEsQrQYYOuGaRDTMGZfyOpYEr3bTJM", "y": "DoIZrt5XIx6zmrTOY0VlK6APte9nmYlATqVZfurRND0"};
+async function updVerify(html,ver,sig){if(!sig||!/^[A-Za-z0-9+/=]{80,100}$/.test(sig))return false;const enc=new TextEncoder(),h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(html)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+ try{const k=await crypto.subtle.importKey('jwk',UPD_PUB,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);return await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},k,Uint8Array.from(atob(sig),c=>c.charCodeAt(0)),enc.encode('SKUPD1|'+ver+'|'+h))}catch(e){return false}}
 function natInfo(){try{return JSON.parse(DubNative.info()||'{}')}catch(e){return{}}}
 async function updCheck(manual){if(!window.DubNative||!DubNative.info)return;let m;
  try{const r=await fetch(UPD_BASE+'web/update.json?t='+Date.now(),{cache:'no-store'});m=await r.json()}catch(e){if(manual)toast('✕ ពិនិត្យ Update មិនបាន — សូមពិនិត្យ Internet',3500);return}
@@ -2522,9 +2527,10 @@ function updSheet(){const m=UPD.m||{},ni=natInfo(),win=!!ni.pc,notes=(UPD.kind==
   b.querySelector('#updLater').onclick=()=>{LS.set('updSkip',UPD.ver);closeSheet()};b.querySelector('#updGo').onclick=()=>updRun()})}
 async function updRun(){if(UPD.busy)return;UPD.busy=true;const m=UPD.m||{},ni=natInfo(),win=!!ni.pc,bar=$('#updProg'),msg=$('#updMsg');const P=(p,t)=>{if(bar){bar.style.display='';bar.querySelector('i').style.width=Math.max(2,p)+'%'}if(msg&&t)msg.textContent=t};
  try{if(UPD.kind==='hot'){P(10,'⬇ កំពុងទាញ...');const r=await fetch(UPD_BASE+(m.page||'web/app-native.html')+'?v='+encodeURIComponent(m.app)+'&t='+Date.now(),{cache:'no-store'});const html=await r.text();
-   if(!r.ok||html.length<100000||!html.includes(`APP_VER='${m.app}'`)||!/<\/html>\s*$/i.test(html))throw Error('ឯកសារមិនពេញ — សាកម្ដងទៀត');P(80,'💾 កំពុងដំឡើង...');
-   if(!DubNative.hotSave(html,m.app))throw Error('រក្សាទុកមិនបាន');P(100,'✅ រួចរាល់ — App នឹងបើកឡើងវិញ...');buzz(30);await sleep(900);try{save()}catch(e){}if(DubNative.reload)DubNative.reload();else location.reload();return}
-  if(!win&&DubNative.apkUpdate&&m.apk&&m.apk.url){P(1,'⬇ កំពុងទាញ APK ថ្មី...');window.__updP=p=>{if(p<0){UPD.busy=false;P(0,'✕ ទាញមិនបាន — សាកម្ដងទៀត')}else if(p>100){UPD.busy=false;P(100,'📲 ចុច "ដំឡើង / Install" ដើម្បីបញ្ចប់')}else P(p,'⬇ កំពុងទាញ APK ថ្មី '+p+'%')};DubNative.apkUpdate(m.apk.url+'?v='+m.apk.ver);return}
+   if(!r.ok||html.length<100000||!html.includes(`APP_VER='${m.app}'`)||!/<\/html>\s*$/i.test(html))throw Error('ឯកសារមិនពេញ — សាកម្ដងទៀត');P(70,'🔐 កំពុងពិនិត្យហត្ថលេខា...');
+   if(!(await updVerify(html,m.app,m.sig)))throw Error('🔐 Update នេះមិនមានហត្ថលេខា SK ProKH ត្រឹមត្រូវ — បានបដិសេធ ដើម្បីសុវត្ថិភាព');P(80,'💾 កំពុងដំឡើង...');
+   if(!(DubNative.hotSave2?DubNative.hotSave2(html,m.app,m.sig):DubNative.hotSave(html,m.app)))throw Error('រក្សាទុកមិនបាន');P(100,'✅ រួចរាល់ — App នឹងបើកឡើងវិញ...');buzz(30);await sleep(900);try{save()}catch(e){}if(DubNative.reload)DubNative.reload();else location.reload();return}
+  if(!win&&DubNative.apkUpdate&&m.apk&&m.apk.url){P(1,'⬇ កំពុងទាញ APK ថ្មី...');window.__updP=p=>{if(p<0){UPD.busy=false;P(0,'✕ ទាញមិនបាន — សាកម្ដងទៀត')}else if(p>100){UPD.busy=false;P(100,'📲 ចុច "ដំឡើង / Install" ដើម្បីបញ្ចប់')}else P(p,'⬇ កំពុងទាញ APK ថ្មី '+p+'%')};if(!/^https:\/\/raw\.githubusercontent\.com\/skpro-KH\/sk-prokh\/main\/dl\/[\w.\-]+\.apk$/.test(m.apk.url))throw Error('🔐 Link APK មិនត្រឹមត្រូវ');DubNative.apkUpdate(m.apk.url+'?v='+m.apk.ver);return}
   const u=(win?m.win&&m.win.page:m.apk&&m.apk.page)||'https://t.me/wang_linkh';P(100,'⬇ សូមទាញកម្មវិធីថ្មីពី Telegram / Website');try{DubNative.openUrl?DubNative.openUrl(u):window.open(u,'_blank')}catch(e){}UPD.busy=false}
  catch(e){UPD.busy=false;P(0,'✕ '+(e.message||e))}}
 if(window.DubNative&&DubNative.info){setTimeout(()=>{try{DubNative.hotOK&&DubNative.hotOK()}catch(e){}},5000);setTimeout(()=>updCheck(false),4000);setInterval(()=>updCheck(false),3*3600e3)}

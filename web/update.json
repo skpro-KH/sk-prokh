@@ -2,27 +2,32 @@
  "minApk": "8.1",
  "minWin": "8.1",
  "apk": {
-  "ver": "8.4",
+  "ver": "8.8",
   "url": "https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/dl/SK-ProKH.apk",
   "notes": [
-   "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
-   "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
+   "🔐 សុវត្ថិភាព៖ Update ក្នុង App មានហត្ថលេខា SK ProKH — គ្មាននរណាអាចបញ្ជូនកូដក្លែងក្លាយបាន",
+   "🔐 PC៖ ការពារការបើក/រក្សាទុកឯកសារគ្រោះថ្នាក់ (.exe ...)",
+   "⏱ សំឡេងមិនជាប់គាំងទៀត · សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ"
   ],
   "must": false
  },
  "win": {
-  "ver": "8.4",
+  "ver": "8.8",
   "page": "https://t.me/wang_linkh",
   "notes": [
-   "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
-   "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
+   "🔐 សុវត្ថិភាព៖ Update ក្នុង App មានហត្ថលេខា SK ProKH — គ្មាននរណាអាចបញ្ជូនកូដក្លែងក្លាយបាន",
+   "🔐 PC៖ ការពារការបើក/រក្សាទុកឯកសារគ្រោះថ្នាក់ (.exe ...)",
+   "⏱ សំឡេងមិនជាប់គាំងទៀត · សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ"
   ],
   "must": false
  },
- "app": "8.7",
+ "app": "8.8",
  "page": "web/app-native.html",
  "notes": [
-  "⏱ ជួសជុលការជាប់គាំងនៅ 31/32 — បន្ទាត់ណាយូរពេក App រំលងសិន ហើយសាកម្ដងទៀតដោយខ្លួនឯង",
-  "🔁 សំឡេង Microsoft 'closed' — សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ"
- ]
+  "🔐 សុវត្ថិភាព៖ Update ក្នុង App មានហត្ថលេខា SK ProKH — គ្មាននរណាអាចបញ្ជូនកូដក្លែងក្លាយបាន",
+  "🔐 PC៖ ការពារការបើក/រក្សាទុកឯកសារគ្រោះថ្នាក់ (.exe ...)",
+  "⏱ សំឡេងមិនជាប់គាំងទៀត · សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ"
+ ],
+ "sig": "KYEjooTv/e9EL62dLliDH3tUxHwurMCVrcnn6i0SkDQG0zEbdyTD1ya3VhgM6U1f3oTiM28XJ9BDinVPbj5x3g==",
+ "sha": "a87e08208af12c017b267fb85df1251e2c5fc77f46992f91bee508dc2b9ee14e"
 }
