@@ -689,7 +689,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.8';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.9';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -741,8 +741,12 @@ $('#busyPill').onclick=()=>{busy.mini=false;$('#busy').classList.remove('mini');
 $('#busyX').onclick=()=>{busy.cancel=true;try{busy.ctrl.abort()}catch(e){}busy.off();buzz(20);toast('⏹ បានបោះបង់');try{for(const m of S.media){if(m.el.playbackRate!==1){m.el.pause();m.el.playbackRate=1}}}catch(e){}};
 const sigT=ms=>AbortSignal.any?AbortSignal.any([busy.signal,AbortSignal.timeout(ms)]):AbortSignal.timeout(ms);
 async function pool(items,n,fn){let i=0;const run=async()=>{while(i<items.length){if(busy.cancel)return;const k=i++;await fn(items[k],k)}};await Promise.all(Array.from({length:Math.min(n,items.length)},run))}
-function sheet(html,onOpen){$('#sheetBody').innerHTML=html;$('#sheet').classList.add('on');$('#back').classList.add('on');onOpen&&onOpen($('#sheetBody'));$('#sheet').scrollTop=0}
-function closeSheet(){document.body.classList.remove('adm');$('#sheet').classList.remove('on');$('#back').classList.remove('on')}
+function sheet(html,onOpen){cardBack();$('#sheetBody').innerHTML=html;$('#sheet').classList.add('on');$('#back').classList.add('on');onOpen&&onOpen($('#sheetBody'));$('#sheet').scrollTop=0}
+/* v6.9: a tool button opens its own panel — the real card is lifted into the sheet and put back when it closes */
+let CARDH=null;function cardBack(){if(!CARDH)return;const{card,ph}=CARDH;CARDH=null;try{ph.parentNode.insertBefore(card,ph);ph.remove()}catch(e){}card.classList.remove('in-sheet')}
+function openCard(pg,re,title){const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));if(!c){goPage(pg);return}
+ sheet(`<div class="ak-ph"><b>${title||''}</b><button class="ak-x" onclick="closeSheet()">✕</button></div>`);const ph=document.createComment('card');c.parentNode.insertBefore(ph,c);CARDH={card:c,ph};c.classList.add('in-sheet');$('#sheetBody').appendChild(c);buzz(12)}
+function closeSheet(){cardBack();document.body.classList.remove('adm');$('#sheet').classList.remove('on');$('#back').classList.remove('on')}
 $('#back').onclick=closeSheet;
 function askText(label,val=''){return new Promise(r=>{let done=false;sheet(`<div style="font-size:15px;font-weight:700;margin-bottom:10px">${label}</div><input id="atIn" value="${esc(val)}"><div class="row" style="margin-top:14px"><button class="btn g" id="atNo">បោះបង់</button><button class="btn" id="atOk">✓ យល់ព្រម</button></div>`,b=>{
  const fin=v=>{if(done)return;done=true;closeSheet();r(v)};b.querySelector('#atOk').onclick=()=>fin(b.querySelector('#atIn').value);b.querySelector('#atNo').onclick=()=>fin(null);b.querySelector('#atIn').onkeydown=e=>{if(e.key==='Enter')fin(e.target.value)};setTimeout(()=>b.querySelector('#atIn').focus(),250)})})}
@@ -2162,6 +2166,22 @@ html.apk .sl span,html.apk .l{color:#c7d4ff}
 html.apk .dlq .fmt button.on{background:linear-gradient(#13204b,#13204b) padding-box,linear-gradient(135deg,#22d3ee,#3b82f6) border-box!important}
 html.apk .bro-t,html.apk .spk,html.apk .item{background:#13204b!important;border-color:rgba(140,160,255,.2)!important}
 html.apk details.more summary{color:#a5c8ff}
+/* v6.9: running neon light on buttons + press glow + panels */
+@property --la{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes lxr{to{--la:360deg}}
+html.apk :is(.ak-chips button,#railL button,.ak-ctl .pill,.ak-qh .go:not(.run),.ak-menu button,.btn,.ak-more,.ak-ib.sv,nav button.on){position:relative;isolation:isolate}
+html.apk :is(.ak-chips button,#railL button,.ak-ctl .pill,.ak-qh .go:not(.run),.ak-menu button,.btn,.ak-more,.ak-ib.sv,nav button.on)::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.6px;background:conic-gradient(from var(--la),transparent 0 55%,rgba(34,211,238,.15) 62%,#22d3ee 72%,#e0fbff 76%,#3b82f6 82%,transparent 92%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:lxr 2.8s linear infinite;pointer-events:none;z-index:1}
+html.apk #railL button:nth-child(2)::before,html.apk .ak-chips button:nth-child(2)::before,html.apk .ak-menu button:nth-child(2n)::before{animation-delay:-.7s}
+html.apk #railL button:nth-child(3)::before,html.apk .ak-chips button:nth-child(3)::before{animation-delay:-1.4s}
+html.apk #railL button:nth-child(4)::before,html.apk .ak-chips button:nth-child(4)::before{animation-delay:-2.1s;animation-duration:2.2s}
+html.apk :is(.ak-chips button.on,#railL button[data-r=auto],.btn.big,.ak-ib.sv,nav button.on)::before{background:conic-gradient(from var(--la),transparent 0 50%,#bbf7d0 66%,#fff 72%,#34d399 80%,transparent 92%)}
+html.apk .btn::before{padding:2px}
+html.apk :is(.ak-chips button,#railL button,.ak-ctl button,.ak-menu button,.btn,.ak-more,.ak-ib,.ak-qh .go,nav button):active{transform:scale(.93)!important;filter:brightness(1.25);box-shadow:0 0 0 3px rgba(34,211,238,.35),0 0 22px rgba(34,211,238,.6)!important;transition:transform .08s}
+html.apk .ak-ph{display:flex;align-items:center;gap:10px;margin:-4px 0 10px;font-size:16px}html.apk .ak-ph b{flex:1;color:#7dd3fc}
+html.apk .ak-x{width:36px;height:36px;border-radius:50%;border:1px solid rgba(140,160,255,.35);background:#13204b;color:#cfe0ff;font-size:16px}
+html.apk .card.in-sheet{margin:0;animation:none!important}
+@media (prefers-reduced-motion:reduce){html.apk *::before{animation:none!important}}
+
 
 html.apk .ak-menu button{width:100%;display:flex;gap:12px;align-items:center;text-align:left;border:1px solid rgba(140,160,255,.2);background:#13204b;color:#e8eeff;border-radius:16px;padding:14px;margin:8px 0;font:700 14px/1.2 system-ui,sans-serif}
 html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-align:center}html.apk .ak-menu button small{display:block;color:#8fa3d8;font-weight:500;font-size:11.5px;margin-top:3px}
@@ -2170,7 +2190,7 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
  $('#railL').innerHTML=`<button data-r="sty" title="Subtitle Style"><b>☰</b></button><button data-r="add" title="ដាក់វីដេអូ"><b>📄</b></button><button data-r="clean" title="សម្អាត"><b>⟳</b></button><button data-r="auto" title="Auto Run"><b>✨</b></button><div class="akVol" title="សំឡេងខ្មែរ"><input type="range" id="akVol" min="0" max="2" step=".05"><small>🔊</small></div>`;
  $('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
   if(r==='add')return $('#auFile').click();if(r==='auto')return akCfg(true);if(r==='clean')return $('#cleanDev').click();
-  if(r==='sty'){goPage('pg-exp');setTimeout(()=>{const c=[...$$('#pg-exp .card')].find(x=>/រចនា Subtitle/.test(x.textContent));if(c)c.scrollIntoView({behavior:'smooth',block:'start'})},250)}};
+  if(r==='sty')openCard('pg-exp',/រចនា Subtitle/,'☰ រចនា Subtitle · Style & Font')};
  const vol=$('#akVol');vol.value=S.mix.dub;vol.oninput=()=>{S.mix.dub=+vol.value;MIX.dirty=true;try{$('#mixDub').value=vol.value}catch(e){}};vol.onchange=()=>{save();toast('🔊 សំឡេងខ្មែរ '+Math.round(S.mix.dub*100)+'%')};
  /* chip row above the preview */
  const sw=$('#stageWrap');sw.insertAdjacentHTML('afterbegin',`<div class="ak-chips" id="akChips"><button data-c="blur">◐ Blur</button><button data-c="text">✎ Text</button><button data-c="sub">▤ Sub</button><button data-c="med">▣ Med</button><button data-c="sav">✓ Sav</button></div>`);
@@ -2180,12 +2200,12 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
  $('#empty').onclick=()=>$('#auFile').click();$('.stage').appendChild($('#empty'));
  const goCard=(pg,re)=>{goPage(pg);setTimeout(()=>{const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.animate([{boxShadow:'0 0 0 3px #22d3ee'},{boxShadow:'0 0 0 0 transparent'}],{duration:1400})}},250)};
  $('#akChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const c=b.dataset.c;
-  if(c==='blur')return goCard('pg-exp',/Blur|លុប Sub ចិន/);if(c==='text')return goCard('pg-exp',/អក្សររត់/);if(c==='med')return goCard('pg-exp',/វីដេអូ \/ រូប/);
+  if(c==='blur')return openCard('pg-exp',/AI លុប Sub ចិន/,'◐ Blur / លុប Sub ចិន');if(c==='text')return openCard('pg-exp',/អក្សររត់/,'✎ អក្សររត់លើវីដេអូ');if(c==='med')return openCard('pg-exp',/វីដេអូ \/ រូប/,'▣ វីដេអូ / រូបលើអេក្រង់');
   if(c==='sub'){S.style.show=!S.style.show;save();draw();akChipPaint();return toast(S.style.show?'▤ បង្ហាញ Sub ខ្មែរលើវីដេអូ':'▤ បិទ Sub លើវីដេអូ')}
   if(c==='sav'){AUTO.cfg.save=AUTO.cfg.save===false;LS.set('autoCfg',AUTO.cfg);akChipPaint();return toast(AUTO.cfg.save!==false?'✓ Auto Save ចូល Photos':'✕ មិន Save Auto — ចុច 💾 Save ខ្លួនឯង',3000)}};
  window.akChipPaint=()=>{const on={blur:!!(S.box.on||S.erase&&S.erase.on),text:!!(S.mq&&S.mq.on),sub:!!S.style.show,med:!!(S.ov&&S.ov.on),sav:AUTO.cfg.save!==false};$$('#akChips button').forEach(b=>b.classList.toggle('on',!!on[b.dataset.c]))};
  $('#akPlay').onclick=()=>{buzz();if(!S.clips.length)return $('#auFile').click();P.playing?pause():play()};$('#akB5').onclick=()=>seek(P.t-5);$('#akF5').onclick=()=>seek(P.t+5);
- $('#akCol').onclick=()=>{buzz();goCard('pg-exp',/រចនា Subtitle/)};
+ $('#akCol').onclick=()=>{buzz();openCard('pg-exp',/រចនា Subtitle/,'🎨 ពណ៌ & ពុម្ពអក្សរ Subtitle')};
  const ASP=['9:16','src','16:9','1:1','4:5'];$('#akAsp').onclick=()=>{buzz();S.out.aspect=ASP[(ASP.indexOf(S.out.aspect)+1)%ASP.length];save();try{layout();draw()}catch(e){}akTick(true);toast('▭ '+(S.out.aspect==='src'?'ទំហំដើម':S.out.aspect))};
  const mm=t=>{t=Math.max(0,t||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')};let skD=false;
  const sk=$('#akSeek');sk.oninput=()=>{skD=true;const T=total();if(T)seek(T*sk.value/1000)};sk.onchange=()=>skD=false;
@@ -2203,7 +2223,7 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
   <button data-m="help"><i>❓</i><span>របៀបប្រើ</span></button>
   <button data-m="tg"><i>✈</i><span>Telegram @wang_linkh<small>ទិញ Key · សួរជំនួយ</small></span></button></div></section>`);
  $('#pg-me .ak-menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const m=b.dataset.m;
-  if(m==='exp')return goPage('pg-exp');if(m==='key'){goPage('pg-sub');return setTimeout(()=>$('#aiCard').scrollIntoView({behavior:'smooth',block:'start'}),250)}
+  if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
   if(m==='poster')return goPage('pg-poster');if(m==='clean')return $('#cleanDev').click();if(m==='set')return $('#setBtn').click();if(m==='help')return $('#helpBtn').click();if(m==='tg')return $('#tgBtn').click()};
  window.meAccPaint=()=>{const i=LIC.info||{};$('#meAcc').innerHTML=`<span class="sh">🛡</span><div><b>${esc(i.name||i.email||'SK ProKH')}</b><br><small>${LIC.ok?'✓ កញ្ចប់សកម្ម · '+esc(licExpTxt(i)||''):'មិនទាន់មាន License'}</small></div><span style="font-size:11px;color:#8fa3d8">v${APP_VER}</span>`};
  /* All Video queue card */
@@ -2618,14 +2638,22 @@ const RECAP_P=(b,prev)=>`You are the most popular Khmer movie-recap narrator on 
 Rules: follow the real story (who did what to whom, feelings, twists); never invent events. Refer to characters by role ("នាយក្មេង", "នារីម្នាក់", "ប្ដីរបស់នាង", "លោកប្រធាន") or by name when said. Group the dialogue into narration segments of about 4-12 seconds; each segment's Khmer must be speakable in its time (~14 Khmer characters per second). Segments are in time order, never overlap, and use times from the dialogue.
 ${prev?'Story so far (continue from it, do not repeat): '+prev.slice(-1200)+'\n':''}Return {"segs":[{"s":start,"e":end,"km":"..."}]}.
 DIALOGUE: ${JSON.stringify(b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),who:(spOf(s)||{}).role||'',zh:prepSrc(s.src)||s.src})))}`;
+/* v6.9: recap through the server in small pieces; a network drop splits the piece and tries again; last resort = narrate from the translated lines */
+async function recapSrv(b,prev,k,depth=0){let err;
+ for(let a=0;a<2;a++){try{const r=await fetch(STAT_HOST+'/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(90000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),prev:prev.slice(-1200),lines:b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),zh:prepSrc(s.src)||s.src,who:(spOf(s)||{}).role||''}))})});
+   const d=await r.json().catch(()=>({}));if(r.ok&&d.ok&&Array.isArray(d.segs))return d.segs;
+   err=Error(r.status===404?'AI server មិនទាន់បើក':r.status===429?'AI ថ្ងៃនេះប្រើអស់កូតា — សាកស្អែក':(d.error||'AI '+r.status));if(r.status===403||r.status===429)throw err}
+  catch(e){err=e;if(busy.cancel||/កូតា|^key$/.test(e.message||''))throw e}await sleep(1200*(a+1))}
+ if(b.length>6&&depth<2){try{const h=Math.ceil(b.length/2);const A=await recapSrv(b.slice(0,h),prev,k,depth+1);const B2=await recapSrv(b.slice(h),prev+' '+A.map(x=>x.km).join(' '),k,depth+1);return A.concat(B2)}catch(e){err=e;if(busy.cancel||/កូតា/.test(e.message||''))throw e}}
+ if(depth===0){const t=b.filter(s=>s.src&&!s.km);if(t.length){try{await translate(t)}catch(e){}}const km=b.filter(s=>s.km);if(km.length){toast('⚠ AI សម្រាយរវល់ — និទានតាមការបកប្រែជំនួស',3500);const out=[];for(let i=0;i<km.length;i+=3){const g=km.slice(i,i+3);out.push({s:g[0].start,e:g[g.length-1].end,km:g.map(x=>x.km).join(' ')})}return out}}
+ throw err||Error('AI មិនឆ្លើយ')}
 async function makeRecap(){if(REC.busy)return;if(!S.clips.length){toast('សូមដាក់វីដេអូសិន');return $('#vidFile').click()}
  let src=S.recap&&S.recapSrc?S.recapSrc:S.subs;if(!src.some(s=>s.src&&s.src.trim())){await autoSubTr();src=S.subs}if(!src.some(s=>s.src&&s.src.trim()))return toast('រក Sub ចិនមិនឃើញ');
  REC.busy=true;busy.on('📖 AI កំពុងសរសេរសម្រាយរឿង...',0);
- try{const base=src.map(s=>({...s,buf:null}));const lines=[...base].sort((a,b)=>a.start-b.start),k=LS.get('licKey','')||'',B=80,segs=[];let prev='';
+ try{const base=src.map(s=>({...s,buf:null}));const lines=[...base].sort((a,b)=>a.start-b.start),k=LS.get('licKey','')||'',B=30,segs=[];let prev='';
   for(let i=0;i<lines.length;i+=B){if(busy.cancel)throw Error('បានបោះបង់');const b=lines.slice(i,i+B);busy.set(`📖 AI កំពុងសរសេរសម្រាយរឿង ${Math.min(lines.length,i+B)}/${lines.length}`,i/lines.length);
    if(aiKey()){try{const d=await aiLLM([{text:RECAP_P(b,prev)}],null,.8);const arr=(d.segs||d).filter(x=>x&&x.km).map(x=>({s:+x.s||0,e:+x.e||0,km:String(x.km).trim()}));if(arr.length){for(const x of arr){const s0=Math.max(x.s,segs.length?segs[segs.length-1].end+.05:0);if(x.e-s0>.6)segs.push({start:s0,end:x.e,km:x.km})}prev+=' '+arr.map(x=>x.km).join(' ');continue}}catch(e){console.warn('recap key',e);toast('⚠ '+aiName()+' មានបញ្ហា — ប្រើ AI Server',3000)}}
-   const r=await fetch(STAT_HOST+'/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},signal:sigT(120000),body:JSON.stringify({key:'DUB-'+licBody(k),dev:await deviceShort(),prev:prev.slice(-1200),lines:b.map(s=>({s:+s.start.toFixed(2),e:+s.end.toFixed(2),zh:prepSrc(s.src)||s.src,who:(spOf(s)||{}).role||''}))})});
-   const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw Error(r.status===404?'AI server មិនទាន់បើក':r.status===429?'AI ថ្ងៃនេះប្រើអស់កូតា — សាកស្អែក':(d.error||'AI '+r.status));
+   const d={segs:await recapSrv(b,prev,k)};
    for(const x of d.segs){const s0=Math.max(x.s,segs.length?segs[segs.length-1].end+.05:0);if(x.e-s0>.6)segs.push({start:s0,end:x.e,km:x.km})}prev+=' '+d.segs.map(x=>x.km).join(' ')}
   if(!segs.length)throw Error('AI មិនបានសរសេរ');
   let nar=S.speakers.find(p=>p.role==='narrator');if(!nar){nar={id:'p'+uid(),pitch:0,rate:0};applyRole(nar,'narrator');nar.name='📖 អ្នកនិទាន';nar.voice='km-KH-PisethNeural';S.speakers.push(nar)}
