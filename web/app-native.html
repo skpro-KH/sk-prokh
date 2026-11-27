@@ -394,6 +394,8 @@ html.pc .wsr button:nth-child(2n)::before,html.pc .wsb:nth-child(2n)::before{ani
 html.pc :is(.wsb,.wsr button,.ws-ph button,.btn,.chip):active{transform:scale(.94);filter:brightness(1.2)}
 @media (prefers-reduced-motion:reduce){html.pc *::before{animation:none!important}}
 
+#procVid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:6}
+#procBar{position:absolute;left:0;right:0;bottom:0;height:3px;z-index:7;background:rgba(255,255,255,.08);pointer-events:none}#procBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#34d399);box-shadow:0 0 8px #22d3ee;transition:width .4s}
 #procOv{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:#060b1f;overflow:hidden}
 #procOv img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:brightness(.55) saturate(1.05)}
 #procOv img:not([src]),#procOv img[src=""]{display:none}
@@ -706,7 +708,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -3515,7 +3517,14 @@ let AGO=false;
 /* v7.4: while the app is working the preview stays a still picture with the progress on it — the work happens out of sight */
 const BZ={t:'',p:null};{const _s=busy.set.bind(busy),_o=busy.on.bind(busy);busy.set=(t,p)=>{BZ.t=t;BZ.p=p;return _s(t,p)};busy.on=(t,p)=>{BZ.t=t;BZ.p=p;return _o(t,p)}}
 const PROC={k:'',t0:0,shot:''};
+/* v8.5 PC: while working, the preview keeps playing the video normally (own player, nothing on top) — progress lives only in the list on the right */
+function procPC(on){const R=document.documentElement;if(!R.classList.contains('apkpc')&&!R.classList.contains('pc'))return false;let pv=$('#procVid'),bar=$('#procBar');
+ if(!on){if(pv){try{pv.pause();pv.removeAttribute('src');pv.load()}catch(e){}pv.remove()}if(bar)bar.remove();return true}
+ if(!pv){$('.stage').insertAdjacentHTML('beforeend','<video id="procVid" playsinline muted loop controls></video><div id="procBar"><i></i></div>');pv=$('#procVid');bar=$('#procBar');pv.muted=true}
+ const m=S.media&&S.media[0],src=m&&m.el&&m.el.currentSrc||m&&m.el&&m.el.src||'';if(src&&pv.dataset.src!==src){pv.dataset.src=src;pv.src=src;pv.play().catch(()=>{})}
+ const it=typeof AUTO!=='undefined'&&AUTO.run?AUTO.cur:null,p=it?(it.pct||0):BZ.p!=null?BZ.p:0;bar.firstChild.style.width=Math.round(p*100)+'%';return true}
 function procTick(){const on=(typeof AUTO!=='undefined'&&AUTO.run)||AGO;let ov=$('#procOv');
+ if(procPC(on)){if(ov)ov.remove();if(!on)PROC.k='';return}
  if(!on){if(ov)ov.remove();PROC.k='';return}
  if(!ov){$('.stage').insertAdjacentHTML('beforeend','<div id="procOv"><img id="procImg" alt=""><div class="pc"><div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"/><circle id="procC" cx="50" cy="50" r="44"/></svg><b id="procP">0%</b></div><div id="procT">កំពុងរៀបចំ...</div><small id="procS"></small></div></div>');ov=$('#procOv')}
  const it=typeof AUTO!=='undefined'&&AUTO.run?AUTO.cur:null,k=it?it.name:'go';if(k!==PROC.k){PROC.k=k;PROC.t0=Date.now();PROC.shot=''}

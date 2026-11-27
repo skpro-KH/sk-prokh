@@ -8,7 +8,7 @@
    "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
    "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
   ],
-  "must": true
+  "must": false
  },
  "win": {
   "ver": "8.4",
@@ -17,12 +17,12 @@
    "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
    "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
   ],
-  "must": true
+  "must": false
  },
- "app": "8.4",
+ "app": "8.5",
  "page": "web/app-native.html",
  "notes": [
-  "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
-  "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
+  "PC: ពេលកំពុងដំណើរការ វីដេអូនៅតែចាក់ធម្មតាលើ Preview — គ្មានផ្ទាំង % បាំងទៀតទេ",
+  "វឌ្ឍនភាពបង្ហាញតែក្នុងបញ្ជី All Video ខាងស្ដាំ + ខ្សែតូចក្រោមវីដេអូ"
  ]
 }
