@@ -689,7 +689,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='6.7';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -797,7 +797,7 @@ $('#palBtn').onclick=()=>{const u=LS.get('ui',{});sheet(`<h4>🎨 ពណ៌ & �
   b.querySelectorAll('#palB button').forEach(x=>x.onclick=()=>{const u=LS.get('ui',{});u.bg=x.dataset.b;LS.set('ui',u);applyUI();b.querySelectorAll('#palB button').forEach(y=>y.classList.toggle('on',y===x));buzz(10)})})};
 setTimeout(applyUI,0);
 $('#themeBtn').onclick=()=>{setTimeout(applyUI,0);document.body.classList.toggle('light');LS.set('light',document.body.classList.contains('light'))};
-const nav=$('#nav'),pill=nav.querySelector('.pill');const mvPill=()=>{const b=nav.querySelector('button.on');pill.style.left=b.offsetLeft+'px';pill.style.width=b.offsetWidth+'px'};
+const nav=$('#nav'),pill=nav.querySelector('.pill');const mvPill=()=>{const b=nav.querySelector('button.on');if(!b)return;pill.style.left=b.offsetLeft+'px';pill.style.width=b.offsetWidth+'px'};
 nav.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{GP_USER=true;try{goPage(b.dataset.p)}finally{GP_USER=false}});
 let GP_USER=false;function goPage(id){if(typeof AUTO!=='undefined'&&AUTO.run&&id!=='pg-auto'&&!GP_USER)return;try{LS.set('page',id)}catch(e){}buzz(8);if(typeof OCRUI!=='undefined'){OCRUI.edit=id==='pg-sub'&&asrEngine()==='ocr';setTimeout(renderBox,0)}const btns=[...nav.querySelectorAll('button')];const ni=btns.findIndex(b=>b.dataset.p===id);btns.forEach((b,i)=>b.classList.toggle('on',i===ni));
  $$('.page').forEach((p,i)=>{p.classList.toggle('on',p.id===id);p.classList.toggle('left',i<ni)});mvPill();setTimeout(()=>{try{actHome()}catch(e){}},0);if(id==='pg-exp'){expNote();try{dlqPaint&&dlqPaint()}catch(e){}}document.body.classList.toggle('pvOn',id==='pg-poster');if(id==='pg-poster'){try{for(const m of S.media)m.el.pause()}catch(e){}}}
@@ -835,7 +835,7 @@ function loadMedia(f){return new Promise((res,rej)=>{const el=document.createEle
 function makeThumb(m){const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=m.el.src;v.style.cssText='position:fixed;left:-9999px;width:2px;height:2px';document.body.appendChild(v);
  v.onloadeddata=async()=>{try{await seekEl(v,Math.min(.8,m.dur/3));const c=document.createElement('canvas');c.width=120;c.height=Math.round(120*m.h/m.w)||68;c.getContext('2d').drawImage(v,0,0,c.width,c.height);m.thumb=c.toDataURL('image/jpeg',.6);renderClips();renderScrub()}catch(e){}v.remove()}}
 async function addFiles(files){const added=[];for(const f of files){if(busy.cancel&&files.length>1&&!Q.run)break;try{if(!Q.run)busy.on('កំពុងបើក '+(f.name||'វីដេអូ')+'...',null);const m=await loadMedia(f);const c={id:uid(),m,in:0,out:m.dur,q:Q.auto?'wait':''};S.clips.push(c);added.push(c)}catch(e){toast('✕ '+e.message)}finally{if(!Q.run)busy.off()}}
- if(!Q.auto&&added.length&&!S.subs.length)setTimeout(()=>{goPage('pg-sub');showAct()},300);
+ if(!Q.auto&&!window.__apk&&added.length&&!S.subs.length)setTimeout(()=>{goPage('pg-sub');showAct()},300);
  if(Q.auto&&added.length){added.forEach(c=>Q.ids.push(c.id));if(Q.run){qPaint();toast(`➕ ថែម ${added.length} វីដេអូក្នុងជួរ — នឹងបកប្រែបន្តបន្ទាប់`,3000)}else setTimeout(qRun,50)}
  MIX.dirty=true;$('#empty').style.display=S.clips.length?'none':'';layout();renderClips();renderScrub();if(P.cur<0&&S.clips.length)await seek(0);else draw()}
 const total=()=>S.clips.reduce((a,c)=>a+(c.out-c.in),0);
@@ -1940,9 +1940,9 @@ async function saveMp3(full,label){ensureAC();await AC.resume();busy.on('🎵 �
 $('#mp3Voice').onclick=()=>saveMp3(false);$('#mp3Full').onclick=()=>saveMp3(true);
 $('#outSplit').checked=!!S.out.split;$('#outSplit').onchange=e=>{S.out.split=e.target.checked;save();toast(e.target.checked?'🎬+🎵 វីដេអូ (គ្មានសំឡេងខ្មែរ) + MP3 សំឡេងខ្មែរ ដាច់ពីគ្នា':'🎬 វីដេអូពេញ')};
 /* ============ v5.4 ⚡ Auto Run (APK only): pick many videos → each one is read, translated, voiced and exported to the gallery by itself ============ */
-const AUTO={list:[],run:false,stop:false,cur:null,cfg:{src:'ocr',voice:'detect',burn:true,orig:'ai',erase:true,rate:0,dub:1.2,bgm:.9,fps:30,res:720,...LS.get('autoCfg',{})}};
+const AUTO={list:[],run:false,stop:false,cur:null,cfg:{kind:'dub',src:'ocr',voice:'detect',burn:true,orig:'mute',erase:true,rate:0,dub:1.2,bgm:.9,fps:30,res:720,...LS.get('autoCfg',{})}};
 const AUST={wait:'⏳ រង់ចាំ',run:'⚙ កំពុងធ្វើ',ok:'✅ រួចរាល់',bad:'⚠ មិនបាន'};
-let AUPT=0;function auPaint(force){const n=performance.now();if(!force&&n-AUPT<350)return;AUPT=n;const b=$('#auList');if(!b)return;const L=AUTO.list;
+let AUPT=0;function auPaint(force){const n=performance.now();if(!force&&n-AUPT<350)return;AUPT=n;const b=$('#auList');if(!b)return;if(window.__apk)return auPaintK();const L=AUTO.list;
  b.innerHTML=L.map((it,i)=>`<div class="au-it ${it.st}" data-i="${i}"><div class="au-h"><span class="au-n">#${i+1}</span><span class="nm">🎬 ${esc(it.name)}</span><span class="au-st">${it.st==='run'?Math.round((it.pct||0)*100)+'%':AUST[it.st]}</span>
   <span class="au-b">${it.st==='ok'&&it.out?`<button data-a="open" title="មើល">▶</button><button data-a="share" title="ចែករំលែក">📤</button>`:''}${it.st==='bad'?`<button data-a="retry" title="សាកម្ដងទៀត">🔁</button>`:''}${it.st!=='run'?`<button data-a="del" title="ដកចេញ">✕</button>`:''}</span></div>
   <div class="au-msg">${esc(it.msg||(it.st==='wait'?'រង់ចាំវេន...':''))}</div><div class="au-bar"><i style="width:${it.st==='ok'?100:Math.round((it.pct||0)*100)}%"></i></div></div>`).join('')+(L.length?`<button class="btn g" id="auMore" style="width:100%;margin-top:4px">＋ បន្ថែមវីដេអូ</button>`:'');
@@ -1980,14 +1980,15 @@ $('#auGo').onclick=()=>{if(AUTO.run){AUTO.stop=true;busy.cancel=true;try{busy.ct
 function auReset(){pause();S.media.forEach(m=>{try{m.el.pause();URL.revokeObjectURL(m.el.src);m.el.remove()}catch(e){}});S.media=[];S.clips=[];S.subs=[];P.cur=-1;P.t=0;MIX.buf=null;MIX.dirty=true;try{AICACHE.clear()}catch(e){}SEQ.key=null;
  S.speakers=[{id:'p1',name:'តួប្រុស',voice:'km-KH-PisethNeural',pitch:0,rate:0},{id:'p2',name:'តួស្រី',voice:'km-KH-SreymomNeural',pitch:0,rate:0}];clipsChanged();subChanged();renderSpeakers()}
 async function autoOne(it){const c=AUTO.cfg,step=(m,p)=>{it.msg=m;if(p!=null)it.pct=p;auPaint()};
- auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error('បើកវីដេអូមិនបាន');
- S.asr.eng=c.src;S.asr.gender=c.voice==='detect';S.style.show=!!c.burn;S.mix.dub=c.dub;S.mix.orig=c.bgm;S.out.res=c.res;S.out.fps=c.fps;setMode(c.orig);save();layout();
+ it.phase='open';auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error('បើកវីដេអូមិនបាន');
+ S.asr.eng=c.src;if(c.lang)S.asr.lang=c.lang==='auto'?'auto':c.lang;S.asr.gender=c.voice==='detect';S.style.show=!!c.burn;S.mix.dub=c.dub;S.mix.orig=c.bgm;S.out.res=c.res;S.out.fps=c.fps;setMode(c.orig);save();layout();
  if(c.erase&&!S.erase.on){try{await eraseToggle(true)}catch(e){}}else if(!c.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}
- it.phase='sub';step('🔤 កំពុងអាន Sub & បកប្រែ...',.05);await autoSubTr();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.subs.length)throw Error('រក Sub មិនឃើញ');
- if(c.voice!=='detect'){const id=c.voice==='f'?'p2':'p1';S.subs.forEach(s=>s.sp=id)}S.speakers.forEach(p=>p.rate=c.rate);renderSpeakers();subChanged();
+ it.phase='sub';step(c.kind==='recap'?'🔤 កំពុងអាន Sub ចិន...':'🔤 កំពុងអាន Sub & បកប្រែ...',.05);await autoSubTr({noTr:c.kind==='recap',quiet:true});if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.subs.length)throw Error('រក Sub មិនឃើញ');
+ if(c.kind==='recap'){step('📖 AI កំពុងសរសេរសម្រាយរឿង...',.3);await makeRecap();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.recap)throw Error('សម្រាយរឿងមិនបាន');castPick(c.voice==='f'?'srm':'pis')}
+ else if(c.voice!=='detect'){const id=c.voice==='f'?'p2':'p1';S.subs.forEach(s=>s.sp=id)}only2();setMode(c.orig||'mute');S.speakers.forEach(p=>p.rate=c.rate);renderSpeakers();subChanged();
  it.phase='tts';step('🔊 កំពុងបង្កើតសំឡេងខ្មែរ...',.5);if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))throw Error('បង្កើតសំឡេងមិនបាន (ពិនិត្យ Internet)');
  it.phase='exp';step('⬇ កំពុងទាញយក...',.6);lastFile=null;await $('#expBtn').onclick();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');
- const f=lastFile;if(!f)throw Error('ទាញយកមិនបាន');it.out={uri:f.uri||'',url:f.url||'',size:f.size||0,name:f.name};it.msg=`✅ ${((f.size||0)/1e6).toFixed(1)} MB · ${EXPM.how||''} · Movies/SK ProKH`}
+ const f=lastFile;if(!f)throw Error('ទាញយកមិនបាន');it.out={uri:f.uri||'',url:f.url||'',size:f.size||0,name:f.name};it.saved=true;if(c.save===false&&f.uri){try{if(DubNative.galPending&&DubNative.galPending(f.uri,true))it.saved=false}catch(e){}}it.msg=`✅ ${((f.size||0)/1e6).toFixed(1)} MB · ${EXPM.how||''} · Movies/SK ProKH`}
 async function autoRun(){if(AUTO.run)return;AUTO.run=true;AUTO.stop=false;busy.mini=true;document.body.classList.add('aurun');goPage('pg-auto');auPaint(true);let n=0;try{DubNative.keepAwake(true)}catch(e){}
  try{while(!AUTO.stop){const it=AUTO.list.find(x=>x.st==='wait');if(!it)break;it.st='run';it.pct=0;AUTO.cur=it;auPaint(true);
    try{await autoOne(it);it.st='ok';it.pct=1;n++;buzz(30)}catch(e){it.st=AUTO.stop?'wait':'bad';it.msg='⚠ '+String(e&&e.message||e).slice(0,120);console.warn('auto',e)}
@@ -2038,6 +2039,235 @@ if(document.documentElement.classList.contains('ws')){
  new ResizeObserver(()=>tlPaint(true)).observe($('#wstB'));
  setInterval(()=>{txPaint();tlPaint()},700);(function loop(){phPaint();requestAnimationFrame(loop)})()}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
+/* ============ v6.5 APK skin (phone app only): neon-navy "Dubbed" layout — tool rail, chip row, 9:16 preview, All-Video queue, Merge dialog, Auto Run settings ============ */
+const APKS=NATIVE&&!PC||!!window.__APKSKIN;
+if(APKS){window.__apk=true;const R=document.documentElement;R.classList.add('apk');
+ document.head.insertAdjacentHTML('beforeend',`<style id="apkCss">
+html.apk{--cy:#22d3ee;--gr:#34d399;--nv:#0b1330;--nv2:#111c44;--bl:#2f6bff}
+html.apk body{background:radial-gradient(130% 55% at 50% 0,#14245a 0,#070b1d 62%) fixed!important;color:#e8eeff}
+html.apk #railR,html.apk #vbar,html.apk #scrub,html.apk #palBtn,html.apk #themeBtn,html.apk #statPill,html.apk #helpBtn{display:none!important}
+html.apk .top{padding-bottom:4px}
+html.apk .player{margin:4px 10px 0;padding:10px 10px 12px;border:1.5px solid rgba(34,211,238,.32);border-radius:28px;background:linear-gradient(180deg,#0f1c45,#0a1231);box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 30px rgba(0,0,0,.45),0 0 26px rgba(34,211,238,.1)}
+html.apk .stage-row{align-items:stretch;gap:10px;justify-content:flex-start}
+html.apk #railL{flex:0 0 44px;gap:10px}
+html.apk #railL button{width:44px;height:44px;flex:0 0 44px;padding:0;justify-content:center;border-radius:14px;background:#13204b;border:1px solid rgba(140,160,255,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+html.apk #railL button span{display:none}html.apk #railL button b{font-size:18px;color:#cfe0ff}
+html.apk #railL button[data-r=auto]{background:linear-gradient(160deg,#16a37f,#0d6b55);border-color:#34d399;box-shadow:0 0 14px rgba(52,211,153,.35)}
+html.apk #railL .akVol{flex:1 1 auto;min-height:90px;width:44px;border-radius:14px;background:#0d1838;border:1px solid rgba(140,160,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 0 8px}
+html.apk #railL .akVol input{writing-mode:vertical-lr;direction:rtl;flex:1;width:22px;margin:0;padding:0;accent-color:var(--cy);background:transparent;border:0}
+html.apk #railL .akVol small{font-size:15px}
+html.apk .stage-wrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:8px;min-width:0;border:0!important;background:none!important;overflow:visible;border-radius:0;min-height:0}
+html.apk .stage{position:relative;min-height:44vh;display:grid;place-items:center}
+html.apk .ak-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px}
+html.apk .ak-chips::-webkit-scrollbar{display:none}
+html.apk .ak-chips button{flex:1 0 auto;border:1px solid rgba(140,160,255,.28);background:#13204b;color:#cfe0ff;border-radius:9px;padding:6px 8px;font:700 11.5px/1 system-ui,sans-serif;white-space:nowrap;display:flex;gap:4px;align-items:center}
+html.apk .ak-chips button.on{background:linear-gradient(160deg,#18b98d,#0f7f62);border-color:#34d399;color:#fff;box-shadow:0 0 10px rgba(52,211,153,.35)}
+html.apk .stage{border:2px solid var(--cy);border-radius:18px;overflow:hidden;box-shadow:0 0 18px rgba(34,211,238,.35),inset 0 0 20px rgba(34,211,238,.08);background:#060b1f}
+html.apk #cv{max-height:46vh!important}
+html.apk .empty{color:#8fa3d8}html.apk .empty b{font-family:system-ui,sans-serif;font-size:15px;font-weight:700;color:#c9d6ff;letter-spacing:0;animation:none}
+html.apk .empty .ak-subpos{position:absolute;left:12px;right:12px;bottom:18%;color:#ffd60a;font-weight:800;font-size:12.5px;text-shadow:0 1px 3px #000}
+html.apk .ak-time{display:flex;align-items:center;gap:8px;font:700 11.5px/1 system-ui,sans-serif;color:#9fb2e6;padding:0 4px}
+html.apk .ak-time input{flex:1;margin:0;padding:0;height:18px;accent-color:var(--cy);background:transparent;border:0}
+html.apk .ak-ctl{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#0d1838;border:1px solid rgba(140,160,255,.22);border-radius:22px;padding:5px 6px}
+html.apk .ak-ctl button{border:0;background:transparent;color:#cfe0ff;font:700 12px/1 system-ui,sans-serif;padding:6px 8px;border-radius:14px}
+html.apk .ak-ctl .pill{background:#16244f;border:1px solid rgba(140,160,255,.25);display:flex;gap:5px;align-items:center}
+html.apk .ak-ctl .pl{width:38px;height:38px;border-radius:50%;padding:0;background:var(--bl);color:#fff;font-size:15px;box-shadow:0 0 14px rgba(47,107,255,.6);display:grid;place-items:center}
+html.apk .ak-dot{width:10px;height:10px;border-radius:50%;background:conic-gradient(#f43f5e,#facc15,#22d3ee,#a78bfa,#f43f5e)}
+html.apk nav{background:#0d1735!important;border:1.5px solid transparent!important;border-radius:28px!important;padding:7px!important;background-clip:padding-box!important;box-shadow:0 0 0 1.5px rgba(34,211,238,.35),0 -2px 18px rgba(34,211,238,.18),0 8px 24px rgba(0,0,0,.5)}
+html.apk nav .pill{display:none}
+html.apk nav button{color:#9fb2e6!important;flex:1 1 0;padding:9px 0!important;font-size:0!important;gap:0!important}
+html.apk nav button i{font-size:20px!important;transform:none!important}
+html.apk nav button.on{flex:1.9 1 0;background:linear-gradient(160deg,#5eead4,#22c39a)!important;color:#05261d!important;font-size:13px!important;font-weight:800;flex-direction:row!important;gap:6px!important;border-radius:20px;box-shadow:0 0 16px rgba(52,211,153,.45);text-shadow:none!important}
+html.apk .card{background:linear-gradient(180deg,#0f1b42,#0b1433)!important;border:1px solid rgba(34,211,238,.22)!important;border-radius:22px!important}
+html.apk .au-hero{display:none!important}
+html.apk .ak-q{padding:14px 12px!important}
+html.apk .ak-qh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+html.apk .ak-qh .ic{width:40px;height:40px;border-radius:12px;background:#142457;display:grid;place-items:center;font-size:19px}
+html.apk .ak-qh b{font-size:17px;line-height:1.1;flex:1}
+html.apk .ak-qh .go{border:1.5px solid var(--cy);background:rgba(34,211,238,.08);color:#a5f3fc;border-radius:20px;padding:8px 14px;font:800 12.5px/1 system-ui,sans-serif;display:flex;gap:6px;align-items:center}
+html.apk .ak-qh .go.run{border-color:#60a5fa;color:#bfdbfe}html.apk .ak-qh .go.run::before{content:'';width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.2);border-top-color:#93c5fd;animation:spin .9s linear infinite}
+html.apk .ak-qh .tr{border:0;background:transparent;color:#9fb2e6;font-size:18px;padding:6px}
+html.apk .au-it{background:#13204b!important;border:1px solid rgba(140,160,255,.16)!important;border-radius:16px!important;padding:12px!important;margin:10px 0!important}
+html.apk .au-it.run{background:#0f2350!important;border:1.5px solid var(--cy)!important;box-shadow:0 0 16px rgba(34,211,238,.3)}
+html.apk .au-it.ok{background:#0d2a35!important;border:1.5px solid rgba(52,211,153,.7)!important}
+html.apk .au-it.bad{border-color:rgba(244,63,94,.6)!important}
+html.apk .ak-ih{display:flex;align-items:center;gap:8px}
+html.apk .ak-n{background:#2346a8;color:#fff;border-radius:6px;padding:3px 6px;font:800 11px/1 system-ui,sans-serif}
+html.apk .au-it.ok .ak-n{background:#139c74}
+html.apk .ak-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:13.5px}
+html.apk .ak-st{border-radius:8px;padding:4px 8px;font:800 11px/1 system-ui,sans-serif;white-space:nowrap;background:#2a3566;color:#d6ddff}
+html.apk .au-it.run .ak-st{background:#173a7a;color:#bfdbfe}html.apk .au-it.ok .ak-st{background:#139c74;color:#fff}html.apk .au-it.bad .ak-st{background:#7f1d2d;color:#fecdd3}
+html.apk .ak-ib{border:0;background:transparent;color:#9fb2e6;font-size:16px;padding:4px 5px}
+html.apk .ak-ib.sv{background:#16a37f;color:#fff;border-radius:8px;font:800 11.5px/1 system-ui,sans-serif;padding:5px 9px}
+html.apk .ak-msg{margin-top:8px;font-size:12px;color:#a9bbec;display:flex;gap:8px;align-items:center}
+html.apk .au-it.ok .ak-msg{color:#86efac}
+html.apk .ak-msg span{flex:1}html.apk .ak-msg b{color:#7dd3fc;font-variant-numeric:tabular-nums}
+html.apk .ak-bar{height:5px;border-radius:5px;background:#1d2d63;margin-top:8px;overflow:hidden}html.apk .ak-bar i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#3b82f6);border-radius:5px;transition:width .4s}
+html.apk .ak-more{width:100%;margin-top:6px;border:1.5px dashed rgba(34,211,238,.5);background:transparent;color:#a5c8ff;border-radius:20px;padding:12px;font:700 13px/1.2 system-ui,sans-serif}
+html.apk #sheet{background:linear-gradient(180deg,#101d48,#0a1231)!important;border:1.5px solid rgba(34,211,238,.35)!important;color:#e8eeff}
+html.apk .ak-mg{display:flex;gap:12px;align-items:flex-start}html.apk .ak-mg .ic{width:44px;height:44px;flex:0 0 44px;border-radius:12px;background:#1b3a8f;display:grid;place-items:center;font-size:20px}
+html.apk .ak-mg h4{margin:0;font-size:16px}html.apk .ak-mg small{display:block;color:#8fa3d8;font-size:11.5px;margin-top:3px}
+html.apk .ak-ls{background:#0c1634;border:1px solid rgba(140,160,255,.2);border-radius:14px;padding:10px 14px;margin:10px 0;max-height:30vh;overflow:auto;font-size:13px;line-height:1.9}
+html.apk .ak-ls b{color:#60a5fa;margin-right:6px}
+html.apk .ak-row{display:flex;gap:10px;margin-top:14px}html.apk .ak-row button{flex:1;border-radius:14px;padding:12px 8px;font:800 13px/1.2 system-ui,sans-serif}
+html.apk .ak-b1{border:1.5px solid rgba(140,160,255,.4);background:transparent;color:#cfe0ff}html.apk .ak-b2{border:0;background:var(--bl);color:#fff;box-shadow:0 0 14px rgba(47,107,255,.5)}
+html.apk .ak-b3{border:0;background:linear-gradient(160deg,#4ade80,#16a34a);color:#04210f;box-shadow:0 0 16px rgba(74,222,128,.45)}
+html.apk .ak-cfg h4{color:#7dd3fc;display:flex;gap:8px;align-items:center;margin:0 0 12px}
+html.apk .ak-acc{display:flex;gap:12px;align-items:center;border:1.5px solid rgba(52,211,153,.7);border-radius:16px;padding:12px;background:rgba(52,211,153,.06);box-shadow:0 0 14px rgba(52,211,153,.2)}
+html.apk .ak-acc .sh{width:34px;height:34px;border-radius:50%;background:#16a37f;display:grid;place-items:center;font-size:16px}
+html.apk .ak-acc div{flex:1;font-size:12.5px;line-height:1.5}html.apk .ak-acc small{color:#4ade80;font-weight:700}
+html.apk .ak-cfg label.k{display:flex;gap:6px;align-items:center;margin:14px 0 6px;font-size:13px;font-weight:700;color:#c7d4ff}
+html.apk .ak-cfg select{width:100%;background:#0c1634;color:#e8eeff;border:1px solid rgba(140,160,255,.3);border-radius:12px;padding:11px 12px;font:600 13px/1.2 system-ui,sans-serif}
+html.apk .ak-vc{display:flex;gap:8px}html.apk .ak-vc button{flex:1;border:1px solid rgba(140,160,255,.3);background:#0c1634;color:#cfe0ff;border-radius:12px;padding:10px 4px;font:700 12px/1.2 system-ui,sans-serif}
+html.apk .ak-vc button.on{background:var(--bl);border-color:#60a5fa;color:#fff;box-shadow:0 0 12px rgba(47,107,255,.5)}
+html.apk .ak-tg{display:flex;gap:10px;align-items:center;border:1.5px solid rgba(52,211,153,.6);border-radius:16px;padding:12px;margin-top:12px;background:rgba(52,211,153,.05)}
+html.apk .ak-tg div{flex:1;font-size:13px;font-weight:700}html.apk .ak-tg small{display:block;font-weight:500;color:#8fa3d8;font-size:11.5px;margin-top:3px}
+html.apk .ak-sw{width:46px;height:26px;border-radius:13px;background:#334155;position:relative;flex:0 0 46px;transition:background .2s}html.apk .ak-sw::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+html.apk .ak-sw.on{background:#22c55e}html.apk .ak-sw.on::after{left:23px}
+html.apk .ak-sl{display:flex;justify-content:space-between;align-items:center;margin:16px 0 4px;font-size:13px;font-weight:700;color:#c7d4ff}
+html.apk .ak-sl b{background:var(--bl);color:#fff;border-radius:8px;padding:4px 8px;font-size:11.5px}
+html.apk .ak-cfg input[type=range]{width:100%;accent-color:#3b82f6}
+html.apk .ak-ck{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;font-weight:700;color:#a5c8ff}html.apk .ak-ck input{width:18px;height:18px;accent-color:#3b82f6}
+html.apk #pg-me .ak-acc{margin-bottom:12px}
+html.apk #pg-me #actBar{display:none!important}
+/* v6.6: whole app in the same neon-navy system */
+html.apk{--gold:linear-gradient(135deg,#7dd3fc,#3b82f6 60%,#2563eb);--purp:linear-gradient(135deg,#5eead4,#22c39a 60%,#0f9d7a);--silv:linear-gradient(135deg,#67e8f9,#3b5bdb);--rb:linear-gradient(90deg,#22d3ee,#3b82f6,#22d3ee);--bg:#070b1d;--fg:#e8eeff;--card:#0f1b42;--card2:#13204b;--line:rgba(140,160,255,.24);--mute:#8fa3d8}
+html.apk body{--acc:#22d3ee!important;--onacc:#04121f!important}
+html.apk,html.apk body{height:auto!important;min-height:100%}
+html.apk .app{height:auto!important;min-height:100vh}
+html.apk .pages{overflow:visible!important;flex:none!important;margin-top:12px}
+html.apk .page{position:relative!important;inset:auto!important;overflow:visible!important;display:none;transform:none!important;opacity:1!important;pointer-events:auto!important;padding:0 10px calc(110px + var(--sab))!important;transition:none!important}
+html.apk .page.on{display:block;animation:akIn .3s ease-out}@keyframes akIn{from{opacity:0;transform:translateY(8px)}}
+html.apk .card::before{background:linear-gradient(90deg,transparent,#22d3ee,transparent)!important;opacity:.55}
+html.apk .card h3{color:#e8eeff}html.apk .card h3 .n{background:#173a7a!important;color:#bfe9ff!important;border:1px solid rgba(34,211,238,.5)!important}
+html.apk .btn{background:linear-gradient(135deg,#3b82f6,#2563eb)!important;color:#fff!important;box-shadow:0 0 16px rgba(47,107,255,.45),inset 0 1px 0 rgba(255,255,255,.25)!important;border:0!important;border-radius:14px}
+html.apk .btn.g,html.apk .btn.ghost{background:#0c1634!important;border:1.5px solid rgba(140,160,255,.4)!important;color:#cfe0ff!important;box-shadow:none!important}
+html.apk .btn.big,html.apk .btn.shine,html.apk #actBar .ab-go,html.apk #autoBtn,html.apk #expBtn{background:linear-gradient(160deg,#4ade80,#16a34a)!important;color:#04210f!important;box-shadow:0 0 18px rgba(74,222,128,.45)!important}
+html.apk .btn.r,html.apk .btn.danger{background:linear-gradient(135deg,#fb7185,#e11d48)!important;color:#fff!important}
+html.apk .chip{background:#0c1634;border:1px solid rgba(140,160,255,.3)!important;color:#cfe0ff}
+html.apk .chip.on{background:linear-gradient(135deg,#3b82f6,#2563eb)!important;border-color:#60a5fa!important;color:#fff!important;box-shadow:0 0 12px rgba(47,107,255,.45)}
+html.apk input:not([type=range]):not([type=checkbox]):not([type=radio]),html.apk select,html.apk textarea{background:#0c1634!important;color:#e8eeff!important;border:1px solid rgba(140,160,255,.3)!important;border-radius:12px!important}
+html.apk input[type=range]{accent-color:#22d3ee}html.apk input[type=checkbox]{accent-color:#3b82f6}
+html.apk .hint{background:rgba(34,211,238,.06)!important;border:1px dashed rgba(34,211,238,.35)!important;color:#a9bbec!important}
+html.apk .note{color:#8fa3d8}
+html.apk #actBar{background:linear-gradient(180deg,#10214f,#0b1433) padding-box,linear-gradient(135deg,#22d3ee,#3b82f6 55%,#34d399) border-box!important;box-shadow:0 0 22px rgba(34,211,238,.25)!important}
+html.apk .logo .mk{background:linear-gradient(135deg,#22d3ee,#2563eb)!important;box-shadow:0 0 16px rgba(34,211,238,.5)!important}html.apk .logo .mk span{background:linear-gradient(#fff,#cffafe)!important;-webkit-background-clip:text!important;background-clip:text!important}
+html.apk .logo div span[style*="--acc"]{background:linear-gradient(90deg,#5eead4,#22d3ee)!important;-webkit-background-clip:text!important;background-clip:text!important}
+html.apk .tg{background:#13204b!important;color:#bfe9ff!important;border:1px solid rgba(34,211,238,.45)!important;animation:none}
+html.apk .ibtn{background:#13204b;border-color:rgba(140,160,255,.3);color:#cfe0ff}
+html.apk #busy .bc{background:linear-gradient(180deg,#10214f,#0a1231)!important;border:1.5px solid rgba(34,211,238,.45)!important;box-shadow:0 0 30px rgba(34,211,238,.25)}
+html.apk #ringC{stroke:#22d3ee!important}html.apk .busy-pill{border-color:rgba(34,211,238,.6)!important;background:linear-gradient(135deg,rgba(16,33,79,.97),rgba(10,18,49,.97))!important}html.apk .busy-pill b{color:#67e8f9}html.apk .bp-ring{border-top-color:#22d3ee}
+html.apk .toast{background:#e8eef9!important;color:#0b1330!important;border:1px solid rgba(34,211,238,.6);box-shadow:0 8px 24px rgba(0,0,0,.45);font-weight:700}
+html.apk .sl span,html.apk .l{color:#c7d4ff}
+html.apk .dlq .fmt button.on{background:linear-gradient(#13204b,#13204b) padding-box,linear-gradient(135deg,#22d3ee,#3b82f6) border-box!important}
+html.apk .bro-t,html.apk .spk,html.apk .item{background:#13204b!important;border-color:rgba(140,160,255,.2)!important}
+html.apk details.more summary{color:#a5c8ff}
+
+html.apk .ak-menu button{width:100%;display:flex;gap:12px;align-items:center;text-align:left;border:1px solid rgba(140,160,255,.2);background:#13204b;color:#e8eeff;border-radius:16px;padding:14px;margin:8px 0;font:700 14px/1.2 system-ui,sans-serif}
+html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-align:center}html.apk .ak-menu button small{display:block;color:#8fa3d8;font-weight:500;font-size:11.5px;margin-top:3px}
+</style>`);
+ /* left tool rail */
+ $('#railL').innerHTML=`<button data-r="sty" title="Subtitle Style"><b>☰</b></button><button data-r="add" title="ដាក់វីដេអូ"><b>📄</b></button><button data-r="clean" title="សម្អាត"><b>⟳</b></button><button data-r="auto" title="Auto Run"><b>✨</b></button><div class="akVol" title="សំឡេងខ្មែរ"><input type="range" id="akVol" min="0" max="2" step=".05"><small>🔊</small></div>`;
+ $('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
+  if(r==='add')return $('#auFile').click();if(r==='auto')return akCfg(true);if(r==='clean')return $('#cleanDev').click();
+  if(r==='sty'){goPage('pg-exp');setTimeout(()=>{const c=[...$$('#pg-exp .card')].find(x=>/រចនា Subtitle/.test(x.textContent));if(c)c.scrollIntoView({behavior:'smooth',block:'start'})},250)}};
+ const vol=$('#akVol');vol.value=S.mix.dub;vol.oninput=()=>{S.mix.dub=+vol.value;MIX.dirty=true;try{$('#mixDub').value=vol.value}catch(e){}};vol.onchange=()=>{save();toast('🔊 សំឡេងខ្មែរ '+Math.round(S.mix.dub*100)+'%')};
+ /* chip row above the preview */
+ const sw=$('#stageWrap');sw.insertAdjacentHTML('afterbegin',`<div class="ak-chips" id="akChips"><button data-c="blur">◐ Blur</button><button data-c="text">✎ Text</button><button data-c="sub">▤ Sub</button><button data-c="med">▣ Med</button><button data-c="sav">✓ Sav</button></div>`);
+ sw.insertAdjacentHTML('beforeend',`<div class="ak-time"><span id="akNow">0:00</span><input type="range" id="akSeek" min="0" max="1000" value="0"><span id="akAll">0:00</span></div>
+  <div class="ak-ctl"><button class="pill" id="akCol"><span class="ak-dot"></span>Color</button><button id="akB5">⏮</button><button class="pl" id="akPlay">▶</button><button id="akF5">⏭</button><button class="pill" id="akAsp">▭ <span id="akAspT">9:16</span> ▾</button></div>`);
+ $('#empty').innerHTML='<div><b>9:16 Video Preview</b>( ជ្រើសរើសវីដេអូដើម្បី Preview )</div><div class="ak-subpos">( ទីតាំង Subtitle / ពុម្ពអក្សរ Style & Font )</div>';
+ $('#empty').onclick=()=>$('#auFile').click();$('.stage').appendChild($('#empty'));
+ const goCard=(pg,re)=>{goPage(pg);setTimeout(()=>{const c=[...$$('#'+pg+' .card')].find(x=>re.test(x.querySelector('h3')?.textContent||''));if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.animate([{boxShadow:'0 0 0 3px #22d3ee'},{boxShadow:'0 0 0 0 transparent'}],{duration:1400})}},250)};
+ $('#akChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const c=b.dataset.c;
+  if(c==='blur')return goCard('pg-exp',/Blur|លុប Sub ចិន/);if(c==='text')return goCard('pg-exp',/អក្សររត់/);if(c==='med')return goCard('pg-exp',/វីដេអូ \/ រូប/);
+  if(c==='sub'){S.style.show=!S.style.show;save();draw();akChipPaint();return toast(S.style.show?'▤ បង្ហាញ Sub ខ្មែរលើវីដេអូ':'▤ បិទ Sub លើវីដេអូ')}
+  if(c==='sav'){AUTO.cfg.save=AUTO.cfg.save===false;LS.set('autoCfg',AUTO.cfg);akChipPaint();return toast(AUTO.cfg.save!==false?'✓ Auto Save ចូល Photos':'✕ មិន Save Auto — ចុច 💾 Save ខ្លួនឯង',3000)}};
+ window.akChipPaint=()=>{const on={blur:!!(S.box.on||S.erase&&S.erase.on),text:!!(S.mq&&S.mq.on),sub:!!S.style.show,med:!!(S.ov&&S.ov.on),sav:AUTO.cfg.save!==false};$$('#akChips button').forEach(b=>b.classList.toggle('on',!!on[b.dataset.c]))};
+ $('#akPlay').onclick=()=>{buzz();if(!S.clips.length)return $('#auFile').click();P.playing?pause():play()};$('#akB5').onclick=()=>seek(P.t-5);$('#akF5').onclick=()=>seek(P.t+5);
+ $('#akCol').onclick=()=>{buzz();goCard('pg-exp',/រចនា Subtitle/)};
+ const ASP=['9:16','src','16:9','1:1','4:5'];$('#akAsp').onclick=()=>{buzz();S.out.aspect=ASP[(ASP.indexOf(S.out.aspect)+1)%ASP.length];save();try{layout();draw()}catch(e){}akTick(true);toast('▭ '+(S.out.aspect==='src'?'ទំហំដើម':S.out.aspect))};
+ const mm=t=>{t=Math.max(0,t||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')};let skD=false;
+ const sk=$('#akSeek');sk.oninput=()=>{skD=true;const T=total();if(T)seek(T*sk.value/1000)};sk.onchange=()=>skD=false;
+ window.akTick=()=>{const T=total();$('#akNow').textContent=mm(P.t);$('#akAll').textContent=mm(T);if(!skD)sk.value=T?Math.round(P.t/T*1000):0;$('#akPlay').textContent=P.playing?'❚❚':'▶';$('#akAspT').textContent=S.out.aspect==='src'?'ដើម':S.out.aspect;akChipPaint()};setInterval(akTick,250);
+ /* bottom nav: Home · Dubbed · Sub · Voice · Me */
+ const nav=$('#nav');nav.innerHTML=`<span class="pill"></span><button data-p="pg-vid"><i>🏠</i>Home</button><button data-p="pg-auto"><i>🎞</i>Dubbed</button><button data-p="pg-sub"><i>💬</i>Sub</button><button data-p="pg-voice"><i>🎙</i>សំឡេង</button><button data-p="pg-me"><i>👤</i>ខ្ញុំ</button>`;
+ nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{GP_USER=true;try{goPage(b.dataset.p)}finally{GP_USER=false}const pg=$('#pages');window.scrollTo({top:b.dataset.p==='pg-auto'||b.dataset.p==='pg-vid'?0:Math.max(0,pg.offsetTop-70),behavior:'smooth'})});
+ /* Me page */
+ $('#pg-auto').insertAdjacentHTML('afterend',`<section class="page" id="pg-me"><div class="ak-acc" id="meAcc"></div><div class="ak-menu">
+  <button data-m="exp"><i>⬇</i><span>ទាញយក / Export<small>ទំហំ · ភាពច្បាស់ · 60fps · MP3 · Logo · Blur</small></span></button>
+  <button data-m="key"><i>🔑</i><span>API Key<small>Claude · Gemini · OpenRouter — បកប្រែច្បាស់ជាង</small></span></button>
+  <button data-m="poster"><i>🖼</i><span>បកប្រែ Poster<small>រូបចិន → ខ្មែរ</small></span></button>
+  <button data-m="clean"><i>🧹</i><span>សម្អាតទូរសព្ទ<small>លុប Cache · ទំនេរកន្លែង</small></span></button>
+  <button data-m="set"><i>⚙</i><span>ការកំណត់<small>Server សំឡេង · License</small></span></button>
+  <button data-m="help"><i>❓</i><span>របៀបប្រើ</span></button>
+  <button data-m="tg"><i>✈</i><span>Telegram @wang_linkh<small>ទិញ Key · សួរជំនួយ</small></span></button></div></section>`);
+ $('#pg-me .ak-menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const m=b.dataset.m;
+  if(m==='exp')return goPage('pg-exp');if(m==='key'){goPage('pg-sub');return setTimeout(()=>$('#aiCard').scrollIntoView({behavior:'smooth',block:'start'}),250)}
+  if(m==='poster')return goPage('pg-poster');if(m==='clean')return $('#cleanDev').click();if(m==='set')return $('#setBtn').click();if(m==='help')return $('#helpBtn').click();if(m==='tg')return $('#tgBtn').click()};
+ window.meAccPaint=()=>{const i=LIC.info||{};$('#meAcc').innerHTML=`<span class="sh">🛡</span><div><b>${esc(i.name||i.email||'SK ProKH')}</b><br><small>${LIC.ok?'✓ កញ្ចប់សកម្ម · '+esc(licExpTxt(i)||''):'មិនទាន់មាន License'}</small></div><span style="font-size:11px;color:#8fa3d8">v${APP_VER}</span>`};
+ /* All Video queue card */
+ {const al=$('#auList');al.insertAdjacentHTML('beforebegin',`<div class="card ak-q" id="akQ"><div class="ak-qh"><span class="ic">🎞</span><b>All<br>Video</b><button class="go" id="akGo">▶ ចាប់ផ្ដើម</button><button class="tr" id="akClr" title="លុបបញ្ជី">🗑</button></div><button class="ak-more" id="akMore">＋ បន្ថែមវីដេអូទៀត (Add More Videos)</button></div>`);$('#akQ').insertBefore(al,$('#akMore'))}
+ $('#akMore').onclick=()=>$('#auFile').click();
+ $('#akGo').onclick=()=>$('#auGo').click();
+ $('#akClr').onclick=async()=>{if(AUTO.run)return toast('កំពុងដំណើរការ — ចុច ⏹ ឈប់សិន');if(!AUTO.list.length)return;if(await ask('លុបវីដេអូទាំងអស់ចេញពីបញ្ជី?<div class="note">(វីដេអូដែល Save រួចនៅក្នុង Photos ដដែល)</div>','🗑 លុប','បោះបង់')){AUTO.list.length=0;auPaint(true)}};
+ $('#auList').addEventListener('click',async e=>{const bt=e.target.closest('button[data-k]');if(!bt)return;e.stopPropagation();const it=AUTO.list[+bt.closest('.au-it').dataset.i];if(!it)return;buzz();const k=bt.dataset.k;
+  if(k==='eye'){if(it.out&&it.out.uri)return DubNative.open(it.out.uri,'video/mp4');if(AUTO.run)return toast('កំពុងដំណើរការ...');await akPreview(it)}
+  if(k==='save'){if(!it.out)return;if(it.saved)return DubNative.share(it.out.uri,'video/mp4');let ok=true;try{if(DubNative.galPending)ok=DubNative.galPending(it.out.uri,false)}catch(x){ok=false}if(!ok)return toast('✕ Save មិនបាន',3000);it.saved=true;toast('✅ រក្សាទុកក្នុង Photos (Movies/SK ProKH)',3000);auPaint(true)}},true);
+}
+async function akPreview(it){try{auReset();const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}}catch(e){toast('✕ '+(e.message||e))}}
+function akMerge(fs){return new Promise(r=>{sheet(`<div class="ak-mg"><span class="ic">⛙</span><div><h4>បញ្ចូលវីដេអូច្រើន (Merge Videos)</h4><small>អ្នកបានជ្រើសរើសវីដេអូច្រើន</small></div></div>
+  <div style="margin-top:12px;font-size:14px;line-height:1.7">តើអ្នកចង់បញ្ចូល (Merge) វីដេអូទាំង ${fs.length} នេះបញ្ចូលគ្នាជាវីដេអូតែមួយ មុនពេលបកប្រែឬទេ?</div>
+  <div class="ak-ls">${fs.map((f,i)=>`<div><b>${i+1}.</b>${esc(f.name)}</div>`).join('')}</div>
+  <div class="ak-row"><button class="ak-b1" id="mgNo">ទុកដាច់ដោយឡែក</button><button class="ak-b2" id="mgYes">⛙ Merge ចូលគ្នា</button></div>`,b=>{
+  b.querySelector('#mgYes').onclick=()=>{closeSheet();r(true)};b.querySelector('#mgNo').onclick=()=>{closeSheet();r(false)};$('#back').onclick=()=>{closeSheet();r(null);$('#back').onclick=closeSheet}})})}
+const AKSTEP=it=>{const m=it.msg||'';if(it.phase==='open')return'1/5 កំពុងបើកវីដេអូ (Loading)';if(it.phase==='sub')return /បកប្រែ|AI/.test(m)&&!/អាន|ស្ដាប់|OCR|Whisper/.test(m)?'3/5 កំពុងបកប្រែ (Translating)':'2/5 ស្រង់អត្ថបទដើម (Transcribing)';if(it.phase==='tts')return'4/5 បង្កើតសំឡេងខ្មែរ (Voicing)';if(it.phase==='exp')return'5/5 Export ចូល Photos (Saving)';return m};
+function auPaintK(){const b=$('#auList'),L=AUTO.list;
+ b.innerHTML=L.length?L.map((it,i)=>{const p=Math.round((it.st==='ok'?1:it.pct||0)*100);return`<div class="au-it ${it.st}" data-i="${i}"><div class="ak-ih"><span class="ak-n">#${i+1}</span><span class="ak-nm">🎬 ${esc(it.name)}</span>
+  ${it.st==='ok'?`<span class="ak-st">✓ រួចរាល់</span>${it.out?`<button class="ak-ib sv" data-k="save">${it.saved?'📤 Share':'⤓ Save'}</button><button class="ak-ib" data-k="eye">▶</button>`:''}`
+  :it.st==='run'?`<span class="ak-st">⟳ ${p}%</span>`:it.st==='bad'?`<span class="ak-st">⚠ បរាជ័យ</span><button class="ak-ib" data-a="retry">🔁</button>`:`<span class="ak-st">⏳ រង់ចាំ</span>`}
+  ${it.st!=='ok'?`<button class="ak-ib" data-k="eye" title="មើល">👁</button>`:''}${it.st!=='run'?`<button class="ak-ib" data-a="del" title="ដកចេញ">✕</button>`:''}</div>
+  ${it.st==='run'?`<div class="ak-msg"><span>${esc(AKSTEP(it))}<br><small style="opacity:.75">${esc(String(it.msg||'').slice(0,70))}</small></span><b>${p}%</b></div><div class="ak-bar"><i style="width:${p}%"></i></div>`
+  :it.st==='ok'?`<div class="ak-msg"><span>✅ បកប្រែ និងបញ្ចូលសំឡេងជោគជ័យ 100%!</span></div>`:it.st==='bad'?`<div class="ak-msg"><span>${esc(it.msg||'')}</span></div>`:''}</div>`}).join('')
+  :`<div class="note" style="text-align:center;padding:18px 6px">ចុច 📄 ឬ ＋ ខាងក្រោម ដើម្បីជ្រើសវីដេអូ (ច្រើនបាន) · ✨ ដើម្បីកំណត់ Auto Run</div>`;
+ const g=$('#akGo');g.className='go'+(AUTO.run?' run':'');g.textContent=AUTO.run?'កំពុងដំណើរការ... ⏹':L.some(x=>x.st==='wait')?'▶ ចាប់ផ្ដើម':'▶ Auto Run';
+ $('#auGo').textContent=AUTO.run?'⏹ ឈប់':'▶ ចាប់ផ្ដើម'}
+/* Auto Run settings — same look as the reference */
+function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${l}</option>`;
+ sheet(`<div class="ak-cfg"><h4>⚙ ការកំណត់ទាំងអស់សម្រាប់ Auto Run</h4>
+  <div class="ak-acc"><span class="sh">🛡</span><div><b>${esc(i.name||i.email||'SK ProKH')}</b><br><small>${LIC.ok?'កញ្ចប់សកម្ម · '+esc(licExpTxt(i)||''):'—'}</small></div></div>
+  <label class="k">📋 របៀបធ្វើ:</label><select id="kKind">${o('dub','🌐 បកប្រែតួ (Dub តាមសាច់រឿង)',c.kind||'dub')}${o('recap','📖 សម្រាយរឿង (អ្នកនិទានខ្មែរ)',c.kind)}</select>
+  <label class="k">🤖 Transcript Model (យកអត្ថបទដើម):</label><select id="kSrc">${o('ocr','🔤 AI អាន Sub លើវីដេអូ (OCR · លឿន ត្រូវ)',c.src)}${o('whisper','🎧 Whisper ស្ដាប់សំឡេង (វីដេអូគ្មាន Sub)',c.src)}</select>
+  <label class="k">🗣 ភាសានិយាយក្នុងវីដេអូ:</label><select id="kLang">${o('zh','🇨🇳 ចិន (Chinese - zh)',c.lang||'zh')}${o('en','🇬🇧 អង់គ្លេស (English - en)',c.lang)}${o('ko','🇰🇷 កូរ៉េ (Korean - ko)',c.lang)}${o('ja','🇯🇵 ជប៉ុន (Japanese - ja)',c.lang)}${o('auto','🌐 ស្គាល់ Auto',c.lang)}</select>
+  <label class="k">🔵 Model បកប្រែ:</label><select id="kTr">${o('free','⚡ SK ProKH AI Server (លឿន · គ្មាន Key)',S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}${o('gemini','🔑 '+(aiKey()?aiName()+' — Key របស់ខ្ញុំ (ច្បាស់បំផុត)':'AI Key របស់ខ្ញុំ (មិនទាន់ដាក់ Key)'),S.tr.eng==='gemini'&&aiKey()?'gemini':'free')}</select>
+  <label class="k">🎭 សម្លេងបកប្រែ:</label><select disabled>${o('km','🇰🇭 ខ្មែរ (Khmer - km)','km')}</select>
+  <label class="k">👥 សម្លេងតួអង្គ:</label><div class="ak-vc" id="kVc"><button data-v="m">👨 Piseth (ប្រុស)</button><button data-v="f">👩 Sreymom (ស្រី)</button><button data-v="detect">👫 ប្រុស/ស្រី (Auto)</button></div>
+  <label class="ak-ck"><input type="checkbox" id="kBurn"${c.burn?' checked':''}> 💬 បង្ហាញ/ដុត Subtitle ខ្មែរលើវីដេអូ (Burn Subtitles)</label>
+  <label class="ak-ck"><input type="checkbox" id="kErase"${c.erase?' checked':''}> ◐ លុប/Blur Sub ចិនចាស់ (AI)</label>
+  <div class="ak-tg" id="kSaveT"><span style="font-size:20px">✨</span><div>💾 Auto Save វីដេអូទៅ Photos (រក្សាទុកស្វ័យប្រវត្តិ)<small>ពេលបកប្រែចប់វីដេអូនីមួយៗ វានឹង Save ចូល Photos / Gallery ភ្លាមៗ</small></div><span class="ak-sw${c.save!==false?' on':''}" id="kSave"></span></div>
+  <label class="k">🔈 សំឡេងដើមវីដេអូ:</label><select id="kOrig">${o('mute','🔇 បិទសំឡេងដើម (លឺតែសំឡេងខ្មែរ)',c.orig)}${o('ai','🎵 ទុកភ្លេង — លុបសំឡេងចិន (AI Separate)',c.orig)}</select>
+  <label class="k">🎞 គុណភាព:</label><select id="kRes">${o('720_30','720p · 30fps (លឿន)',c.res+'_'+c.fps)}${o('1080_30','1080p · 30fps (ច្បាស់)',c.res+'_'+c.fps)}${o('720_60','720p · 60fps (រលូន)',c.res+'_'+c.fps)}${o('1080_60','1080p · 60fps',c.res+'_'+c.fps)}${o('540_30','540p · 30fps (តូច)',c.res+'_'+c.fps)}</select>
+  <div class="ak-sl"><span>⚡ ល្បឿនសម្លេង (TTS):</span><b id="kRateV"></b></div><input type="range" id="kRate" min="-20" max="50" step="5" value="${c.rate}">
+  <div class="ak-sl"><span>🎵 សម្លេងភ្លេង (BGM):</span><b id="kBgmV"></b></div><input type="range" id="kBgm" min="0" max="1.5" step=".01" value="${c.bgm}">
+  <div class="ak-sl"><span>📢 សម្លេងតួអង្គ (Voice):</span><b id="kDubV"></b></div><input type="range" id="kDub" min=".5" max="2" step=".01" value="${c.dub}">
+  <div class="ak-row"><button class="ak-b1" id="kNo">បោះបង់</button><button class="ak-b3" id="kOk">💾 ${start?'រក្សាទុក & ចាប់ផ្ដើម':'រក្សាទុក'}</button></div></div>`,b=>{
+  const q=s=>b.querySelector(s);let vc=c.voice||'detect';const vp=()=>q('#kVc').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===vc));vp();q('#kVc').onclick=e=>{const x=e.target.closest('button');if(x){vc=x.dataset.v;vp();buzz(8)}};
+  let sv=c.save!==false;q('#kSaveT').onclick=()=>{sv=!sv;q('#kSave').classList.toggle('on',sv);buzz(8)};
+  const lab=()=>{const r=+q('#kRate').value;q('#kRateV').textContent=(1+r/100).toFixed(2)+'x ('+(r>=0?'+':'')+r+'% លឿន)';q('#kBgmV').textContent=Math.round(q('#kBgm').value*100)+'%';const d=Math.round(q('#kDub').value*100);q('#kDubV').textContent=d+'%'+(d>150?' (ខ្លាំងបំផុត)':'')};['#kRate','#kBgm','#kDub'].forEach(s=>q(s).oninput=lab);lab();
+  q('#kTr').onchange=e=>{if(e.target.value==='gemini'&&!aiKey()){e.target.value='free';toast('🔑 ដាក់ API Key សិន: 👤 ខ្ញុំ → API Key',3500)}};
+  q('#kNo').onclick=closeSheet;
+  q('#kOk').onclick=()=>{const[res,fps]=q('#kRes').value.split('_').map(Number);Object.assign(c,{kind:q('#kKind').value,src:q('#kSrc').value,lang:q('#kLang').value,voice:vc,burn:q('#kBurn').checked,erase:q('#kErase').checked,save:sv,orig:q('#kOrig').value,res,fps,rate:+q('#kRate').value,bgm:+q('#kBgm').value,dub:+q('#kDub').value});
+   S.tr.eng=q('#kTr').value==='gemini'&&aiKey()?'gemini':'free';try{trChipsPaint()}catch(e){}LS.set('autoCfg',c);save();closeSheet();buzz(20);toast('✓ រក្សាទុកការកំណត់ Auto Run');akChipPaint();
+   if(start){if(!AUTO.list.some(x=>x.st==='wait'))return toast('📄 សូមជ្រើសវីដេអូសិន',3000);autoRun()}}})}
+if(APKS){
+ $('#auSet').onclick=()=>akCfg(false);
+ $('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;let mg=false;if(fs.length>1){mg=await akMerge(fs);if(mg===null)return}
+  const first=AUTO.list.length;if(mg)AUTO.list.push({name:fs.map(f=>f.name.replace(/\.[^.]+$/,'')).join(' + ').slice(0,60),files:fs,st:'wait',pct:0});else fs.forEach(f=>AUTO.list.push({name:f.name.replace(/\.[^.]+$/,''),files:[f],st:'wait',pct:0}));
+  GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}auPaint(true);buzz(20);toast(`បានបញ្ចូលវីដេអូចំនួន ${fs.length} ទៅក្នុងបញ្ជីបកប្រែ (សរុប ${AUTO.list.length})!`,3500);
+  if(!AUTO.run){await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}}};
+ setTimeout(()=>{try{meAccPaint();akChipPaint();auPaint(true);if(!LS.get('page',''))goPage('pg-auto')}catch(e){console.warn(e)}},60);
+}
+
 $('#expBtn').textContent=NATIVE&&!PC?'⬇ រក្សាទុកចូលទូរសព្ទ':PC?'⬇ រក្សាទុកចូលកុំព្យូទ័រ':'⬇ ទាញយកចូលម៉ាស៊ីន';
 $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដាក់វីដេអូសិន');const mime=pickMime();if(!mime||!cv.captureStream)return toast('Browser នេះមិនគាំទ្រ Export — សូមប្រើ Chrome ឬ Safari ថ្មី');
  if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))return;pause();if(!(await ensureAI()))return;ensureAC();await AC.resume();if(MIX.dirty)await buildMix();layout();
@@ -2928,23 +3158,47 @@ async function saveDl(file){if(!NATIVE||LS.get('dlSave',true)===false)return;awa
 /* ============ v4.1: add a video → read the subtitles + translate to Khmer automatically → then pick Piseth / Sreymom and make the voice ============ */
 if(!LS.get('mig41',false)){LS.set('mig41',true);S.asr.eng='ocr';if(S.mix.mode!=='ai')S.mix.mode='ai';save()}
 let AUTO_ST=false;
-async function autoSubTr(){if(AUTO_ST||Q.run||!S.clips.length||S.subs.length)return;AUTO_ST=true;try{await sleep(500);
+async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.length)return;AUTO_ST=true;try{await sleep(500);
   const prev=S.asr.eng;S.asr.eng='ocr';const ok=await runASR();S.asr.eng=prev==='auto'?'ocr':prev;if(!ok||!S.subs.length)return;
-  const todo=S.subs.filter(x=>x.src&&!x.km);if(todo.length&&!(await translate(todo)))return;aiBackground();toast('✅ អាន Sub & បកប្រែរួច',2500);showAct()}finally{AUTO_ST=false}}
+  if(o.noTr){toast('✅ អាន Sub រួច',2000);return}
+  const todo=S.subs.filter(x=>x.src&&!x.km);if(todo.length&&!(await translate(todo)))return;aiBackground();toast('✅ អាន Sub & បកប្រែរួច',2500);if(!o.quiet)showAct()}finally{AUTO_ST=false}}
+/* v6.7: one tap — read Sub → translate (or write a recap) → Khmer voice (Piseth / Sreymom only) → original sound off → play */
+const FLOW=Object.assign({kind:'dub',cast:'simple',orig:'mute',auto:true},LS.get('flow',{}));
+if(!LS.get('flowMig67',false)){LS.set('flowMig67',true);FLOW.orig='mute';AUTO.cfg.orig='mute';LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
+function only2(){S.speakers.forEach(p=>{if(p.voice!==PIS&&p.voice!==SRM)p.voice=(p.g==='f'||/ស្រី|female/.test(p.name||''))?SRM:PIS})}
+function castPick(cast){if(S.recap){const nar=S.speakers.find(p=>p.role==='narrator');if(nar){nar.voice=cast==='srm'?SRM:PIS;nar.name=cast==='srm'?'📖 ស្រីមុំ (និទាន)':'📖 ពិសិដ្ឋ (និទាន)'}renderSpeakers();return}
+ if(cast==='pis'||cast==='srm')castOne(cast,true);else if(S.subs.length&&S.subs.every(s=>s.f0>0))castSimple(true);only2();renderSpeakers()}
+let AGO=false;
+async function autoGo(kind){if(AGO||AUTO_ST||Q.run)return;if(!S.clips.length){toast('សូមដាក់វីដេអូសិន');return $(window.__apk?'#auFile':'#vidFile').click()}
+ kind=kind||FLOW.kind;FLOW.kind=kind;LS.set('flow',FLOW);AGO=true;try{pause();
+  if(!S.subs.some(s=>s.src)&&!(S.recap&&S.recapSrc)){await autoSubTr({noTr:kind==='recap',quiet:true});if(!S.subs.length)return}
+  if(kind==='recap'){if(!S.recap){await makeRecap();if(!S.recap)return}}
+  else{if(S.recap)backToDub();const todo=S.subs.filter(x=>x.src&&!x.km);if(todo.length&&!(await translate(todo)))return}
+  castPick(FLOW.cast);setMode(FLOW.orig);subChanged();
+  if(S.subs.some(s=>!hasBuf(s))&&!(await genAll()))return;
+  await seek(0);toast(kind==='recap'?'🎉 សម្រាយរឿង + សំឡេងខ្មែររួច!':'🎉 បកប្រែ + សំឡេងខ្មែររួច!',3500);showAct();try{play()}catch(e){}}
+ finally{AGO=false}}
 function voiceSheet(){const n=S.subs.length;sheet(`<h4>✅ អាន Sub & បកប្រែជាខ្មែររួច · ${n} បន្ទាត់</h4><div class="note">ជំហានបន្ទាប់៖ ជ្រើសអ្នកនិយាយ ហើយបង្កើតសំឡេងខ្មែរ (សំឡេងចិនដើមនឹងដកចេញ)</div>
  <div class="qk" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px">${[['pis','👨 ពិសិដ្ឋ'],['srm','👩 ស្រីមុំ'],['simple','👫 ប្រុស/ស្រី']].map(([v,t])=>`<button class="btn${(S.asr.cast||'simple')===v?'':' g'}" data-vc="${v}">${t}</button>`).join('')}</div>
  <button class="btn big" id="vsGo" style="width:100%;margin-top:14px;min-height:60px">🔊 បង្កើតសំឡេងខ្មែរ</button><div class="note" style="margin-top:8px">ចង់កែអក្សរ Sub មុន? ចុច ✕ ហើយចុចលើបន្ទាត់ Sub</div>`,b=>{
  b.querySelectorAll('[data-vc]').forEach(x=>x.onclick=()=>{const v=x.dataset.vc;S.asr.cast=v;save();if(v==='pis'||v==='srm')castOne(v,true);else if(S.subs.every(s=>s.f0>0))castSimple(true);b.querySelectorAll('[data-vc]').forEach(y=>y.classList.toggle('g',y!==x));buzz(10)});
- b.querySelector('#vsGo').onclick=async()=>{closeSheet();if(S.mix.mode!=='ai')setMode('ai');if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច!',3000);dlSheet()}})}
+ b.querySelector('#vsGo').onclick=async()=>{closeSheet();only2();setMode(FLOW.orig);if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច!',3000);dlSheet()}})}
 
 /* ============ v4.2: action bar under the video — after translating: make voice; after voice: download (full / short) ============ */
-function actState(){if(S.clips.length&&!S.subs.length&&!AUTO_ST&&!Q.run)return'sub';if(!S.clips.length||!S.subs.length)return'';const tr=S.subs.filter(s=>s.km).length;if(!tr)return'';const v=S.subs.filter(s=>hasBuf(s)).length;return v>=Math.max(1,S.subs.length*.9)?'dl':'voice'}
+function actState(){if(S.clips.length&&!S.subs.length&&!AUTO_ST&&!Q.run&&!AGO)return'sub';if(!S.clips.length||!S.subs.length)return'';const tr=S.subs.filter(s=>s.km).length;if(!tr)return'';const v=S.subs.filter(s=>hasBuf(s)).length;return v>=Math.max(1,S.subs.length*.9)?'dl':'voice'}
 function actHome(){const b=$('#actBar'),pg=document.querySelector('.page.on');if(b&&pg&&b.parentNode!==pg)pg.prepend(b)}
 function actPaint(force){const b=$('#actBar');if(!b)return;actHome();const st=actState();if(st===b.dataset.st&&!force)return;b.dataset.st=st;b.hidden=!st;if(!st){b.innerHTML='';return}
- if(st==='sub'){b.innerHTML=`<div class="ab-h">🎬 វីដេអូរួចរាល់ · ${S.clips.length} វីដេអូ</div><div class="note" style="margin:0 0 8px">ចុចប៊ូតុងខាងក្រោម ដើម្បីអាន Sub ចិន ហើយបកប្រែជាខ្មែរ</div><button class="btn big ab-go" id="abSub">🤖 អាន Sub & បកប្រែជាខ្មែរ</button>`;$('#abSub').onclick=()=>{buzz();autoSubTr()}}
+ if(st==='sub'){const C=(k,a)=>a.map(([v,t])=>`<button class="chip${FLOW[k]===v?' on':''}" data-k="${k}" data-v="${v}">${t}</button>`).join('');
+  b.innerHTML=`<div class="ab-h">🎬 វីដេអូរួចរាល់ · ${S.clips.length} វីដេអូ</div>
+  <div class="ab-c">${C('kind',[['dub','🌐 បកប្រែតួ'],['recap','📖 សម្រាយរឿង']])}</div>
+  <div class="ab-c">${C('cast',[['pis','👨 ពិសិដ្ឋ'],['srm','👩 ស្រីមុំ'],['simple','👫 ប្រុស/ស្រី']])}</div>
+  <div class="ab-c">${C('orig',[['mute','🔇 បិទសំឡេងដើម'],['ai','🎵 ទុកភ្លេង (លុបសំឡេងចិន)']])}</div>
+  <button class="btn big ab-go" id="abSub">▶ ${FLOW.kind==='recap'?'អាន Sub → សម្រាយរឿង → សំឡេងខ្មែរ':'អាន Sub → បកប្រែ → សំឡេងខ្មែរ'}</button>`;
+  b.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{FLOW[x.dataset.k]=x.dataset.v;LS.set('flow',FLOW);buzz(8);actPaint(true)});$('#abSub').onclick=()=>{buzz();autoGo(FLOW.kind)}}
  else if(st==='voice'){b.innerHTML=`<div class="ab-h">✅ អាន Sub & បកប្រែរួច · ${S.subs.length} បន្ទាត់</div><div class="ab-c">${[['pis','👨 ពិសិដ្ឋ'],['srm','👩 ស្រីមុំ'],['simple','👫 ប្រុស/ស្រី']].map(([v,t])=>`<button class="chip${(S.asr.cast||'simple')===v?' on':''}" data-vc="${v}">${t}</button>`).join('')}</div><button class="btn big ab-go" id="abVoice">🔊 បង្កើតសំឡេងខ្មែរ</button>`;
   b.querySelectorAll('[data-vc]').forEach(x=>x.onclick=()=>{const v=x.dataset.vc;S.asr.cast=v;save();if(v==='pis'||v==='srm')castOne(v,true);else if(S.subs.every(s=>s.f0>0))castSimple(true);actPaint(true)});
-  $('#abVoice').onclick=async()=>{if(S.mix.mode!=='ai')setMode('ai');if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច — ចុចទាញយកខាងក្រោម',3500);showAct()}}
+  $('#abVoice').onclick=async()=>{only2();setMode(FLOW.orig);if(!(await genAll()))return;await seek(0);toast('🎉 សំឡេងខ្មែររួច — ចុចទាញយកខាងក្រោម',3500);showAct();try{play()}catch(e){}};
+  const key=S.subs.length+':'+(S.subs[0]&&S.subs[0].id);if(FLOW.auto&&!AGO&&!Q.run&&!(typeof AUTO!=='undefined'&&AUTO.run)&&!$('#busy').classList.contains('on')&&b.dataset.av!==key){b.dataset.av=key;setTimeout(()=>{if(actState()==='voice'&&!AGO&&!Q.run)$('#abVoice').click()},700)}}
  else{b.innerHTML=`<div class="ab-h">🎉 Dub រួចរាល់ — ទាញយកវីដេអូ</div><div class="dlq" data-dlq></div>`;dlqBind(b)}}
 function showAct(){if(typeof AUTO!=='undefined'&&AUTO.run)return;actPaint(true);const b=$('#actBar');if(!b||b.hidden)return;b.classList.remove('ab-in');void b.offsetWidth;b.classList.add('ab-in');try{$('#pages').scrollTo({top:0,behavior:'smooth'})}catch(e){}b.scrollIntoView({behavior:'smooth',block:'start'});buzz(30)}
 setInterval(()=>actPaint(),1200);
