@@ -708,7 +708,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.6';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.7';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -719,7 +719,7 @@ async function nativeTTS(text,voice,rate,pitch,retry=true){const x=String(text).
  const headers={'Pragma':'no-cache','Cache-Control':'no-cache','Origin':'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold','Sec-WebSocket-Version':'13','User-Agent':`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${CHROMIUM_MAJOR}.0.0.0 Safari/537.36 Edg/${CHROMIUM_MAJOR}.0.0.0`,'Accept-Encoding':'gzip, deflate, br, zstd','Accept-Language':'en-US,en;q=0.9','Cookie':`muid=${muid()};`};
  const msgs=[`X-Timestamp:${edgeDate()}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"true","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}\r\n`,
   `X-RequestId:${ridH()}\r\nContent-Type:application/ssml+xml\r\nX-Timestamp:${edgeDate()}Z\r\nPath:ssml\r\n\r\n<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${full}'><prosody pitch='${sg(pitch,'Hz')}' rate='${sg(rate,'%')}' volume='+0%'>${x}</prosody></voice></speak>`];
- const id=ridH();const r=await new Promise(res=>{nCb.set(id,res);DubNative.tts(id,url,JSON.stringify(headers),JSON.stringify(msgs))});
+ const id=ridH();const r=await new Promise(res=>{let tm;nCb.set(id,v=>{clearTimeout(tm);res(v)});tm=setTimeout(()=>{if(nCb.has(id)){nCb.delete(id);res({err:'timeout (no answer)'})}},40000);DubNative.tts(id,url,JSON.stringify(headers),JSON.stringify(msgs))});
  if(r.b64){const bin=atob(r.b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer}
  if(r.status===403&&retry&&r.date){const d=Date.parse(r.date);if(d){skew+=d/1000-Date.now()/1000;return nativeTTS(text,voice,rate,pitch,false)}}
  throw Error('សំឡេង Microsoft: '+(r.err||'error')+(r.status&&r.status!==101?' ('+r.status+')':''))}
@@ -968,6 +968,8 @@ function joinShort(){if(S.mix.join!==true)return 0;/* v7.6: off — every subtit
   if(a.sp===b.sp&&!a.sty===!b.sty&&a.sty==b.sty&&ka&&kb&&gap<.45&&dur<=7&&(ka+kb).length<=95&&(a.end-a.start<2.2||b.end-b.start<2.2)&&!/[?？!！]\s*$/.test(ka)){
    a.km=(ka.replace(/[។.]\s*$/,'')+' '+kb).trim();a.src=((a.src||'')+' '+(b.src||'')).trim();a.end=b.end;a.buf=null;S.subs.splice(i+1,1);n++}else i++}
  if(n){subChanged()}return n}
+/* v8.7: one line may never wait more than 75 s — it is put aside and tried again in the next round, so the list never sticks at 31/32 */
+function lineCap(x){return Promise.race([genLine(x),new Promise((_,rej)=>setTimeout(()=>rej(Error('យូរពេក (timeout)')),75000))])}
 async function genAll(){const left=S.subs.filter(needsTr);if(left.length){toast(`🌐 បកប្រែ ${left.length} បន្ទាត់ដែលនៅសល់ជាមុនសិន...`);if(!(await translate(left)))return false}
  const dd=dedupeSubs();if(dd)toast(`🧹 ដកបន្ទាត់ស្ទួន ${dd} — កុំឲ្យសំឡេងជាន់គ្នា`,2500);
  const jn=joinShort();if(jn)toast(`🔗 រួម ${jn} បន្ទាត់ខ្លីៗ ជាប្រយោគតែមួយ — និយាយរលូនជាងមុន`,3000);
@@ -975,10 +977,10 @@ async function genAll(){const left=S.subs.filter(needsTr);if(left.length){toast(
  if(!SRV.ok&&!(await checkServer(true))){toast('មិនទាន់ភ្ជាប់ Server សំឡេង — ចុច ⚙',4000);return false}
  busy.on('🔊 កំពុងបង្កើតសំឡេងខ្មែរ...',0);let n=0;const bad=[];
  try{await prepareVoices(list)}catch(e){busy.off();if(!busy.cancel)toast('✕ '+e.message,5000);return false}
- await pool(list,NATIVE?5:6,async x=>{try{await genLine(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}n++;busy.set(`🔊 ${spOf(x).name}: បន្ទាត់ ${n}/${list.length}${bad.length?` · ⚠ ${bad.length}`:''}`,n/list.length)});
+ await pool(list,NATIVE?5:6,async x=>{try{await lineCap(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}n++;busy.set(`🔊 ${spOf(x).name}: បន្ទាត់ ${n}/${list.length}${bad.length?` · ⚠ ${bad.length}`:''}`,n/list.length)});
  /* v8.6: Microsoft sometimes closes the connection ("closed") when many lines are asked at once — retry the failed lines by itself, slower each round, before asking anything */
  for(let r=1;r<=5&&bad.length&&!busy.cancel;r++){const again=bad.splice(0);busy.set(`🔁 សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ (${r}/5) · ${again.length} បន្ទាត់...`,(list.length-again.length)/list.length);await sleep(r*1500);
-  await pool(again,r<3?2:1,async x=>{if(busy.cancel)return;try{await genLine(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}busy.set(`🔁 សាកម្ដងទៀត (${r}/5) · នៅសល់ ${bad.length+again.filter(y=>!hasBuf(y)&&!bad.includes(y)).length}`,(list.length-bad.length)/list.length)})}
+  await pool(again,r<3?2:1,async x=>{if(busy.cancel)return;try{await lineCap(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}busy.set(`🔁 សាកម្ដងទៀត (${r}/5) · នៅសល់ ${bad.length+again.filter(y=>!hasBuf(y)&&!bad.includes(y)).length}`,(list.length-bad.length)/list.length)})}
  busy.off();renderSubs();renderScrub();if(busy.cancel)return false;
  if(bad.length&&((typeof AUTO!=='undefined'&&AUTO.run)||AGO)){const ok=list.length-bad.length;toast(`⚠ ${bad.length} បន្ទាត់មិនទាន់មានសំឡេង (Microsoft មិនឆ្លើយ) — បន្តការងារ`,4000);return ok>0}
  if(bad.length){const ok=list.length-bad.length;if(await ask(`🔊 បង្កើតសំឡេងរួច <b>${ok}/${list.length}</b> បន្ទាត់<br>⚠ <b>${bad.length}</b> បន្ទាត់មិនទាន់បាន (Microsoft មិនឆ្លើយ ឬអត្ថបទមិនច្បាស់)<div class="note">ឧ. "${esc(ttsText(bad[0].km).slice(0,60))}" — ${esc(bad[0].err)}</div>បន្ទាត់ទាំងនេះមានសញ្ញា 🔴 នៅក្នុងបញ្ជី Sub។`,'🔁 សាកម្ដងទៀត','ទុកសិន'))return genAll();return ok>0}
@@ -3455,7 +3457,7 @@ async function dubClip(c){const ci=S.clips.indexOf(c);if(ci<0)return;const off=o
  /* voices — merge very short pieces first so speech flows */
  c.q='tts';qPaint();joinShort();const list=S.subs.filter(s=>!hasBuf(s));let n=0,bad=0;
  if(list.length){if(!SRV.ok)await checkServer(true);await prepareVoices(list);
-  await pool(list,NATIVE?5:6,async x=>{try{await genLine(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad++}n++;busy.set(`${tag} · 🔊 សំឡេង ${n}/${list.length}${bad?` · ⚠ ${bad}`:''}`,n/list.length)})}
+  await pool(list,NATIVE?5:6,async x=>{try{await lineCap(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad++}n++;busy.set(`${tag} · 🔊 សំឡេង ${n}/${list.length}${bad?` · ⚠ ${bad}`:''}`,n/list.length)})}
  if(busy.cancel)return;c.q=bad&&bad===list.length?'bad':'ok';MIX.dirty=true;renderSubs();renderScrub();qPaint();Q.n++}
 async function qRun(){if(Q.run||!Q.ids.length)return;Q.run=true;Q.n=0;document.body.classList.add('qOn');busy.on('⚡ កំពុងចាប់ផ្ដើមជួរ...',null);pause();aiBackground();let err=null;
  try{while(Q.ids.length&&!busy.cancel){const id=Q.ids.shift(),c=S.clips.find(x=>x.id===id);if(!c||c.q==='ok')continue;Q.cur=c;try{await dubClip(c)}catch(e){if(busy.cancel)break;c.q='bad';qPaint();err=e;toast(`✕ វីដេអូ ${S.clips.indexOf(c)+1}: ${e.message||e}`,5000)}}}
