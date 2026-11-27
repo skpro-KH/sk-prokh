@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.9';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.0';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2255,6 +2255,48 @@ html.apk .sl span,html.apk .l{color:#c7d4ff}
 html.apk .dlq .fmt button.on{background:linear-gradient(#13204b,#13204b) padding-box,linear-gradient(135deg,#22d3ee,#3b82f6) border-box!important}
 html.apk .bro-t,html.apk .spk,html.apk .item{background:#13204b!important;border-color:rgba(140,160,255,.2)!important}
 html.apk details.more summary{color:#a5c8ff}
+/* ===== v8.0 PC only ===== */
+html.apkpc body{background:#040716 url('bg-angkor.svg') center bottom/cover fixed no-repeat!important}
+html.apkpc body::before{content:'';position:fixed;inset:0;background:linear-gradient(180deg,rgba(4,8,26,.55),rgba(4,8,26,.35) 45%,rgba(4,8,26,.7));pointer-events:none;z-index:0}
+html.apkpc .app{position:relative;z-index:1;max-width:none!important;width:100%;grid-template-columns:250px minmax(0,1fr) minmax(460px,34vw)!important;grid-template-rows:auto 1fr!important;column-gap:18px!important;padding:0 18px!important;min-height:100vh}
+html.apkpc .top{grid-column:1/-1!important;display:flex;align-items:center;gap:16px;padding:10px 0!important}
+html.apkpc #pcTools{grid-column:1;grid-row:2;align-self:start;position:sticky;top:10px;display:flex;flex-direction:column;gap:7px;padding:12px;border-radius:24px;background:rgba(10,18,48,.62);backdrop-filter:blur(14px);border:1.5px solid rgba(34,211,238,.35);overflow:hidden}
+html.apkpc .player{grid-column:2!important;grid-row:2!important;position:sticky;top:10px;background:rgba(10,18,48,.5) padding-box,linear-gradient(var(--pa,120deg),rgba(34,211,238,.6),rgba(59,130,246,.15),rgba(52,211,153,.55)) border-box!important;backdrop-filter:blur(12px)}
+html.apkpc .pages{grid-column:3!important;grid-row:2!important}
+html.apkpc #railL{display:none!important}
+html.apkpc #cv{max-height:calc(100vh - 290px)!important}
+html.apkpc .stage{min-height:calc(100vh - 300px)!important}
+html.apkpc .card{background:rgba(12,22,56,.66)!important;backdrop-filter:blur(14px)}
+html.apkpc .pt-h{font:800 15px/1 system-ui,sans-serif;color:#7dd3fc;padding:4px 6px 8px;letter-spacing:.3px}
+html.apkpc #pcTools button[data-t]{display:flex;align-items:center;gap:11px;text-align:left;border:1px solid rgba(140,160,255,.2);background:rgba(19,32,75,.75);color:#e8eeff;border-radius:15px;padding:10px 12px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s,background .15s}
+html.apkpc #pcTools button i{font-style:normal;font-size:21px;width:28px;text-align:center}
+html.apkpc #pcTools button b{display:block;font:800 14px/1.25 system-ui,sans-serif}html.apkpc #pcTools button small{display:block;color:#8fa3d8;font-size:11.5px;margin-top:2px}
+html.apkpc #pcTools button[data-t]:hover{transform:translateX(4px);border-color:rgba(34,211,238,.7);background:rgba(25,45,105,.85)}
+html.apkpc #pcTools button.on{background:linear-gradient(135deg,rgba(34,211,238,.25),rgba(59,130,246,.3));border-color:#22d3ee;box-shadow:0 0 18px rgba(34,211,238,.35)}
+html.apkpc #pcTools button[data-t=auto]{background:linear-gradient(135deg,#16a37f,#0d6b55);border-color:#34d399}
+/* running light going up and down along each tool button and the panels */
+html.apkpc #pcTools button[data-t]::after{content:'';position:absolute;left:0;top:-40%;width:3px;height:40%;background:linear-gradient(180deg,transparent,#22d3ee,#e0fbff,#22d3ee,transparent);box-shadow:0 0 10px #22d3ee;animation:pcRun 2.6s ease-in-out infinite;pointer-events:none}
+html.apkpc #pcTools button[data-t]:nth-child(odd)::after{animation-delay:-1.3s;left:auto;right:0}
+html.apkpc #pcTools button[data-t]:nth-child(3n)::after{animation-duration:3.2s}
+@keyframes pcRun{0%{top:-40%}50%{top:100%}100%{top:-40%}}
+html.apkpc #pcTools::before,html.apkpc .player::after,html.apkpc .ak-q::after{content:'';position:absolute;top:0;width:2px;height:120px;background:linear-gradient(180deg,transparent,#67e8f9,#fff,#67e8f9,transparent);filter:drop-shadow(0 0 8px #22d3ee);animation:pcBeam 5s ease-in-out infinite;pointer-events:none;z-index:3}
+html.apkpc #pcTools::before{left:0}html.apkpc .player::after{right:0;animation-delay:-2.5s}html.apkpc .ak-q::after{left:0;animation-delay:-1.2s}
+html.apkpc .player,html.apkpc .ak-q{position:relative}
+@keyframes pcBeam{0%{transform:translateY(-130px);opacity:0}10%{opacity:1}50%{transform:translateY(calc(var(--bh,600px)));opacity:1}60%{opacity:0}100%{transform:translateY(-130px);opacity:0}}
+html.apkpc .pt-z{display:flex;align-items:center;gap:6px;margin-top:6px;padding:8px 6px 2px;border-top:1px solid rgba(140,160,255,.18);color:#9fb2e6;font-size:12px}
+html.apkpc .pt-z span{flex:1}html.apkpc .pt-z button{border:1px solid rgba(140,160,255,.3);background:#13204b;color:#cfe0ff;border-radius:9px;padding:5px 9px;font:700 12px system-ui}
+/* tabs in header */
+html.apkpc .top #nav{position:static!important;margin:0 auto!important;width:auto;max-width:none;transform:none;display:flex;gap:6px;padding:5px!important;border-radius:20px!important;box-shadow:0 0 0 1.5px rgba(34,211,238,.35),0 0 16px rgba(34,211,238,.18)}
+html.apkpc .top #nav button{flex:0 0 auto!important;padding:9px 20px!important;font-size:14px!important;gap:8px!important;flex-direction:row!important}
+html.apkpc .top #nav button i{font-size:18px!important}
+html.apkpc .top #nav button:not(.on){color:#cfe0ff!important;font-size:14px!important}
+html.apkpc .page{padding:0 0 30px!important}
+html.apkpc #akDock{margin:0 0 14px!important;max-height:calc(100vh - 140px);overflow:auto;background:rgba(12,22,56,.8)!important;backdrop-filter:blur(14px)}
+/* bigger, easier to read */
+html.apkpc .au-it{padding:14px 16px!important}html.apkpc .ak-nm{font-size:15px}html.apkpc .ak-msg{font-size:13.5px}html.apkpc .ak-qh b{font-size:19px}
+html.apkpc .ak-ctl{padding:7px 10px}html.apkpc .ak-ctl .pl{width:46px;height:46px;font-size:18px}
+html.apkpc .ak-mix span{font-size:13.5px}
+
 /* v7.9: tools, mixer, dock, PC layout, animations */
 html.apk #railL{gap:8px}
 html.apk #railL button{height:52px;flex:0 0 52px;flex-direction:column;gap:2px}
@@ -2381,6 +2423,24 @@ function gemAccHTML(){if(window.__apk)return`<div class="ak-tg kGemBox" style="m
  return`<div class="ak-tg kGemBox" style="margin-top:10px;border-color:${srv?'rgba(52,211,153,.7)':'rgba(96,165,250,.6)'}"><span style="font-size:22px">🔷</span><div>${srv?'Gemini AI · ដំណើរការស្វ័យប្រវត្តិ ✓':'AI បកប្រែ · ដំណើរការស្វ័យប្រវត្តិ ✓'}<small>${srv?'មិនបាច់ Login មិនបាច់ Key — បកប្រែ និងសម្រាយដោយ Gemini ពី Server SK ProKH':'បកប្រែតាមសាច់រឿង ពី Server SK ProKH — មិនបាច់ Key'}</small></div></div>`}
 window.addEventListener('focus',async()=>{if(GEMW.t){const c=await gemClip();if(/AIza[\w-]{30,}/.test(c))gemTry(c,true)}});
 setTimeout(async()=>{try{const r=await fetch(STAT_HOST+'/health',{signal:AbortSignal.timeout(6000)});const h=await r.json();window.SRVGEM=!!(h.features&&h.features.gem);if(window.SRVGEM){gemRepaint();try{trChipsPaint()}catch(e){}}}catch(e){}},300);
+
+/* ============ v8.0 PC app only: full screen, big & easy to read, tool panel, Angkor Wat background, running lights ============ */
+if(window.__apk&&document.documentElement.classList.contains('apkpc')){
+ const fit=()=>{try{if(DubNative.zoom){const w=(screen.availWidth||screen.width||1600);const f=Math.max(1,Math.min(1.8,w/1600));const u=+LS.get('pcZoom',0);DubNative.zoom(u||f)}}catch(e){}};fit();
+ /* tool panel */
+ const T=[['add','📄','ដាក់វីដេអូ','ជ្រើសវីដេអូ (ច្រើនបាន)'],['auto','✨','Auto Run','ការកំណត់ & ចាប់ផ្ដើម'],['blur','◐','Blur','បិទអក្សរចាស់'],['erase','🧠','AI លុប Sub ចិន','លុបអក្សរចិនដោយ AI'],['logo','🏷','Logo','លុបផ្ទៃខាងក្រោយ'],['vlogo','🎞','វីដេអូ Logo','Green screen / AI'],['mq','📢','អក្សររត់','អក្សររត់ / នៅស្ងៀម'],['sty','🔤','Subtitle ខ្មែរ','ពុម្ពអក្សរ · ពណ៌'],['txt','💬','អត្ថបទ','មើល & កែការបកប្រែ'],['exp','⬇','Export ខ្លួនឯង','ទំហំ · fps · MP3'],['clean','🧹','សម្អាត','លុប Cache'],['set','⚙','ការកំណត់','License · Server']];
+ $('.app').insertAdjacentHTML('afterbegin',`<aside id="pcTools"><div class="pt-h">🛠 ឧបករណ៍</div>${T.map(([k,i,n,d])=>`<button data-t="${k}"><i>${i}</i><span><b>${n}</b><small>${d}</small></span></button>`).join('')}<div class="pt-z"><span>🔍 ទំហំ</span><button data-z="-">−</button><button data-z="0">Auto</button><button data-z="+">＋</button></div></aside>`);
+ $('#pcTools').onclick=e=>{const z=e.target.closest('[data-z]');if(z){let f=1;try{f=DubNative.zoom()}catch(x){}const v=z.dataset.z==='0'?0:Math.max(.8,Math.min(2.2,f+(z.dataset.z==='+'?.1:-.1)));LS.set('pcZoom',v);fit();return}
+  const b=e.target.closest('[data-t]');if(!b)return;buzz();const t=b.dataset.t;$$('#pcTools [data-t]').forEach(x=>x.classList.toggle('on',x===b&&!['add','auto','clean','set','txt'].includes(t)));
+  if(t==='add')return $('#auFile').click();if(t==='auto')return akCfg(false);if(t==='clean')return $('#cleanDev').click();if(t==='set')return $('#setBtn').click();
+  if(t==='txt'){GP_USER=true;try{goPage('pg-sub')}finally{GP_USER=false}return}
+  const M={blur:[/Blur — បិទអក្សរ/,'◐ Blur — អូសប្រអប់លើវីដេអូ'],erase:[/AI លុប Sub ចិន/,'🧠 AI លុប Sub ចិន'],logo:[/Logo \/ Watermark/,'🏷 Logo — លុបផ្ទៃខាងក្រោយ'],vlogo:[/វីដេអូ \/ រូប/,'🎞 វីដេអូ Logo — លុបផ្ទៃខាងក្រោយ'],mq:[/អក្សររត់/,'📢 អក្សររត់លើវីដេអូ'],sty:[/រចនា Subtitle/,'🔤 Subtitle ខ្មែរលើវីដេអូ'],exp:[/ទាញយក \(ការកំណត់/,'⬇ Export ខ្លួនឯង']}[t];
+  if(M){if(t==='sty'&&!S.style.show){S.style.show=true;save();draw()}openDock('pg-exp',M[0],M[1])}};
+ /* tabs in the header, tool dock in the right column */
+ $('.top').insertBefore($('#nav'),$('.top').children[1]||null);
+ $('#pages').insertBefore($('#akDock'),$('#pages').firstChild);
+ const dx=$('#akDock');new MutationObserver(()=>{if(dx.hidden)$$('#pcTools [data-t]').forEach(x=>x.classList.remove('on'))}).observe(dx,{attributes:true,attributeFilter:['hidden']});
+}
 async function akPreview(it){try{auReset();const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}}catch(e){toast('✕ '+(e.message||e))}}
 function akMerge(fs){return new Promise(r=>{sheet(`<div class="ak-mg"><span class="ic">⛙</span><div><h4>បញ្ចូលវីដេអូច្រើន (Merge Videos)</h4><small>អ្នកបានជ្រើសរើសវីដេអូច្រើន</small></div></div>
   <div style="margin-top:12px;font-size:14px;line-height:1.7">តើអ្នកចង់បញ្ចូល (Merge) វីដេអូទាំង ${fs.length} នេះបញ្ចូលគ្នាជាវីដេអូតែមួយ មុនពេលបកប្រែឬទេ?</div>
