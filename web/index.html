@@ -708,7 +708,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.5';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.6';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -976,7 +976,11 @@ async function genAll(){const left=S.subs.filter(needsTr);if(left.length){toast(
  busy.on('🔊 កំពុងបង្កើតសំឡេងខ្មែរ...',0);let n=0;const bad=[];
  try{await prepareVoices(list)}catch(e){busy.off();if(!busy.cancel)toast('✕ '+e.message,5000);return false}
  await pool(list,NATIVE?5:6,async x=>{try{await genLine(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}n++;busy.set(`🔊 ${spOf(x).name}: បន្ទាត់ ${n}/${list.length}${bad.length?` · ⚠ ${bad.length}`:''}`,n/list.length)});
+ /* v8.6: Microsoft sometimes closes the connection ("closed") when many lines are asked at once — retry the failed lines by itself, slower each round, before asking anything */
+ for(let r=1;r<=5&&bad.length&&!busy.cancel;r++){const again=bad.splice(0);busy.set(`🔁 សាកម្ដងទៀតដោយស្វ័យប្រវត្តិ (${r}/5) · ${again.length} បន្ទាត់...`,(list.length-again.length)/list.length);await sleep(r*1500);
+  await pool(again,r<3?2:1,async x=>{if(busy.cancel)return;try{await genLine(x);x.err=''}catch(e){if(busy.cancel)return;x.err=String(e.message||e).slice(0,120);bad.push(x)}busy.set(`🔁 សាកម្ដងទៀត (${r}/5) · នៅសល់ ${bad.length+again.filter(y=>!hasBuf(y)&&!bad.includes(y)).length}`,(list.length-bad.length)/list.length)})}
  busy.off();renderSubs();renderScrub();if(busy.cancel)return false;
+ if(bad.length&&((typeof AUTO!=='undefined'&&AUTO.run)||AGO)){const ok=list.length-bad.length;toast(`⚠ ${bad.length} បន្ទាត់មិនទាន់មានសំឡេង (Microsoft មិនឆ្លើយ) — បន្តការងារ`,4000);return ok>0}
  if(bad.length){const ok=list.length-bad.length;if(await ask(`🔊 បង្កើតសំឡេងរួច <b>${ok}/${list.length}</b> បន្ទាត់<br>⚠ <b>${bad.length}</b> បន្ទាត់មិនទាន់បាន (Microsoft មិនឆ្លើយ ឬអត្ថបទមិនច្បាស់)<div class="note">ឧ. "${esc(ttsText(bad[0].km).slice(0,60))}" — ${esc(bad[0].err)}</div>បន្ទាត់ទាំងនេះមានសញ្ញា 🔴 នៅក្នុងបញ្ជី Sub។`,'🔁 សាកម្ដងទៀត','ទុកសិន'))return genAll();return ok>0}
  BG.done='សំឡេងខ្មែររួចរាល់ '+list.length+' បន្ទាត់';toast('✓ សំឡេងខ្មែររួចរាល់ '+list.length+' បន្ទាត់');buzz(30);return true}
 $('#genBtn').onclick=genAll;
