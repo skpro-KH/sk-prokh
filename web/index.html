@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.3';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -844,10 +844,17 @@ const KIRI_V=[['Maly','👩 Maly','f'],['Nita','👩 Nita','f'],['Chanda','👩 
 const kiriOn=()=>!!(KIRI.on&&KIRI.key);
 const kiriVoice=v=>!kiriOn()?'':v===SRM_V?KIRI.f:v===PIS_V?KIRI.m:'';
 const SRM_V='km-KH-SreymomNeural',PIS_V='km-KH-PisethNeural';
+/* v8.4: on the phone / PC app the request goes out through the app itself (no browser CORS block) and the audio comes back as base64 */
+const natB64=()=>NATIVE&&DubNative.http&&vcmp(natInfo().version,'8.4')>=0;
+async function kiriNat(url,key,B){const id=ridH();const r=await Promise.race([new Promise(res=>{nHttp.set(id,res);DubNative.http(id,'POST',url,JSON.stringify({Authorization:'Bearer '+key,'Content-Type':'application/json','X-B64':'1'}),B)}),sleep(95000).then(()=>({err:'timeout'}))]);
+ if(r.err)throw Error('Kiri: '+r.err);if(r.status>=200&&r.status<300){const bin=atob(r.text||'');const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return{ok:true,status:r.status,arrayBuffer:async()=>u.buffer}}
+ return{ok:false,status:r.status,json:async()=>JSON.parse(r.text||'{}')}}
 async function kiriCall(body,key){key=key||KIRI.key;const B=JSON.stringify(body);let last;
  for(let a=0;a<4;a++){try{let r;
+   if(natB64())r=await kiriNat('https://api.kiritts.com/v1/audio/speech',key,B);
+   else
    if(KIRI.via!=='relay'){try{r=await fetch('https://api.kiritts.com/v1/audio/speech',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:B,signal:sigT(60000)});if(!KIRI.via){KIRI.via='direct'}}catch(e){if(busy.cancel)throw e;if(KIRI.via!=='direct'){KIRI.via='relay'}else throw e}}
-   if(!r)r=await fetch(STAT_HOST+'/kiri',{method:'POST',headers:{'x-kiri-key':key,'Content-Type':'application/json'},body:B,signal:sigT(60000)});
+   if(!r){try{r=await fetch(STAT_HOST+'/kiri',{method:'POST',headers:{'x-kiri-key':key,'Content-Type':'application/json'},body:B,signal:sigT(60000)})}catch(e){if(busy.cancel)throw e;throw Object.assign(Error(NATIVE?'Kiri: App កំណែនេះភ្ជាប់ Kiri មិនបាន — សូម Update App ជា v8.4 (👤 ខ្ញុំ → 🔄 ពិនិត្យ Update)':'Kiri: ភ្ជាប់មិនបាន (Internet ឬ Server)'),{fatal:NATIVE?1:0})}}
    if(r.ok){const ab=await r.arrayBuffer();if(ab.byteLength>200)return ab;last=Error('Kiri: សំឡេងទទេ')}
    else{let m='';try{const j=await r.json();m=(j.error&&(j.error.message||j.error))||j.message||''}catch(e){}
     if(r.status===401||r.status===403)throw Object.assign(Error('Kiri: API Key ខុស ឬផុតកំណត់'),{fatal:1});
@@ -3037,7 +3044,7 @@ setTimeout(statPub,300);setInterval(()=>{LIC.ok?statPing():statPub()},120000);do
 $('#statPill').onclick=async()=>{await statPing();const t=STATS;sheet(`<h4>👥 អ្នកប្រើ SK ProKH</h4><div class="note">ទិន្នន័យផ្ទាល់ (Live) · ធ្វើបច្ចុប្បន្នភាពរៀងរាល់ ២ នាទី</div>
  <div class="stg">${t.online==null?'':`<div><b>${kfmt(t.online||0)}</b><small>🟢 កំពុងប្រើឥឡូវ</small></div><div><b>${kfmt(t.today||0)}</b><small>📅 ប្រើថ្ងៃនេះ</small></div>`}<div><b>${kfmt(t.total||0)}</b><small>👥 អ្នកប្រើសរុប</small></div>${t.uses==null?'':`<div><b>${kfmt(t.uses||0)}</b><small>▶ ចំនួនដងប្រើសរុប</small></div>`}</div>`)};
 async function licInit(){$('#licDev').textContent=await deviceShort();const k=LS.get('licKey','');let r=k?await checkLicense(k):{ok:false};if(r.ok){const sv=await licServer(k,r);if(!sv.ok)r={ok:false,err:sv.err}}
- if(r.ok){LIC.ok=true;LIC.info=r;$('#lic').classList.remove('on');return true}LIC.ok=false;$('#lic').classList.add('on');if(k&&r.err)$('#licMsg').textContent='⚠ '+r.err;return false}
+ if(r.ok){LIC.ok=true;LIC.info=r;$('#lic').classList.remove('on');try{window.meAccPaint&&meAccPaint()}catch(e){}return true}LIC.ok=false;$('#lic').classList.add('on');if(k&&r.err)$('#licMsg').textContent='⚠ '+r.err;return false}
 $('#licGo').onclick=async()=>{buzz();const k=$('#licKey').value.trim();if(!k)return $('#licMsg').textContent='សូមបញ្ចូល License Key';$('#licMsg').textContent='កំពុងពិនិត្យ...';let r=await checkLicense(k);if(r.ok){const sv=await licServer(k,r);if(!sv.ok)r={ok:false,err:sv.err}}
  if(!r.ok){$('#licMsg').textContent='✕ '+r.err;$('#licCard').classList.remove('shake');void $('#licCard').offsetWidth;$('#licCard').classList.add('shake');buzz(80);return}
  LS.set('licKey',k);LIC.ok=true;LIC.info=r;$('#licMsg').textContent='✓ ជោគជ័យ!';buzz(40);setTimeout(()=>{$('#lic').classList.add('bye');setTimeout(()=>{$('#lic').classList.remove('on','bye');afterUnlock()},650)},400);toast('🎉 License សកម្ម · '+licExpTxt(r),4000)};

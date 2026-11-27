@@ -2,27 +2,27 @@
  "minApk": "8.1",
  "minWin": "8.1",
  "apk": {
-  "ver": "8.1",
+  "ver": "8.4",
   "url": "https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/dl/SK-ProKH.apk",
   "notes": [
-   "ថ្មី៖ ប៊ូតុង 🆕 Update ក្នុង App — ចុចតែម្ដង ក៏បាន App ថ្មី",
-   "PC: ពេញអេក្រង់ · ផ្ទាំងឧបករណ៍ · ផ្ទៃប្រាសាទអង្គរវត្ត",
-   "អាន Sub គ្រប់បន្ទាត់ · វីដេអូចេញដូច Original"
-  ]
+   "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
+   "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
+  ],
+  "must": true
  },
  "win": {
-  "ver": "8.1",
+  "ver": "8.4",
   "page": "https://t.me/wang_linkh",
   "notes": [
-   "ថ្មី៖ ប៊ូតុង 🆕 Update ក្នុង App — ចុចតែម្ដង ក៏បាន App ថ្មី",
-   "PC: ពេញអេក្រង់ · ផ្ទាំងឧបករណ៍ · ផ្ទៃប្រាសាទអង្គរវត្ត",
-   "អាន Sub គ្រប់បន្ទាត់ · វីដេអូចេញដូច Original"
-  ]
+   "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
+   "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
+  ],
+  "must": true
  },
- "app": "8.3",
+ "app": "8.4",
  "page": "web/app-native.html",
  "notes": [
-  "🎙 ថ្មី៖ Kiri TTS — ដាក់ API Key ពី kiritts.com ដើម្បីបានសំឡេងខ្មែរធម្មជាតិ (Bora · Arun · Maly · Nita · Chanda)",
-  "ទូរសព្ទ៖ 👤 ខ្ញុំ → 🎙 Kiri TTS · PC៖ ផ្ទាំងឧបករណ៍ → 🎙 Kiri TTS"
+  "🎙 ជួសជុល Kiri TTS 'Failed to fetch' — App ហៅ Kiri ដោយខ្លួនឯង",
+  "ទូរសព្ទ៖ ចុច Update → ទាញ APK ថ្មី → ចុច Install"
  ]
 }
