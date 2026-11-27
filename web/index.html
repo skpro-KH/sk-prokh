@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.6';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='7.7';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1169,12 +1169,12 @@ async function mp4VIndex(m){if(m.vix!==undefined)return m.vix;m.vix=null;try{con
   const dts=new Float64Array(n);{let i=0,t=0;const ne=mv.getUint32(K.stts.s+4);for(let e=0;e<ne&&i<n;e++){const c=mv.getUint32(K.stts.s+8+e*8),d=mv.getUint32(K.stts.s+12+e*8);for(let k=0;k<c&&i<n;k++){dts[i++]=t;t+=d}}}
   const pts=new Float64Array(n);pts.set(dts);if(K.ctts){const v=mv.getUint8(K.ctts.s),ne=mv.getUint32(K.ctts.s+4);let i=0;for(let e=0;e<ne&&i<n;e++){const c=mv.getUint32(K.ctts.s+8+e*8),o=v===1?mv.getInt32(K.ctts.s+12+e*8):mv.getUint32(K.ctts.s+12+e*8);for(let k=0;k<c&&i<n;k++)pts[i++]+=o}}
   let edit=0;const el=boxFind(mv,trak.s,trak.e,['edts','elst'])[0];if(el){const v=mv.getUint8(el.s),cnt=mv.getUint32(el.s+4);if(cnt){const mt=v===1?Number(mv.getBigInt64(el.s+16)):mv.getInt32(el.s+12);if(mt>0)edit=mt}}
-  for(let i=0;i<n;i++)pts[i]=(pts[i]-edit)/ts;
+  for(let i=0;i<n;i++){pts[i]=(pts[i]-edit)/ts;dts[i]=(dts[i]-edit)/ts}
   const key=new Uint8Array(n);if(K.stss){const ne=mv.getUint32(K.stss.s+4);for(let e=0;e<ne;e++){const k=mv.getUint32(K.stss.s+8+e*4)-1;if(k>=0&&k<n)key[k]=1}}else key.fill(1);
   const nc=mv.getUint32(stco.s+4),co=new Float64Array(nc);for(let i=0;i<nc;i++)co[i]=c64?Number(mv.getBigUint64(stco.s+8+i*8)):mv.getUint32(stco.s+8+i*4);
   const offs=new Float64Array(n);{const ne=mv.getUint32(K.stsc.s+4),E=[];for(let e=0;e<ne;e++)E.push([mv.getUint32(K.stsc.s+8+e*12),mv.getUint32(K.stsc.s+12+e*12)]);let si=0;
    for(let e=0;e<E.length;e++){const last=e+1<E.length?E[e+1][0]-1:nc;for(let c=E[e][0];c<=last&&si<n;c++){let o=co[c-1];for(let k=0;k<E[e][1]&&si<n;k++){offs[si]=o;o+=sizes[si];si++}}}}
-  m.vix={codec:vc.codec,desc:vc.desc,w,h,n,sizes,offs,pts,key};return m.vix}}catch(e){m.vix=null}return m.vix}
+  m.vix={codec:vc.codec,desc:vc.desc,w,h,n,sizes,offs,pts,dts,key};return m.vix}}catch(e){m.vix=null}return m.vix}
 let DRAWSRC=null;
 async function fastPlan(){if(!window.VideoEncoder||!window.VideoDecoder||!window.AudioEncoder||!window.Mp4Muxer||S.fast===false)return null;
  for(const m of new Set(S.clips.map(c=>c.m))){const v=await mp4VIndex(m);if(!v)return null;const cfg={codec:v.codec,codedWidth:v.w,codedHeight:v.h};if(v.desc)cfg.description=v.desc;
@@ -1349,6 +1349,45 @@ function natSink(W,H,FPS,SR,name){const nid=DubNative.encStartTo(W,H,FPS,0,SR,2,
   async finish(frames){while(DubNative.encQueued(nid)>0)await sleep(20);const o=await new Promise(res=>{window.__dubEnc=(i,r)=>{if(i===nid)res(r)};DubNative.encFinish(nid,name,S.out.sub||'')});if(!o.ok)throw Error(o.err||'muxer');return{native:true,name,size:o.size,uri:o.uri||'',url:o.url,type:'video/mp4',frames}},
   cancel(){try{DubNative.encCancel(nid)}catch(e){}}}}
 const tmo=(p,ms)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj(Object.assign(Error('timeout'),{tmo:true})),ms))]);
+
+/* ============ v7.7 "Original copy" export: the picture is copied byte-for-byte from your video (no re-encoding) — only the sound is replaced with the Khmer mix.
+   Same size, same quality, same colours, same smoothness as the original, and very fast. Used whenever nothing is drawn on the picture. ============ */
+function drawsNothing(){const f=S.fx||{};return (S.out.aspect||'src')==='src'&&!S.style.show&&!S.box.on&&!(S.erase&&S.erase.on)&&!(S.logo&&S.logo.on&&LOGO.img)&&!(S.mq&&S.mq.on&&String(S.mq.text||'').trim())&&!(S.ov&&S.ov.on&&OV.frames.length)&&(!f.preset||f.preset==='none')&&(+f.zoom||1)===1&&!f.flip&&(+f.bright||1)===1&&(+f.contrast||1)===1&&(+f.sat||1)===1&&!f.vignette}
+async function copyPlan(){if(!S.clips.length||!drawsNothing()||!window.Mp4Muxer)return null;let desc=null,codec='',W=0,H=0;const segs=[];let off=0;
+ for(const c of S.clips){const v=await mp4VIndex(c.m);if(!v||!/^avc1/.test(v.codec)||!v.dts)return null;const d=b64u8x(v.desc);if(desc===null){desc=d;codec=v.codec;W=v.w;H=v.h}else if(codec!==v.codec||W!==v.w||H!==v.h||!eqU8(desc,d))return null;
+  let mx=0;for(let i=0;i<v.n;i++)if(v.pts[i]>mx)mx=v.pts[i];let ks=-1;for(let i=0;i<v.n;i++)if(v.key[i]&&Math.abs(v.pts[i]-c.in)<.06){ks=i;break}
+  if(ks<0||c.out<mx-.02)return null;segs.push({c,v,ks,off,base:v.pts[ks]});off+=c.out-c.in}
+ return{desc,codec,W,H,segs}}
+const b64u8x=x=>x instanceof Uint8Array?x:x instanceof ArrayBuffer?new Uint8Array(x):ArrayBuffer.isView(x)?new Uint8Array(x.buffer,x.byteOffset,x.byteLength):new Uint8Array(0);
+const eqU8=(a,b)=>{if(a.length!==b.length)return false;for(let i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true};
+async function copyExport(label,cp){const T=total(),SR=44100;liveSched();const L=liveLevels();const D={sched:LIVE.sched,o:duckFn(LIVE.iv,L.base,L.low),i:duckFn(LIVE.iv,L.base,L.ilow),b:duckFn(LIVE.iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);
+ const name=outFileName(label,'mp4'),fps=Math.max(1,Math.round(srcStats(S.clips[0].m).fps||30));EXPM.how='🎬 Original copy';
+ const hasB=cp.segs.some(g=>{for(let i=g.ks+1;i<g.v.n;i++)if(g.v.pts[i]<g.v.pts[i-1]-1e-6)return true;return false});
+ let aacW=false;try{aacW=!!window.AudioEncoder&&(await AudioEncoder.isConfigSupported({codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2,bitrate:160000})).supported}catch(e){}
+ /* phone: Android's own muxer when the video has no B-frames; videos with B-frames go through the in-app muxer (proven frame-exact) when AAC is available */
+ const NS=natOK()&&(!hasB||!aacW)?natSink(cp.W,cp.H,fps,SR,name):null;let mux=null,ae=null,err=null,frames=0,asr=SR;if(NS){try{DubNative.encCopy(NS.nid)}catch(e){NS.cancel();return null}}const t0w=performance.now();
+ if(!NS){let acfg=null,ac='aac';for(const[cd,sr,mc]of[['mp4a.40.2',44100,'aac'],['mp4a.40.2',48000,'aac'],...(NATIVE?[]:[['opus',48000,'opus']])]){const x={codec:cd,sampleRate:sr,numberOfChannels:2,bitrate:160000};try{if((await AudioEncoder.isConfigSupported(x)).supported){acfg=x;ac=mc;break}}catch(e){}}if(!acfg)return null;asr=acfg.sampleRate;
+  mux=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:'avc',width:cp.W,height:cp.H,frameRate:fps},audio:{codec:ac,numberOfChannels:2,sampleRate:acfg.sampleRate},fastStart:'in-memory',firstTimestampBehavior:'cross-track-offset'});
+  ae=new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>err=e});ae.configure(acfg)}
+ const meta={decoderConfig:{codec:cp.codec,codedWidth:cp.W,codedHeight:cp.H,description:cp.desc}};let sh=0;if(!NS)for(const g of cp.segs)for(let i=g.ks;i<g.v.n;i++)sh=Math.max(sh,g.base-g.v.dts[i]-g.off);/* B-frames: shift both tracks so decode times start at 0 and picture + sound stay together */
+ try{/* 1) picture: copy every sample */let first=true;
+  for(const g of cp.segs){const v=g.v;for(let i=g.ks;i<v.n;){if(busy.cancel||err)break;let j=i+1,e=v.offs[i]+v.sizes[i];while(j<v.n&&v.offs[j]===e&&e-v.offs[i]<4e6){e+=v.sizes[j];j++}
+    const buf=new Uint8Array(await g.c.m.file.slice(v.offs[i],e).arrayBuffer());let p=0;
+    for(let k=i;k<j;k++){const data=buf.subarray(p,p+v.sizes[k]);p+=v.sizes[k];const pt=g.off+(v.pts[k]-g.base),dt=g.off+(v.dts[k]-g.base);if(pt<-.001||pt>T+.05)continue;
+     const nd=k+1<v.n?v.dts[k+1]-v.dts[k]:1/fps,typ=v.key[k]?'key':'delta';
+     if(NS){const ch=new EncodedVideoChunk({type:typ,timestamp:Math.max(0,Math.round(pt*1e6)),duration:Math.round(nd*1e6),data});NS.video(ch,first?meta:undefined);if(NS.err)throw NS.err;while(NS.queued()>16)await sleep(2)}
+     else mux.addVideoChunkRaw(data.slice(),typ,Math.max(0,Math.round((pt+sh)*1e6)),Math.round(nd*1e6),first?meta:undefined,Math.round((pt-dt)*1e6));first=false;frames++}
+    i=j;if(frames%60<12)busy.set(`🎬 Export ដូច Original ${Math.round(frames/Math.max(1,cp.segs.reduce((a,x)=>a+x.v.n,0))*60)}%`,frames/Math.max(1,cp.segs.reduce((a,x)=>a+x.v.n,0))*.6);await sleep(0)}}
+  if(busy.cancel){NS&&NS.cancel();return null}if(err)throw err;
+  /* 2) sound: the Khmer mix, 10 s at a time */
+  if(!NS&&sh>0){const n=Math.round(sh*asr);if(n>0){const ad=new AudioData({format:'f32-planar',sampleRate:asr,numberOfFrames:n,numberOfChannels:2,timestamp:0,data:new Float32Array(n*2)});ae.encode(ad);ad.close()}}
+  for(let s=0;s<T-1e-6;s+=10){if(busy.cancel)break;const e=Math.min(T,s+10);const buf=await mixWindow(s,e,asr,D);
+   if(NS)NS.audio(buf);else{const n=buf.length,data=new Float32Array(n*2);data.set(buf.getChannelData(0),0);data.set(buf.getChannelData(1),n);const ad=new AudioData({format:'f32-planar',sampleRate:buf.sampleRate,numberOfFrames:n,numberOfChannels:2,timestamp:Math.round((s+sh)*1e6),data});ae.encode(ad);ad.close()}
+   busy.set(`🔊 កំពុងបញ្ចូលសំឡេងខ្មែរ ${Math.round(e/T*100)}%`,.6+.4*e/T)}
+  if(busy.cancel){NS&&NS.cancel();return null}
+  if(NS){busy.set('💾 កំពុង Save...',null);return await NS.finish(frames)}
+  await tmo(ae.flush(),20000);if(err)throw err;mux.finalize();return new File([mux.target.buffer],name,{type:'video/mp4'})}
+ catch(e){NS&&NS.cancel();throw e}finally{try{ae&&ae.close()}catch(e){}}}
 async function fastExport(a,b,label,plan,sw){const{W,H,venc,aenc,acodec}=plan;liveSched();const sched=LIVE.sched,iv=LIVE.iv,L=liveLevels();
  const D={sched,o:duckFn(iv,L.base,L.low),i:duckFn(iv,L.base,L.ilow),b:duckFn(iv,S.mix.bgm,S.mix.bgm*.45)};splitD(D,L);const NS=natOK()?natSink(W,H,outFps(),44100,outFileName(label,'mp4')):null,SR=NS?44100:aenc.sampleRate;
  let parts=[],pos=0,seq=true;const target=new Mp4Muxer.StreamTarget({onData:(d,p)=>{if(p!==pos)seq=false;parts.push({p,d:new Uint8Array(d)});pos=Math.max(pos,p+d.byteLength)},chunked:true,chunkSize:8<<20});
@@ -1841,7 +1880,12 @@ async function translate(list,forceFree){if(list.some(s=>!s.km)){fragMerge();lis
  try{if(useG){for(let i=0;i<list.length;i+=40){if(busy.cancel)break;const b=list.slice(i,i+40);
     const d=await aiLLM([{text:`Translate each subtitle line of this Chinese drama into Khmer for VOICE DUBBING. Translate ACCURATELY and COMPLETELY — keep every word's meaning, never skip, summarize or invent; follow the story context of the surrounding lines (who talks to whom, relationships, earlier events) so pronouns and terms of address are right.${' '+'Write it the way Chinese series are dubbed on Cambodian TV: short, clear, natural spoken Khmer that anyone understands at once — simple everyday words, no literary or formal words, no long clauses. Keep the full meaning but say it in the fewest words; drop filler sounds (嗯, 啊, 哦, 呢) and repeated words if time is short. The line MUST fit its time so the voice is in sync with the mouth: at most "max" Khmer characters (about 12 per second) — if needed say it shorter, never cut the meaning.'}${ctxPrev(S.subs.indexOf(b[0]))} Style: ${STYLES[S.tr.style][1]} Each line must be speakable within "sec" seconds (~14 Khmer chars/sec, max "max" chars). Keep names consistent. Return {"lines":[...]} with exactly ${b.length} strings in order.\nEach line has the speaker's role — match their way of talking (villain rude/arrogant, child cute, elder respectful, lead natural).${glossList().length?' Use these name translations exactly: '+glossList().map(g=>g.join(' = ')).join('; ')+'.':''}\nLINES: ${JSON.stringify(b.map(s=>({sec:+(s.end-s.start).toFixed(1),max:Math.round((s.end-s.start)*12)+3,role:spOf(s).name,text:prepSrc(s.src)||s.src})))}`}],null,S.tr.style==='funny'?1:.5);
     const arr=d.lines||Object.values(d)[0];b.forEach((s,k)=>{if(arr[k]!=null)s.km=postKm(arr[k],s)});done+=b.length;liveSub();busy.set(`🌐 ${done}/${list.length}`,done/list.length)}}
-  else{const B=50,bs=[];for(let i=0;i<list.length;i+=B)bs.push(list.slice(i,i+B));await pool(bs,12,async b=>{const res=await trFree(b.map(s=>prepSrc(s.src)||s.src));b.forEach((s,i)=>s.km=postKm(res[i],s));done+=b.length;liveSub();busy.set(`🌐 ${done}/${list.length}`,done/list.length)})}
+  else{/* v7.7: every line gets translated — small batches, few at a time, each batch retried, nothing aborts the rest */
+   const todo=list.filter(s=>!s.km||notKm(s.km)),B=25,bs=[];for(let i=0;i<todo.length;i+=B)bs.push(todo.slice(i,i+B));
+   await pool(bs,4,async b=>{let res=null;for(let t=0;t<4&&!res&&!busy.cancel;t++){try{res=await trFree(b.map(s=>prepSrc(s.src)||s.src))}catch(e){if(busy.cancel)throw e;await sleep(1500*(t+1))}}
+    if(res)b.forEach((s,i)=>{if(res[i])s.km=postKm(res[i],s)});done+=b.length;liveSub();busy.set(`🌐 បកប្រែ ${done}/${todo.length}`,done/Math.max(1,todo.length))});
+   const miss=list.filter(s=>!s.km||!s.km.trim());for(const s0 of miss){if(busy.cancel)break;for(let t=0;t<3&&!(s0.km&&s0.km.trim());t++){try{const r=await trFree([prepSrc(s0.src)||s0.src]);if(r[0])s0.km=postKm(r[0],s0)}catch(e){await sleep(1200)}}}
+   const left=list.filter(s=>!s.km||!s.km.trim()).length;if(left)toast(`⚠ នៅ ${left} បន្ទាត់មិនទាន់បកប្រែ (Internet?) — ចុច 🔁 ម្ដងទៀត`,5000)}
   if(!busy.cancel)await kmOnly(list);subChanged();BG.done='បកប្រែរួច '+list.length+' បន្ទាត់';toast('✓ បកប្រែរួច');return !busy.cancel}catch(e){if(useG&&!busy.cancel){busy.off();toast('⚠ '+aiName()+' មានបញ្ហា ('+String(e.message||e).slice(0,60)+') — បកប្រែដោយ AI Server ជំនួស',4000);return translate(list,'srv')}toast('✕ '+e.message,5000);return false}finally{busy.off()}}
 $('#trBtn').onclick=()=>{aiBackground();translate(S.subs)};
 $('#trGloss').value=S.tr.gloss||'';$('#trGloss').onchange=e=>{S.tr.gloss=e.target.value;save()};$('#trShort').checked=S.tr.short===true;$('#trShort').onchange=e=>{S.tr.short=e.target.checked;save()};$('#trSpoken').checked=S.tr.spoken!==false;$('#trSpoken').onchange=e=>{S.tr.spoken=e.target.checked;save()};$('#trPron').checked=S.tr.pron!==false;$('#trPron').onchange=e=>{S.tr.pron=e.target.checked;save()};
@@ -2373,6 +2417,7 @@ $('#expBtn').onclick=async()=>{if(!S.clips.length)return toast('សូមដា�
  P.exporting=true;EXPM.how='';layout();busy.on('⏺ កំពុង Export...',0);const files=[];let plan;const tStart=Date.now();
  try{for(let k=0;k<R.length;k++){if(busy.cancel)break;const lbl=R.length>1?`ភាគ ${k+1}`:'';
    TITLE_T0=R[k][0];let f=null;
+   if(R.length===1&&R[k][0]<.01&&R[k][1]>=total()-.05){try{const cp=await copyPlan();if(cp){f=await copyExport(lbl,cp);if(!f&&busy.cancel)break}}catch(e){console.warn('copy',e);if(busy.cancel)break}}
    if(!PC&&NATIVE&&!f){/* v5.2 phone: fastest working path first */
     if(plan===undefined)plan=await fastPlan().catch(()=>null);
     if(plan&&(plan.acodec==='aac'||natOK())&&(await fastProbe(plan))){try{busy.set('⚡ Export លឿន...',null);f=await fastExport(R[k][0],R[k][1],lbl,plan,false);if(!f&&busy.cancel)break}catch(e){console.warn('fast',e);if(busy.cancel)break;if(e&&e.novideo)LS.set('fastOK',{v:2,ok:false})}}
@@ -3184,7 +3229,7 @@ function rr2(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r)
 function posterUI(){$('#pvBox').style.display=PO.clean?'':'none';$('#pvList').innerHTML=PO.items.map((it,i)=>`<div class="item" style="margin-top:8px;align-items:flex-start"><div class="t" style="flex:1"><div class="note" style="margin:0 0 4px">${it.role==='title'?'⭐ ចំណងជើង · ':''}${esc(it.src)}</div>
   <input data-pi="${i}" value="${esc(it.km)}" style="font-weight:700"></div><button class="btn g s" data-pt="${i}" style="margin-left:6px">${it.on?'👁':'🚫'}</button></div>`).join('');
  $('#pvList').querySelectorAll('[data-pi]').forEach(e=>e.oninput=()=>{PO.items[+e.dataset.pi].km=e.value;posterDraw()});$('#pvList').querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{const it=PO.items[+b.dataset.pt];it.on=!it.on;posterUI();posterDraw()})}
-function posterInit(){if(!ANDROID&&!window.__POSTER_ANY)return;$('#navPoster').style.display='';
+function posterInit(){if(!ANDROID&&!window.__POSTER_ANY)return;if(!$('#navPoster'))return;$('#navPoster').style.display='';
  $('#pvPick').onclick=()=>$('#pvFile').click();$('#pvFile').onchange=e=>{const f=e.target.files[0];e.target.value='';posterLoad(f)};
  const upd=k=>v=>{S.poster[k]=v;pSave();posterDraw()};
  chips($('#pvSty'),Object.entries(PSTY),()=>S.poster.sty,upd('sty'));chips($('#pvLay'),Object.entries(PLAY),()=>S.poster.lay,upd('lay'));chips($('#pvSize'),Object.entries(PSIZE).map(([k,v])=>[k,v[0]]),()=>S.poster.size,upd('size'));
