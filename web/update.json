@@ -1,0 +1,29 @@
+{
+ "minApk": "8.1",
+ "minWin": "8.1",
+ "apk": {
+  "ver": "8.1",
+  "url": "https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/dl/SK-ProKH.apk",
+  "notes": [
+   "ថ្មី៖ ប៊ូតុង 🆕 Update ក្នុង App — ចុចតែម្ដង ក៏បាន App ថ្មី",
+   "PC: ពេញអេក្រង់ · ផ្ទាំងឧបករណ៍ · ផ្ទៃប្រាសាទអង្គរវត្ត",
+   "អាន Sub គ្រប់បន្ទាត់ · វីដេអូចេញដូច Original"
+  ]
+ },
+ "win": {
+  "ver": "8.1",
+  "page": "https://t.me/wang_linkh",
+  "notes": [
+   "ថ្មី៖ ប៊ូតុង 🆕 Update ក្នុង App — ចុចតែម្ដង ក៏បាន App ថ្មី",
+   "PC: ពេញអេក្រង់ · ផ្ទាំងឧបករណ៍ · ផ្ទៃប្រាសាទអង្គរវត្ត",
+   "អាន Sub គ្រប់បន្ទាត់ · វីដេអូចេញដូច Original"
+  ]
+ },
+ "app": "8.1",
+ "page": "web/app-native.html",
+ "notes": [
+  "ថ្មី៖ ប៊ូតុង 🆕 Update ក្នុង App — ចុចតែម្ដង ក៏បាន App ថ្មី",
+  "PC: ពេញអេក្រង់ · ផ្ទាំងឧបករណ៍ · ផ្ទៃប្រាសាទអង្គរវត្ត",
+  "អាន Sub គ្រប់បន្ទាត់ · វីដេអូចេញដូច Original"
+ ]
+}

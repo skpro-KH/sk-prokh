@@ -706,7 +706,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.0';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.1';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2386,10 +2386,11 @@ html.apk .ak-menu button i{font-style:normal;font-size:20px;width:28px;text-alig
  $('#pg-auto').insertAdjacentHTML('afterend',`<section class="page" id="pg-me"><div class="ak-acc" id="meAcc"></div><div class="ak-menu">
   <button data-m="clean"><i>🧹</i><span>សម្អាតទូរសព្ទ<small>លុប Cache · ទំនេរកន្លែង</small></span></button>
   <button data-m="exp"><i>⬇</i><span>Export ខ្លួនឯង<small>សម្រាប់វីដេអូដែលកំពុងបើក</small></span></button>
+  <button data-m="upd"><i>🔄</i><span>ពិនិត្យ Update<small>កំណែបច្ចុប្បន្ន v${APP_VER}</small></span></button>
   <button data-m="set"><i>⚙</i><span>ការកំណត់<small>License · Server សំឡេង</small></span></button>
   <button data-m="tg"><i>✈</i><span>Telegram @wang_linkh<small>ទិញ Key · សួរជំនួយ</small></span></button></div></section>`);
  $('#pg-me .ak-menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const m=b.dataset.m;
-  if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
+  if(m==='upd')return updCheck(true);if(m==='exp')return goPage('pg-exp');if(m==='key')return openCard('pg-sub',/API Key/,'🔑 API Key');
   if(m==='poster')return goPage('pg-poster');if(m==='clean')return $('#cleanDev').click();if(m==='set')return $('#setBtn').click();if(m==='help')return $('#helpBtn').click();if(m==='tg')return $('#tgBtn').click()};
  window.meAccPaint=()=>{const i=LIC.info||{};try{const g=$('#meGem');if(g)g.innerHTML=gemAccHTML();else $('#meAcc').insertAdjacentHTML('afterend','<div id="meGem">'+gemAccHTML()+'</div>')}catch(e){}$('#meAcc').innerHTML=`<span class="sh">🛡</span><div><b>${esc(i.name||i.email||'SK ProKH')}</b><br><small>${LIC.ok?'✓ កញ្ចប់សកម្ម · '+esc(licExpTxt(i)||''):'មិនទាន់មាន License'}</small></div><span style="font-size:11px;color:#8fa3d8">v${APP_VER}</span>`};
  /* All Video queue card */
@@ -2428,11 +2429,11 @@ setTimeout(async()=>{try{const r=await fetch(STAT_HOST+'/health',{signal:AbortSi
 if(window.__apk&&document.documentElement.classList.contains('apkpc')){
  const fit=()=>{try{if(DubNative.zoom){const w=(screen.availWidth||screen.width||1600);const f=Math.max(1,Math.min(1.8,w/1600));const u=+LS.get('pcZoom',0);DubNative.zoom(u||f)}}catch(e){}};fit();
  /* tool panel */
- const T=[['add','📄','ដាក់វីដេអូ','ជ្រើសវីដេអូ (ច្រើនបាន)'],['auto','✨','Auto Run','ការកំណត់ & ចាប់ផ្ដើម'],['blur','◐','Blur','បិទអក្សរចាស់'],['erase','🧠','AI លុប Sub ចិន','លុបអក្សរចិនដោយ AI'],['logo','🏷','Logo','លុបផ្ទៃខាងក្រោយ'],['vlogo','🎞','វីដេអូ Logo','Green screen / AI'],['mq','📢','អក្សររត់','អក្សររត់ / នៅស្ងៀម'],['sty','🔤','Subtitle ខ្មែរ','ពុម្ពអក្សរ · ពណ៌'],['txt','💬','អត្ថបទ','មើល & កែការបកប្រែ'],['exp','⬇','Export ខ្លួនឯង','ទំហំ · fps · MP3'],['clean','🧹','សម្អាត','លុប Cache'],['set','⚙','ការកំណត់','License · Server']];
+ const T=[['add','📄','ដាក់វីដេអូ','ជ្រើសវីដេអូ (ច្រើនបាន)'],['auto','✨','Auto Run','ការកំណត់ & ចាប់ផ្ដើម'],['blur','◐','Blur','បិទអក្សរចាស់'],['erase','🧠','AI លុប Sub ចិន','លុបអក្សរចិនដោយ AI'],['logo','🏷','Logo','លុបផ្ទៃខាងក្រោយ'],['vlogo','🎞','វីដេអូ Logo','Green screen / AI'],['mq','📢','អក្សររត់','អក្សររត់ / នៅស្ងៀម'],['sty','🔤','Subtitle ខ្មែរ','ពុម្ពអក្សរ · ពណ៌'],['txt','💬','អត្ថបទ','មើល & កែការបកប្រែ'],['exp','⬇','Export ខ្លួនឯង','ទំហំ · fps · MP3'],['clean','🧹','សម្អាត','លុប Cache'],['upd','🔄','ពិនិត្យ Update','v'+APP_VER],['set','⚙','ការកំណត់','License · Server']];
  $('.app').insertAdjacentHTML('afterbegin',`<aside id="pcTools"><div class="pt-h">🛠 ឧបករណ៍</div>${T.map(([k,i,n,d])=>`<button data-t="${k}"><i>${i}</i><span><b>${n}</b><small>${d}</small></span></button>`).join('')}<div class="pt-z"><span>🔍 ទំហំ</span><button data-z="-">−</button><button data-z="0">Auto</button><button data-z="+">＋</button></div></aside>`);
  $('#pcTools').onclick=e=>{const z=e.target.closest('[data-z]');if(z){let f=1;try{f=DubNative.zoom()}catch(x){}const v=z.dataset.z==='0'?0:Math.max(.8,Math.min(2.2,f+(z.dataset.z==='+'?.1:-.1)));LS.set('pcZoom',v);fit();return}
-  const b=e.target.closest('[data-t]');if(!b)return;buzz();const t=b.dataset.t;$$('#pcTools [data-t]').forEach(x=>x.classList.toggle('on',x===b&&!['add','auto','clean','set','txt'].includes(t)));
-  if(t==='add')return $('#auFile').click();if(t==='auto')return akCfg(false);if(t==='clean')return $('#cleanDev').click();if(t==='set')return $('#setBtn').click();
+  const b=e.target.closest('[data-t]');if(!b)return;buzz();const t=b.dataset.t;$$('#pcTools [data-t]').forEach(x=>x.classList.toggle('on',x===b&&!['add','auto','clean','set','txt','upd'].includes(t)));
+  if(t==='upd')return updCheck(true);if(t==='add')return $('#auFile').click();if(t==='auto')return akCfg(false);if(t==='clean')return $('#cleanDev').click();if(t==='set')return $('#setBtn').click();
   if(t==='txt'){GP_USER=true;try{goPage('pg-sub')}finally{GP_USER=false}return}
   const M={blur:[/Blur — បិទអក្សរ/,'◐ Blur — អូសប្រអប់លើវីដេអូ'],erase:[/AI លុប Sub ចិន/,'🧠 AI លុប Sub ចិន'],logo:[/Logo \/ Watermark/,'🏷 Logo — លុបផ្ទៃខាងក្រោយ'],vlogo:[/វីដេអូ \/ រូប/,'🎞 វីដេអូ Logo — លុបផ្ទៃខាងក្រោយ'],mq:[/អក្សររត់/,'📢 អក្សររត់លើវីដេអូ'],sty:[/រចនា Subtitle/,'🔤 Subtitle ខ្មែរលើវីដេអូ'],exp:[/ទាញយក \(ការកំណត់/,'⬇ Export ខ្លួនឯង']}[t];
   if(M){if(t==='sty'&&!S.style.show){S.style.show=true;save();draw()}openDock('pg-exp',M[0],M[1])}};
@@ -2441,6 +2442,39 @@ if(window.__apk&&document.documentElement.classList.contains('apkpc')){
  $('#pages').insertBefore($('#akDock'),$('#pages').firstChild);
  const dx=$('#akDock');new MutationObserver(()=>{if(dx.hidden)$$('#pcTools [data-t]').forEach(x=>x.classList.remove('on'))}).observe(dx,{attributes:true,attributeFilter:['hidden']});
 }
+
+/* ============ v8.1 in-app UPDATE — one button, every user ============
+   update.json (on GitHub) says which version is newest.
+   • New app page (most changes) → downloaded in a few seconds and used at once, no reinstall.
+   • New phone app (APK) needed → downloaded inside the app, Android's installer opens.
+   • PC installer needed → told where to get it. */
+const UPD_BASE='https://raw.githubusercontent.com/skpro-KH/sk-prokh/main/';
+const vcmp=(a,b)=>{a=String(a||0).split('.').map(Number);b=String(b||0).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){const d=(a[i]||0)-(b[i]||0);if(d)return d>0?1:-1}return 0};
+const UPD={m:null,busy:false};
+function natInfo(){try{return JSON.parse(DubNative.info()||'{}')}catch(e){return{}}}
+async function updCheck(manual){if(!window.DubNative||!DubNative.info)return;let m;
+ try{const r=await fetch(UPD_BASE+'web/update.json?t='+Date.now(),{cache:'no-store'});m=await r.json()}catch(e){if(manual)toast('✕ ពិនិត្យ Update មិនបាន — សូមពិនិត្យ Internet',3500);return}
+ UPD.m=m;const ni=natInfo(),win=!!ni.pc,nv=ni.version||'0',plat=win?(m.win||{}):(m.apk||{});
+ let kind='';if(vcmp(plat.ver,nv)>0&&(!DubNative.hotSave||vcmp(nv,win?m.minWin:m.minApk)<0||plat.must))kind='native';
+ else if(DubNative.hotSave&&vcmp(m.app,APP_VER)>0&&vcmp(nv,win?m.minWin:m.minApk)>=0)kind='hot';
+ if(!kind){if(manual)toast('✅ អ្នកកំពុងប្រើកំណែថ្មីបំផុត v'+APP_VER,3000);updBadge(false);return}
+ UPD.kind=kind;UPD.ver=kind==='hot'?m.app:plat.ver;updBadge(true);
+ if(manual||LS.get('updSkip','')!==UPD.ver)updSheet()}
+function updBadge(on){let b=$('#updBtn');if(!on){if(b)b.remove();return}if(!b){$('#setBtn').insertAdjacentHTML('beforebegin','<button class="ibtn" id="updBtn" title="Update">🆕</button>');b=$('#updBtn');b.onclick=()=>updSheet()}}
+function updSheet(){const m=UPD.m||{},ni=natInfo(),win=!!ni.pc,notes=(UPD.kind==='hot'?m.notes:((win?m.win:m.apk)||{}).notes||m.notes)||[];
+ sheet(`<div class="ak-mg"><span class="ic" style="background:linear-gradient(135deg,#22d3ee,#2563eb)">🆕</span><div><h4>មានកំណែថ្មី v${esc(UPD.ver)}</h4><small>អ្នកកំពុងប្រើ v${APP_VER}${UPD.kind==='hot'?' · Update ក្នុង App ភ្លាមៗ (មិនបាច់ដំឡើងថ្មី)':''}</small></div></div>
+ <div class="ak-ls" style="max-height:38vh;line-height:1.75">${(Array.isArray(notes)?notes:[notes]).map(n=>`<div>• ${esc(n)}</div>`).join('')||'<div>• កែលម្អ និងជួសជុល</div>'}</div>
+ <div id="updProg" class="ak-bar" style="display:none;height:10px"><i style="width:0%"></i></div><div id="updMsg" class="note" style="margin-top:6px"></div>
+ <div class="ak-row"><button class="ak-b1" id="updLater">ពេលក្រោយ</button><button class="ak-b3" id="updGo">⬇ Update ឥឡូវ</button></div>`,b=>{
+  b.querySelector('#updLater').onclick=()=>{LS.set('updSkip',UPD.ver);closeSheet()};b.querySelector('#updGo').onclick=()=>updRun()})}
+async function updRun(){if(UPD.busy)return;UPD.busy=true;const m=UPD.m||{},ni=natInfo(),win=!!ni.pc,bar=$('#updProg'),msg=$('#updMsg');const P=(p,t)=>{if(bar){bar.style.display='';bar.querySelector('i').style.width=Math.max(2,p)+'%'}if(msg&&t)msg.textContent=t};
+ try{if(UPD.kind==='hot'){P(10,'⬇ កំពុងទាញ...');const r=await fetch(UPD_BASE+(m.page||'web/app-native.html')+'?v='+encodeURIComponent(m.app)+'&t='+Date.now(),{cache:'no-store'});const html=await r.text();
+   if(!r.ok||html.length<100000||!html.includes(`APP_VER='${m.app}'`)||!/<\/html>\s*$/i.test(html))throw Error('ឯកសារមិនពេញ — សាកម្ដងទៀត');P(80,'💾 កំពុងដំឡើង...');
+   if(!DubNative.hotSave(html,m.app))throw Error('រក្សាទុកមិនបាន');P(100,'✅ រួចរាល់ — App នឹងបើកឡើងវិញ...');buzz(30);await sleep(900);try{save()}catch(e){}if(DubNative.reload)DubNative.reload();else location.reload();return}
+  if(!win&&DubNative.apkUpdate&&m.apk&&m.apk.url){P(1,'⬇ កំពុងទាញ APK ថ្មី...');window.__updP=p=>{if(p<0){UPD.busy=false;P(0,'✕ ទាញមិនបាន — សាកម្ដងទៀត')}else if(p>100){UPD.busy=false;P(100,'📲 ចុច "ដំឡើង / Install" ដើម្បីបញ្ចប់')}else P(p,'⬇ កំពុងទាញ APK ថ្មី '+p+'%')};DubNative.apkUpdate(m.apk.url+'?v='+m.apk.ver);return}
+  const u=(win?m.win&&m.win.page:m.apk&&m.apk.page)||'https://t.me/wang_linkh';P(100,'⬇ សូមទាញកម្មវិធីថ្មីពី Telegram / Website');try{DubNative.openUrl?DubNative.openUrl(u):window.open(u,'_blank')}catch(e){}UPD.busy=false}
+ catch(e){UPD.busy=false;P(0,'✕ '+(e.message||e))}}
+if(window.DubNative&&DubNative.info){setTimeout(()=>{try{DubNative.hotOK&&DubNative.hotOK()}catch(e){}},5000);setTimeout(()=>updCheck(false),4000);setInterval(()=>updCheck(false),3*3600e3)}
 async function akPreview(it){try{auReset();const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}}catch(e){toast('✕ '+(e.message||e))}}
 function akMerge(fs){return new Promise(r=>{sheet(`<div class="ak-mg"><span class="ic">⛙</span><div><h4>បញ្ចូលវីដេអូច្រើន (Merge Videos)</h4><small>អ្នកបានជ្រើសរើសវីដេអូច្រើន</small></div></div>
   <div style="margin-top:12px;font-size:14px;line-height:1.7">តើអ្នកចង់បញ្ចូល (Merge) វីដេអូទាំង ${fs.length} នេះបញ្ចូលគ្នាជាវីដេអូតែមួយ មុនពេលបកប្រែឬទេ?</div>
