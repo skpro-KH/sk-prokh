@@ -385,6 +385,14 @@ html:not(.ws) .ws-only{display:none!important}
 #actBar .ab-h{font-weight:800;font-size:16px;margin-bottom:10px;color:#fff}#actBar .ab-c{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}#actBar .ab-c .chip{flex:1;text-align:center}
 #actBar .ab-go{width:100%;min-height:58px;font-size:17px}
 @keyframes abIn{from{opacity:0;transform:translateY(-14px) scale(.98)}to{opacity:1;transform:none}}#actBar.ab-in{animation:abIn .45s cubic-bezier(.2,.9,.3,1.2)}
+@property --la{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes lxr{to{--la:360deg}}
+/* v7.1 PC: same running-light buttons */
+html.pc :is(.wsb,.wsr button,.ws-ph button,#actBar .chip.on,.btn){position:relative;isolation:isolate}
+html.pc :is(.wsb,.wsr button,.ws-ph button,#actBar .chip.on,.btn)::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.6px;background:conic-gradient(from var(--la),transparent 0 55%,rgba(34,211,238,.15) 62%,#22d3ee 72%,#e0fbff 76%,#3b82f6 82%,transparent 92%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:lxr 2.8s linear infinite;pointer-events:none;z-index:1}
+html.pc .wsr button:nth-child(2n)::before,html.pc .wsb:nth-child(2n)::before{animation-delay:-1.2s}
+html.pc :is(.wsb,.wsr button,.ws-ph button,.btn,.chip):active{transform:scale(.94);filter:brightness(1.2)}
+@media (prefers-reduced-motion:reduce){html.pc *::before{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2190,6 +2198,7 @@ html.apk .ak-ph{display:flex;align-items:center;gap:10px;margin:-4px 0 10px;font
 html.apk .ak-x{width:36px;height:36px;border-radius:50%;border:1px solid rgba(140,160,255,.35);background:#13204b;color:#cfe0ff;font-size:16px}
 html.apk .card.in-sheet{margin:0;animation:none!important}
 @media (prefers-reduced-motion:reduce){html.apk *::before{animation:none!important}}
+
 
 
 html.apk .ak-menu button{width:100%;display:flex;gap:12px;align-items:center;text-align:left;border:1px solid rgba(140,160,255,.2);background:#13204b;color:#e8eeff;border-radius:16px;padding:14px;margin:8px 0;font:700 14px/1.2 system-ui,sans-serif}
