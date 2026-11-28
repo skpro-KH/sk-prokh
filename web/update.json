@@ -21,12 +21,12 @@
   ],
   "must": false
  },
- "app": "9.7",
+ "app": "9.8",
  "page": "web/app-native.html",
  "notes": [
-  "🎬 បើកវីដេអូបានច្រើនប្រភេទជាងមុន៖ Motion Photo (រូបមានវីដេអូ), MOV, វីដេអូមានទិន្នន័យខាងមុខ",
-  "ℹ ប្រាប់ច្បាស់ពេលជ្រើស រូបថត ជំនួសវីដេអូ"
+  "⚡ អានជាមុន៖ ពេលវីដេអូមួយកំពុងបង្កើតសំឡេង/Export → វីដេអូបន្ទាប់អាន Sub & បកប្រែរួចជាមុន (ដាក់ច្រើនវីដេអូក្នុង Auto ទើបលឿន)",
+  "🎬 បើក Motion Photo / MOV បាន"
  ],
- "sig": "nd9p2xcsSR6iqr6z1K7Ka7l5vNb4duB0Vl2YAP5Y5TLgdqgpTNi/GgYJYx4w0XSwu0mK8KTI3SFiof38pokUeQ==",
- "sha": "7d5aa6809a3be81b26a4197f59a23c78692eaab540985ca46d33db8ef2fa224e"
+ "sig": "jDt+Yj+SiKkNKAdHba/Ca3aaJXD3DwKo0ohgl71CNCZydG+yes22/o18eEoYa8qBcF0zHsnOw5bw9R5UbtS+wQ==",
+ "sha": "5725283222cc433ccd467937127be55c59dc240dab7d4fe0280eb5efb5e78242"
 }
