@@ -21,13 +21,12 @@
   ],
   "must": false
  },
- "app": "8.9",
+ "app": "9.0",
  "page": "web/app-native.html",
  "notes": [
-  "✨ Logo ថ្មី SK ProKH — ក្បាច់ខ្មែរ ប្រាសាទអង្គរ អក្សរមាសមានពន្លឺរត់",
-  "🌀 ផ្ទាំងបើក App មានចលនាគូរក្បាច់ផ្ញីតេស",
-  "🔆 ខ្សែក្បាច់ខ្មែរមានពន្លឺរត់នៅ Header"
+  "⚡ អាន Sub លឿនជាងមុនជិត 2 ដង — វីដេអូមិនឈប់រង់ចាំរាល់បន្ទាត់ទៀតទេ",
+  "⚡ ល្បឿនអាន Sub ថ្មី 3x (ទូរសព្ទខ្សោយបន្ថយដោយខ្លួនឯង មិនខ្វះបន្ទាត់)"
  ],
- "sig": "+lknNG2f7IDCfradu3b6BceNfqPIhIC6ZzUp9PeV41yP9aVKc3icXS0Nhea/NbyLauXyEB6aucb2CawRBpaUyg==",
- "sha": "c7a994b787f1323844d361844dbd2a9a2e79e8f0917434abf98f7206cbdac42f"
+ "sig": "cKJUPeRcQP/wAUZkrgJg4j578Lt29yjJeshbakFiSKYY9s26Odvo/D75TxuL9N6FiQHuk7mFYJ5znBPmnapotw==",
+ "sha": "3df7816a786bcae714116cab0d91b8056aa05ff4b9adcf1a9d92924b45c25234"
 }

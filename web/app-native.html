@@ -722,7 +722,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='8.9';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.0';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -802,7 +802,7 @@ const S={media:[],clips:[],
  style:{font:'Kantumruy Pro',size:66,bold:true,color:'#ffffff',stroke:'#000000',sw:8,bg:false,bgc:'#000000',bga:.6,y:.8,maxW:.9,anim:'pop',hl:'#ffe600',shadow:true,tag:false,show:true,...LS.get('style',{})},
  title:LS.get('title',''),
  box:{on:false,x:.06,y:.8,w:.88,h:.13,s:22,...LS.get('box',{})},
- ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:2,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{}),...(LS.get('v76ocr',false)?{}:(LS.set('v76ocr',true),{speed:2}))},
+ ocrBox:{x:.03,y:.76,w:.94,h:.18,...LS.get('ocrBox',{})},ocr:{speed:3,color:'white',autoBlur:false,area:'auto',...LS.get('ocr',{}),...(LS.get('v90ocr',false)?{}:(LS.set('v90ocr',true),{speed:3}))},
  fx:{preset:'none',bright:1,contrast:1,sat:1,flip:false,zoom:1,vignette:false,...LS.get('fx',{})},logo:{on:false,x:.7,y:.04,w:.24,op:.9,anim:'none',...LS.get('logo',{})},ai:{eng:'',model:'',...LS.get('ai',{})},ov:{on:false,x:.62,y:.62,w:.34,op:1,key:'none',...LS.get('ov',{})},mq:{on:false,text:'',mode:'run',pos:'top',speed:1,size:.05,color:'#ffffff',bg:true,...LS.get('mq',{})},ttHd:LS.get('ttHd',true),
  out:{aspect:'src',fit:'blurfill',res:720,...LS.get('out',{})},
  mix:{mode:'ai',orig:.9,dub:1.2,duck:.2,maxRate:50,smart:true,jit:false,bgm:.35,...LS.get('mix',{})},
@@ -2750,8 +2750,9 @@ async function ocrFindRegion(clip){await ocrInit();const c=clip||S.clips[0];if(!
 /* v6.3: keep only lines that look like the subtitle: centred in the picture and about the same text height (signs, watermarks, @names on the side are skipped) */
 function subOnly(sn){const L=sn.lines||[];if(L.length<2)return L;const W=sn.canvas.width,hs=L.map(l=>l.h).sort((a,b)=>a-b),mh=hs[hs.length>>1];
  const k=L.filter(l=>{const cx=l.x+l.w/2;return l.h>=mh*.62&&l.h<=mh*1.7&&(Math.abs(cx-W/2)<W*.2||l.w>W*.45)});return k.length?k:L}
-async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of subOnly(sn)){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
-  const t=cleanOcr(parts.join(' '));if(t)cands.push({t,c:cn?cs/cn:0})}
+/* v9.0 speed: read the pictures of a line one by one and stop as soon as one reading is very sure, or two readings agree (was: always all 4) */
+async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of subOnly(sn)){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);await sleep(0);if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
+  const t=cleanOcr(parts.join(' '));if(t){const c=cn?cs/cn:0;if(c>.965&&!cands.length){seg.text=t;return}if(cands.some(a=>sim(a.t,t)>.92&&Math.max(a.c,c)>.8)){cands.push({t,c});break}cands.push({t,c})}}
  if(!cands.length)return;cands.forEach(a=>a.sc=a.c+cands.reduce((x,b)=>x+(b===a?0:sim(a.t,b.t)),0)*.6);cands.sort((a,b)=>b.sc-a.sc);if(cands[0].c>.55)seg.text=cands[0].t}
 /* v4.6: strong AI (Gemini vision) reads the subtitle pictures AND translates them with the story context — much more accurate than on-device OCR */
 const gvOn=()=>aiKey()&&S.ocr.ai!==false;
@@ -2775,22 +2776,26 @@ async function ocrScan0(only){await ocrInit();const GV=gvOn();
   else toast('⚠ រក Subtitle មិនឃើញច្បាស់ — អានតាមប្រអប់លឿង 📖 (អាចអូសកែបាន)',5000)}const segs=[],T=total();let off=0,chain=Promise.resolve();
  for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci];if(busy.cancel)break;if(only&&!only.has(c.id)){off+=c.out-c.in;continue}const m=c.m,el=m.el,reg=boxToVideo(S.ocrBox,m);const k=Math.min(1280/reg.w,Math.max(1,110/reg.h),2),cw=Math.max(32,Math.round(reg.w*k)),ch=Math.max(16,Math.round(reg.h*k));
   const cc=document.createElement('canvas');cc.width=cw;cc.height=ch;const cx=cc.getContext('2d',{willReadFrequently:true});
-  await setClip(ci,c.in);el.playbackRate=+S.ocr.speed||2;let cur=null,lastT=-1,fr=0,pst=null,pend=0;
+  await setClip(ci,c.in);el.playbackRate=Math.min(4,+S.ocr.speed||3);let cur=null,lastT=-1,fr=0,pst=null,pend=0;
   const finish=(seg,end)=>{seg.end=end;if(seg.end-seg.start<.2||!seg.snap)return;segs.push(seg);const snap=seg.snap;seg.snap=null;
-   if(GV){seg.snapBk=snap;return}pend++;try{el.pause()}catch(e){}chain=chain.then(()=>new Promise(r=>setTimeout(r,30))).then(()=>recSnap(seg,snap)).finally(()=>pend--)};
+   if(GV){seg.snapBk=snap;return}pend++;chain=chain.then(()=>recSnap(seg,snap)).finally(()=>pend--)};
   try{await el.play()}catch(e){}
   /* v7.6: read the exact time of the frame being looked at (requestVideoFrameCallback) — currentTime runs ahead of the picture and made every line start late */
   const vNext=f=>{let d=false;const g=(n,m)=>{if(!d){d=true;f(m||null)}};if(el.requestVideoFrameCallback&&!bgHidden())el.requestVideoFrameCallback(g);else requestAnimationFrame(()=>g());setTimeout(()=>g(),bgHidden()?40:300)};
   await new Promise(res=>{const step=meta=>{if(busy.cancel){el.pause();return res()}const t=meta&&meta.mediaTime!=null?meta.mediaTime:el.currentTime,st=off+(t-c.in);
     if(t>=c.out-.03||el.ended){if(cur)finish(cur,off+(c.out-c.in));cur=null;el.pause();return res()}
     /* v7.8: while the reader is busy with a line the video waits — no frame (and no short line) is skipped */
-    if(pend>0){if(!el.paused)el.pause();return vNext(step)}
+    /* v9.0: the video keeps running while lines are read; it only waits if more than 4 lines are queued (slow phones) */
+    if(pend>4||(el.paused&&pend>1&&!el.ended&&el.dataset.ow)){if(!el.paused){el.pause();el.dataset.ow=1}return vNext(step)}if(el.dataset.ow&&pend<=1)delete el.dataset.ow;
     if(el.paused&&!el.ended){el.play().catch(()=>{})}
+    /* v9.0: look at the picture at most every 80 ms of video (was every decoded frame, often twice) — subtitles never change faster than that */
+    /* v9.0: weak phone that shows fewer than 6 frames per video-second → slow down by itself (never below 2x) so no line is missed */
+    if(!el.paused&&el.playbackRate>2){const w=step.w||(step.w={t:t,f:fr,n:performance.now()});if(t-w.t>=2){const fps=(fr-w.f)/(t-w.t);if(fps<6){el.playbackRate=Math.max(2,el.playbackRate-1)}step.w={t:t,f:fr,n:performance.now()}}else if(t<w.t)step.w=null}
     if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);const on=mk.cnt>cw*ch*.004;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
      if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.45){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
      if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
        const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
-     if(fr%4===0&&!bgHidden()){P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
+     const nw=performance.now();if(nw-(step.dt||0)>260&&!bgHidden()){step.dt=nw;P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
     vNext(step)};vNext(step)});
   el.playbackRate=1;el.pause();off+=c.out-c.in}
  busy.set('🔤 កំពុងបញ្ចប់ការអាន...',null);await chain;if(GV)await gvRead(segs);if(busy.cancel)throw Error('បានបោះបង់');
@@ -3006,7 +3011,7 @@ function backToDub(){if(!S.recap)return;if(S.recapSrc){S.subs=S.recapSrc;S.recap
 $('#dmChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;buzz();if(c.dataset.v==='recap'){if(!S.recap)makeRecap()}else backToDub()};
 $('#recapBtn').onclick=()=>makeRecap();modePaint();
 /* ---- v1.2 UI bindings ---- */
-chips($('#ocrSpd'),[['1','1x ល្អបំផុត'],['2','2x ច្បាស់'],['4','4x'],['8','8x លឿន']],()=>String(S.ocr.speed),v=>{S.ocr.speed=+v;save()});
+chips($('#ocrSpd'),[['2','2x ច្បាស់បំផុត'],['3','3x ណែនាំ'],['4','4x លឿន']],()=>String(S.ocr.speed),v=>{S.ocr.speed=+v;save()});
 chips($('#ocrCol'),[['white','ស'],['yellow','លឿង'],['nooutline','ស គ្មានគែម']],()=>S.ocr.color,v=>{S.ocr.color=v;save()});
 if(!LS.get('abMig',false)){LS.set('abMig',true);S.ocr.autoBlur=false;S.ocr.area='auto';save()}
 $('#ocrBlur').checked=S.ocr.autoBlur===true;$('#ocrBlur').onchange=e=>{S.ocr.autoBlur=e.target.checked;save()};
