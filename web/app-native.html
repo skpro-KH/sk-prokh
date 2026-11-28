@@ -429,6 +429,10 @@ html.upd-red #updBtn{background:linear-gradient(180deg,#ef4444,#b91c1c)!importan
 html.upd-red [data-m="upd"]{border-color:#ef4444!important;box-shadow:0 0 0 1px #ef4444 inset,0 0 14px rgba(239,68,68,.45)!important}
 html.upd-red [data-m="upd"] i{position:relative}html.upd-red [data-m="upd"] i::after{content:'';position:absolute;right:-4px;top:-2px;width:10px;height:10px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #0b1640;animation:updPulse 1.3s ease-out infinite}
 @media (prefers-reduced-motion:reduce){html.upd-red #updBtn,#updBar,#updBar .dot{animation:none}}
+
+/* v9.3 ready-to-start button */
+#akGo.ready{background:linear-gradient(90deg,#f59e0b,#f7c64b,#f59e0b)!important;background-size:200% 100%!important;color:#3a2200!important;font-weight:800;animation:akReady 1.6s ease-in-out infinite,updBar 2.4s linear infinite}
+@keyframes akReady{0%,100%{box-shadow:0 0 0 0 rgba(247,198,75,.7)}50%{box-shadow:0 0 0 10px rgba(247,198,75,0)}}
 </style>
 </head>
 <body>
@@ -733,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -2586,8 +2590,8 @@ function auPaintK(){const b=$('#auList'),L=AUTO.list;
   ${it.st==='run'?`<div class="ak-msg"><span>${esc(AKSTEP(it))}<br><small style="opacity:.75">${esc(String(it.msg||'').slice(0,70))}</small></span><b>${p}%</b></div><div class="ak-bar"><i style="width:${p}%"></i></div>`
   :it.st==='ok'?`<div class="ak-msg"><span>✅ បកប្រែ និងបញ្ចូលសំឡេងជោគជ័យ 100%!</span></div>`:it.st==='bad'?`<div class="ak-msg"><span>${esc(it.msg||'')}</span></div>`:''}</div>`}).join('')
   :`<div class="note" style="text-align:center;padding:18px 6px">ចុច 📄 ឬ ＋ ខាងក្រោម ដើម្បីជ្រើសវីដេអូ (ច្រើនបាន) · ✨ ដើម្បីកំណត់ Auto Run</div>`;
- const g=$('#akGo');g.className='go'+(AUTO.run?' run':'');g.textContent=AUTO.run?'កំពុងដំណើរការ... ⏹':L.some(x=>x.st==='wait')?'▶ ចាប់ផ្ដើម':'▶ Auto Run';
- $('#auGo').textContent=AUTO.run?'⏹ ឈប់':'▶ ចាប់ផ្ដើម'}
+ const g=$('#akGo');g.className='go'+(AUTO.run?' run':'');const wt=L.some(x=>x.st==='wait');g.classList.toggle('ready',!AUTO.run&&wt);g.textContent=AUTO.run?'កំពុងដំណើរការ... ⏹':wt?'✨ Auto បកប្រែ':'▶ Auto Run';
+ $('#auGo').textContent=AUTO.run?'⏹ ឈប់':'✨ Auto បកប្រែ'}
 /* Auto Run settings — same look as the reference */
 function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${l}</option>`;
  sheet(`<div class="ak-cfg"><h4>⚙ ការកំណត់ទាំងអស់សម្រាប់ Auto Run</h4>
@@ -2628,7 +2632,7 @@ if(APKS){
  $('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;let mg=false;if(fs.length>1){mg=await akMerge(fs);if(mg===null)return}
   const first=AUTO.list.length;if(mg)AUTO.list.push({name:fs.map(f=>f.name.replace(/\.[^.]+$/,'')).join(' + ').slice(0,60),files:fs,st:'wait',pct:0});else fs.forEach(f=>AUTO.list.push({name:f.name.replace(/\.[^.]+$/,''),files:[f],st:'wait',pct:0}));
   GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}auPaint(true);buzz(20);toast(`បានបញ្ចូលវីដេអូចំនួន ${fs.length} ទៅក្នុងបញ្ជីបកប្រែ (សរុប ${AUTO.list.length})!`,3500);
-  if(!AUTO.run){if(AUTO.cfg.go!==false){setTimeout(()=>autoRun(),400);return}await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}}};
+  if(!AUTO.run){if(AUTO.cfg.go!==false){setTimeout(()=>autoRun(),400);return}await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}toast('▶ មើល/ស្ដាប់វីដេអូសិន · រួចចុច ✨ Auto បកប្រែ',4500)}};
  setTimeout(()=>{try{meAccPaint();akChipPaint();auPaint(true);if(!LS.get('page',''))goPage('pg-auto')}catch(e){console.warn(e)}},60);
  /* v7.2 first launch: everything set up the best way, one screen, one tap */
  if(!LS.get('welcome75',false)){const wt=setInterval(()=>{if($('#sheet').classList.contains('on')||$('#lic')?.classList?.contains('on')||$('#splash')&&!$('#splash').classList.contains('off'))return;clearInterval(wt);LS.set('welcome75',true);
@@ -2774,7 +2778,7 @@ async function ocrFindRegion(clip){await ocrInit();const c=clip||S.clips[0];if(!
 function subOnly(sn){const L=sn.lines||[];if(L.length<2)return L;const W=sn.canvas.width,hs=L.map(l=>l.h).sort((a,b)=>a-b),mh=hs[hs.length>>1];
  const k=L.filter(l=>{const cx=l.x+l.w/2;return l.h>=mh*.62&&l.h<=mh*1.7&&(Math.abs(cx-W/2)<W*.2||l.w>W*.45)});return k.length?k:L}
 /* v9.0 speed: read the pictures of a line one by one and stop as soon as one reading is very sure, or two readings agree (was: always all 4) */
-async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of subOnly(sn)){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);await sleep(0);if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
+async function recSnap(seg,snap){if(busy.cancel)return;const cands=[];for(const sn of snap){const parts=[];let cs=0,cn=0;for(const l of subOnly(sn)){const r=await ocrRecognize(sn.canvas,l.x,l.y,l.w,l.h);await yieldMC();if(r.text&&r.conf>.5){parts.push(r.text);cs+=r.conf;cn++}}
   const t=cleanOcr(parts.join(' '));if(t){const c=cn?cs/cn:0;if(c>.965&&!cands.length){seg.text=t;return}if(cands.some(a=>sim(a.t,t)>.92&&Math.max(a.c,c)>.8)){cands.push({t,c});break}cands.push({t,c})}}
  if(!cands.length)return;cands.forEach(a=>a.sc=a.c+cands.reduce((x,b)=>x+(b===a?0:sim(a.t,b.t)),0)*.6);cands.sort((a,b)=>b.sc-a.sc);if(cands[0].c>.55)seg.text=cands[0].t}
 /* v4.6: strong AI (Gemini vision) reads the subtitle pictures AND translates them with the story context — much more accurate than on-device OCR */
@@ -2794,14 +2798,55 @@ Return {"items":[{"i":0,"zh":"...","km":"..."}, ...]} with exactly ${b.length} i
  for(const x of segs){x.snapBk=null}}
 let MEDIA_LOCK=0;function mlock(on){MEDIA_LOCK=Math.max(0,MEDIA_LOCK+(on?1:-1));document.body.classList.toggle('mlock',MEDIA_LOCK>0)}
 async function ocrScan(only){mlock(true);try{return await ocrScan0(only)}finally{mlock(false)}}
+/* v9.3 FAST subtitle reader: decode the MP4 straight from the file with WebCodecs (no playback), as fast as the device can.
+   - frames that no other frame needs (B-frames) are skipped without decoding
+   - ~15 pictures per second of video are looked at (same rules as the playback reader)
+   - event-driven (no timers), so it keeps going at full speed when the app is in the background
+   returns true = done · a number = stopped there (playback reader continues from that time) · false = not possible here */
+const yieldMC=()=>new Promise(r=>{const q=new MessageChannel();q.port1.onmessage=()=>r();q.port2.postMessage(0)});
+async function ocrFastClip(c,m,reg,cw,ch,cx,feed,waitPend,flush,off,T){
+ if(!window.VideoDecoder||!window.EncodedVideoChunk||!m.file||typeof m.file.slice!=='function'||S.ocr.fast===false)return false;
+ let ix=null;try{ix=await mp4VIndex(m)}catch(e){}if(!ix||!ix.n)return false;
+ const vw=m.el&&m.el.videoWidth||m.w,vh=m.el&&m.el.videoHeight||m.h;if(vw&&vh&&(Math.abs(ix.w-vw)>2||Math.abs(ix.h-vh)>2))return false;/* rotated phone video → playback reader */
+ let cfg={codec:ix.codec,description:ix.desc,hardwareAcceleration:'prefer-hardware'};
+ try{if(!(await VideoDecoder.isConfigSupported(cfg)).supported){cfg={codec:ix.codec,description:ix.desc};if(!(await VideoDecoder.isConfigSupported(cfg)).supported)return false}}catch(e){return false}
+ const avc=/^avc/.test(ix.codec),hev=/^(hvc|hev)/.test(ix.codec),nl=avc?((ix.desc[4]&3)+1):hev?((ix.desc[21]&3)+1):0;
+ const disposable=u=>{if(!nl)return false;let p=0,v=0;while(p+nl<=u.length){let L=0;for(let k=0;k<nl;k++)L=L*256+u[p+k];p+=nl;if(L<=0||p+L>u.length)return false;const h=u[p];
+   if(avc){const t=h&31;if(t>=1&&t<=5){v++;if((h>>5)&3)return false}}else{const t=(h>>1)&63;if(t<32){v++;if(!(t<16&&t%2===0))return false}}p+=L}return v>0};
+ const N=ix.n,pts=ix.pts,dts=ix.dts;let i0=0;{let first=-1;for(let i=0;i<N;i++)if(pts[i]>=c.in-.05){first=i;break}if(first<0)return false;i0=first;while(i0>0&&!ix.key[i0])i0--}
+ let lastP=-1e9,outN=0,maxT=c.in,err=null;const STEP=1/12;
+ const dec=new VideoDecoder({output:f=>{try{const t=f.timestamp/1e6;outN++;if(t>=c.in-.001&&t<c.out&&t-lastP>=STEP){lastP=t;maxT=t;cx.drawImage(f,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);feed(off+(t-c.in))}}catch(e){err=err||e}finally{f.close()}},error:e=>{err=err||e}});
+ try{dec.configure(cfg);let i=i0;
+  while(i<N&&!busy.cancel&&!err){if(dts[i]>c.out+1&&pts[i]>c.out+.5)break;
+   let j=i+1,end=ix.offs[i]+ix.sizes[i];while(j<N&&ix.offs[j]===end&&end-ix.offs[i]<4e6){end+=ix.sizes[j];j++}
+   const buf=new Uint8Array(await m.file.slice(ix.offs[i],end).arrayBuffer());let p=0;
+   for(let k=i;k<j;k++){const d=buf.subarray(p,p+ix.sizes[k]);p+=ix.sizes[k];if(!ix.key[k]&&disposable(d))continue;
+    dec.decode(new EncodedVideoChunk({type:ix.key[k]?'key':'delta',timestamp:Math.round(pts[k]*1e6),data:d}));
+    while(dec.decodeQueueSize>12&&!err)await new Promise(r=>{let d0=false;const g=()=>{if(!d0){d0=true;r()}};dec.addEventListener('dequeue',g,{once:true});yieldMC().then(()=>yieldMC()).then(g)})}
+   const w=waitPend();if(w)await w;i=j}
+  if(!err&&!busy.cancel)await dec.flush()}catch(e){err=err||e}
+ try{dec.close()}catch(e){}
+ if(busy.cancel){flush(off+(maxT-c.in));return true}
+ window.__fastOCR={outN,err:err?String(err):null,i0};if(err){console.warn("fast OCR stopped",err);if(!outN)return false;return maxT}
+ window.__fastOCR={outN,i0};flush(off+(c.out-c.in));return true}
 async function ocrScan0(only){await ocrInit();const GV=gvOn();
  if(S.ocr.area!=='manual'){const b=await ocrFindRegion(only?S.clips.find(c=>only.has(c.id)):undefined);if(busy.cancel)return[];if(b){const f=b.found;delete b.found;S.ocrBox=b;save();renderBox();toast(`🔍 រកឃើញ Subtitle នៅ${f.y<.35?'ខាងលើ':f.y>.65?'ខាងក្រោម':'កណ្ដាល'}អេក្រង់ (${f.distinct} ប្រយោគ)`,3500)}
   else toast('⚠ រក Subtitle មិនឃើញច្បាស់ — អានតាមប្រអប់លឿង 📖 (អាចអូសកែបាន)',5000)}const segs=[],T=total();let off=0,chain=Promise.resolve();
  for(let ci=0;ci<S.clips.length;ci++){const c=S.clips[ci];if(busy.cancel)break;if(only&&!only.has(c.id)){off+=c.out-c.in;continue}const m=c.m,el=m.el,reg=boxToVideo(S.ocrBox,m);const k=Math.min(1280/reg.w,Math.max(1,110/reg.h),2),cw=Math.max(32,Math.round(reg.w*k)),ch=Math.max(16,Math.round(reg.h*k));
   const cc=document.createElement('canvas');cc.width=cw;cc.height=ch;const cx=cc.getContext('2d',{willReadFrequently:true});
-  await setClip(ci,c.in);el.playbackRate=Math.min(4,+S.ocr.speed||3);let cur=null,lastT=-1,fr=0,pst=null,pend=0;
+  let cur=null,lastT=-1,fr=0,pst=null,pend=0,fdt=0;
   const finish=(seg,end)=>{seg.end=end;if(seg.end-seg.start<.2||!seg.snap)return;segs.push(seg);const snap=seg.snap;seg.snap=null;
    if(GV){seg.snapBk=snap;return}pend++;chain=chain.then(()=>recSnap(seg,snap)).finally(()=>pend--)};
+  /* v9.3: one function looks at one picture of the subtitle area (used by both readers: fast file reader and video playback) */
+  const feed=st=>{const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);/* v9.2: lower limits — a one-character line (嗯, 好) was taken for "no subtitle", and two different lines back-to-back looked like one line (the 2nd was never read or voiced) */
+     const on=mk.cnt>cw*ch*.0016;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
+     if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.08){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
+     if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
+       const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
+     const nw=performance.now();if(nw-fdt>260){fdt=nw;if(!bgHidden()){P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}};
+  /* v9.3 FAST: read the pictures straight from the MP4 file (WebCodecs) as fast as the phone/PC can decode — no playback, works in the background too */
+  let from=c.in;if(!GV){const fz=await ocrFastClip(c,m,reg,cw,ch,cx,feed,()=>pend>6?chain:null,st=>{if(cur)finish(cur,st);cur=null},off,T);if(fz===true){off+=c.out-c.in;continue}if(typeof fz==='number'){from=Math.min(c.out-.05,fz+.05);toast('ℹ អានលឿនឈប់ — បន្តអានតាមការចាក់វីដេអូ',3000)}}
+  await setClip(ci,from);el.playbackRate=Math.min(4,+S.ocr.speed||3);
   try{await el.play()}catch(e){}
   /* v7.6: read the exact time of the frame being looked at (requestVideoFrameCallback) — currentTime runs ahead of the picture and made every line start late */
   const vNext=f=>{let d=false;const g=(n,m)=>{if(!d){d=true;f(m||null)}};if(el.requestVideoFrameCallback&&!bgHidden())el.requestVideoFrameCallback(g);else requestAnimationFrame(()=>g());setTimeout(()=>g(),bgHidden()?40:300)};
@@ -2814,14 +2859,10 @@ async function ocrScan0(only){await ocrInit();const GV=gvOn();
     /* v9.0: look at the picture at most every 80 ms of video (was every decoded frame, often twice) — subtitles never change faster than that */
     /* v9.0: weak phone that shows fewer than 6 frames per video-second → slow down by itself (never below 2x) so no line is missed */
     if(!el.paused&&el.playbackRate>2){const w=step.w||(step.w={t:t,f:fr,n:performance.now()});if(t-w.t>=2){const fps=(fr-w.f)/(t-w.t);if(fps<6){el.playbackRate=Math.max(2,el.playbackRate-1)}step.w={t:t,f:fr,n:performance.now()}}else if(t<w.t)step.w=null}
-    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);/* v9.2: lower limits — a one-character line (嗯, 好) was taken for "no subtitle", and two different lines back-to-back looked like one line (the 2nd was never read or voiced) */
-     const on=mk.cnt>cw*ch*.0016;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
-     if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.08){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
-     if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
-       const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
-     const nw=performance.now();if(nw-(step.dt||0)>260&&!bgHidden()){step.dt=nw;P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
+    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);feed(st)}
     vNext(step)};vNext(step)});
   el.playbackRate=1;el.pause();off+=c.out-c.in}
+
  busy.set('🔤 កំពុងបញ្ចប់ការអាន...',null);await chain;if(GV)await gvRead(segs);if(busy.cancel)throw Error('បានបោះបង់');
  let out=[];for(const s of segs){if(!s.text||s.text.replace(/[\s\p{P}\p{S}]/gu,'').length<1)continue;const l=out[out.length-1];
   if(l&&(l.text===s.text||sim(l.text,s.text)>.72)&&s.start-l.end<.7){l.end=s.end;if(s.text.length>l.text.length){l.text=s.text;if(s.km)l.km=s.km}}else out.push({start:s.start,end:s.end,text:s.text,km:s.km||''})}
@@ -3565,6 +3606,8 @@ async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.l
   const todo=S.subs.filter(x=>x.src&&!x.km);if(todo.length&&!(await translate(todo)))return;aiBackground();toast('✅ អាន Sub & បកប្រែរួច',2500);if(!o.quiet)showAct()}finally{AUTO_ST=false}}
 /* v6.7: one tap — read Sub → translate (or write a recap) → Khmer voice (Piseth / Sreymom only) → original sound off → play */
 const FLOW=Object.assign({kind:'dub',cast:'simple',orig:'mute',auto:true,clean:true,go:true},LS.get('flow',{}));
+/* v9.3: new way — add video → watch / listen first → tap ✨ Auto បកប្រែ (nothing starts by itself) */
+if(!LS.get('v93go',false)){LS.set('v93go',true);FLOW.go=false;AUTO.cfg.go=false;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 if(!LS.get('cleanMig68',false)){LS.set('cleanMig68',true);FLOW.clean=true;AUTO.cfg.clean=true;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 /* v6.8 "clean video": the output is the original picture, full frame, nothing drawn on it — only the Khmer voice changes */
 /* v9.2: 📐 video size chosen in ⚙ Auto settings (frame 9:16 / 16:9 / 1:1 / 4:5, how to fill, zoom) — kept even with "Clean video" */

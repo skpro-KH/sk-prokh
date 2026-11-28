@@ -21,13 +21,13 @@
   ],
   "must": false
  },
- "app": "9.2",
+ "app": "9.3",
  "page": "web/app-native.html",
  "notes": [
-  "✅ បកប្រែ & បញ្ចូលសំឡេងគ្រប់បន្ទាត់ — រកឃើញបន្ទាត់ជាប់គ្នា និងពាក្យខ្លីៗ (ពីមុនបាត់)",
-  "📐 ថ្មី៖ ប្ដូរទំហំវីដេអូ 9:16 · 16:9 · 1:1 · 4:5 + Zoom (⚙ ការកំណត់ Auto)",
-  "🔴 សញ្ញាក្រហមពេលមាន Update ថ្មី"
+  "⚡ អាន Sub ផ្ទាល់ពីឯកសារវីដេអូ (មិនចាំបាច់ចាក់វីដេអូ) — លឿនជាងមុនច្រើន សម្រាប់រឿងវែងៗ",
+  "▶ វិធីថ្មី៖ ដាក់វីដេអូ → មើល/ស្ដាប់សិន → ចុច ✨ Auto បកប្រែ",
+  "📱 បន្តធ្វើការ ទោះចេញពី App (Android/PC)"
  ],
- "sig": "RyrzG6aRKJwgR2TmmWYBMSS+csKDvTLEudKtqzShI6VrVr20CH9345uOw2ys5XyO12Nsx4xjWSsuJXKP5bj/Ow==",
- "sha": "9567daed2a7d09a1594ec6efe99a259b26de0ff8707c1208721c8e99e55dd706"
+ "sig": "iOFTsz1ahaB+4gQwM6UPsbpkTr0WwZy5oVDXHHTd09LZnEsvcUsZDTWfOnPf1u6OY5eSHOXfa3D9DlNk0FSzsw==",
+ "sha": "882d372ec06ea589ed86df014d0bfccaae174195d188f398c5e9d4a870c2c797"
 }
