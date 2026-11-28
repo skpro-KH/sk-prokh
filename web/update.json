@@ -21,13 +21,13 @@
   ],
   "must": false
  },
- "app": "9.4",
+ "app": "9.5",
  "page": "web/app-native.html",
  "notes": [
-  "⚡ បង្កើតសំឡេងលឿនជាងមុន ~40% — ទាយល្បឿននិយាយត្រូវតាំងពីដំបូង (ស្នើ Microsoft តែម្ដង/បន្ទាត់)",
-  "⚡ បកប្រែភ្លាមៗពេលកំពុងអាន Sub — មិនចាំអានចប់",
-  "⚡ អាន Sub ផ្ទាល់ពីឯកសារវីដេអូ"
+  "📱 APK Android ត្រឡប់មកប្រើ UI ដើមដូចគេហទំព័រវិញ",
+  "🎯 សំឡេងនៅត្រឹមកន្លែង Sub — ចាប់ផ្ដើមពេល Sub ចេញ មិនរុញក្រោយ មិនជាន់ Sub បន្ទាប់ (វែងពេក → កាត់ទន់ៗ)",
+  "⚡ Update ដោយស្វ័យប្រវត្តិ ពេលបើក App"
  ],
- "sig": "30TEIveRpV9OUYWxT18mkAYF3s6e2E3s/EtngbjV7qAP+o9aCEbDDyJd/m26vlldOn5wsn9O4bQP5RHr6fYKcQ==",
- "sha": "2edf24e08ee59376df8522a44a19851d285c46c77fc1d33365c7aba3aa5a7e3f"
+ "sig": "h83OK+MZMeDlpPz/0lPgLakrqR37Kc6Pp/dsQxWWh4AKSX2t1rIdc9P/xIxqTKOP+90Gw0ONPUmVAb/VQjVnbw==",
+ "sha": "bfa41b8db161af4fb77eaca2524d94525ef9c4409b4ab74ddf062512975b4f79"
 }

@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -918,7 +918,7 @@ function kiriSheet(){const vs=g=>KIRI_V.filter(v=>v[2]===g).map(([n,l])=>`<butto
   q('#kiTest').onclick=async()=>{if(!KIRI.key)return toast('🔑 ដាក់ API Key សិន',2500);busy.on('🎙 Kiri...',null);try{const a1=await kiriTTS('ឯងហ៊ានក្បត់ខ្ញុំមែនទេ?',KIRI.m,0);const a2=await kiriTTS('ខ្ញុំមិនបានធ្វើអ្វីខុសទេ។',KIRI.f,0);busy.off();await play(a1);setTimeout(()=>play(a2),1800)}catch(e){busy.off();toast('✕ '+(e.message||e),5000)}}})}
 async function ttsFetch(text,voice,rate,pitch){{const kv=kiriVoice(voice);if(kv)return kiriTTS(text,kv,rate)}if(NATIVE&&!srv()){let e;for(let a=0;a<3;a++){const w=natLast+180-Date.now();natLast=Math.max(Date.now(),natLast+180);if(w>0)await sleep(w);try{return await nativeTTS(text,voice,rate,pitch)}catch(x){e=x;if(busy.cancel)throw x;if(a<2)await sleep(500*(a+1)+Math.random()*300)}}throw e}let last;for(let a=0;a<3;a++){try{const r=await fetch(srv()+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice,rate,pitch}),signal:sigT(40000)});
   if(r.ok)return await r.arrayBuffer();let m=r.status;try{m=(await r.json()).error||m}catch(e){}last=Error('សំឡេង: '+m)}catch(e){last=e}await sleep(600*(a+1))}throw last}
-$('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>
+$('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>${NATIVE?`<div class="row" style="margin-bottom:8px"><button class="btn${document.documentElement.classList.contains('upd-red')?' r':''}" id="stUpd" style="flex:1">🔄 ពិនិត្យ Update · v${APP_VER}</button></div>`:''}
  <div class="item"><div class="t"><div>🔐 License · ${LIC.info?licExpTxt(LIC.info):'—'}</div><div class="note" style="margin:0">Device ID: ${DEV_SHORT||'—'}</div></div><button class="btn g s" onclick="closeSheet();document.getElementById('lic').classList.add('on')">ប្ដូរ Key</button></div>
  <div class="row"><button class="btn g s" onclick="openUrl(TG_URL)">✈ Telegram @wang_linkh</button></div>
  <div class="row"><button class="btn g s" onclick="closeSheet();setTimeout(kiriSheet,250)">🎙 Kiri TTS (API Key)</button></div>
@@ -1064,7 +1064,9 @@ let HREC=null;$('#humRec').onclick=async()=>{if(HREC){HREC.stop();return}try{con
  r.start();$('#humRec').textContent='⏹ ឈប់ថត';$('#humRec').classList.remove('g');toast('🎙 កំពុងថត... និយាយតាមលំដាប់បន្ទាត់ Sub (ឈប់បន្តិចរវាងប្រយោគ)',4000)}catch(e){toast('✕ មិនអាចប្រើ Mic: '+(e.message||e),5000)}};
 humPaint();
 /* v7.0: Khmer lines NEVER talk over each other — a line waits until the previous one has finished; a late or long line is sped up a little to catch up */
-function schedule(){let prevEnd=-1;sortSubs();const L=S.subs.filter(s=>s.buf&&s.key===lineKey(s));return L.map((s,i)=>{const slot=Math.max(.3,roomOf(s));let rate=1,dur=s.buf.duration;
+function schedule(){let prevEnd=-1;sortSubs();const L=S.subs.filter(s=>s.buf&&s.key===lineKey(s));const strict=S.mix.strict!==false;return L.map((s,i)=>{const slot=Math.max(.3,roomOf(s));let rate=1,dur=s.buf.duration;
+ /* v9.5 STRICT (default): the voice lives exactly where its subtitle is — starts when the Sub appears (never pushed later), must end before the next Sub; still too long after speeding up → cut with a soft fade */
+ if(strict){const at=s.start,nx=L[i+1],room=Math.max(.3,Math.min(slot,nx?nx.start-at-.05:slot));if(dur>room*1.02){rate=Math.min(1.15,dur/room);dur/=rate}s._cut=dur>room+.01;if(s._cut)dur=room;s._at=at;s._en=at+dur;return{s,at,rate,dur}}
  const at=Math.max(s.start,prevEnd+.08),late=at-s.start,nx=L[i+1],room=Math.max(.3,Math.min(slot,nx?nx.start-at-.06:slot+1));
  if(dur>room*1.02){rate=Math.min(late>.25?1.18:S.mix.sync!==false?1.12:1.06,dur/room);dur/=rate}prevEnd=at+dur;s._at=at;s._en=at+dur;return{s,at,rate,dur}})}
 /* ============ v2.4: AI voice remover (on-device UVR MDX-Net, no API) — removes speech, keeps music & sound effects ============ */
@@ -1233,7 +1235,7 @@ function liveStart(){liveInit();liveStop();try{LIVE.out.disconnect()}catch(e){}L
 function liveTick(){if(!LIVE.on||!P.playing||!AC)return;const now=AC.currentTime,t=P.t,H=t+2.5,L=liveLevels();if(MIX.dirty){liveSched();LIVE.srcs=LIVE.srcs.filter(r=>{if(r.at>now+.05){try{r.src.stop()}catch(e){}return false}return true});LIVE.done=new Set(LIVE.srcs.map(r=>r.id));LIVE.duckDone.clear()}
  if(Math.abs((now-LIVE.map)-t)>.15&&!P.busy){LIVE.map=now-t;LIVE.srcs=LIVE.srcs.filter(r=>{if(r.at>now+.01){try{r.src.stop()}catch(e){}LIVE.done.delete(r.id);LIVE.aiDone.delete(r.id);return false}return true});LIVE.duckDone.clear()}
  for(const p of LIVE.sched){if(p.at>H)break;if(p.at+p.dur<t||LIVE.done.has(p.s.id)||!p.s.buf)continue;LIVE.done.add(p.s.id);
-  let when=p.at+LIVE.map,off=0;if(when<now+.01){off=(now+.01-when)*p.rate;when=now+.01}if(off>=p.s.buf.duration-.05)continue;const dur=(p.s.buf.duration-off)/p.rate,v=p.s.norm||1;
+  let when=p.at+LIVE.map,off=0;if(when<now+.01){off=(now+.01-when)*p.rate;when=now+.01}if(off>=p.s.buf.duration-.05)continue;const dur=Math.max(.05,Math.min((p.s.buf.duration-off)/p.rate,p.at+LIVE.map+p.dur-when)),v=p.s.norm||1;
   const src=AC.createBufferSource();src.buffer=p.s.buf;src.playbackRate.value=p.rate;const g=AC.createGain();g.gain.setValueAtTime(0,when);g.gain.linearRampToValueAtTime(v,when+.02);g.gain.setValueAtTime(v,Math.max(when+.021,when+dur-.06));g.gain.linearRampToValueAtTime(0,when+dur);
   src.connect(g);g.connect(LIVE.dub);src.start(when,off);LIVE.srcs.push({src,at:when,end:when+dur,id:p.s.id})}
  for(const[a,b]of LIVE.iv){if(a>H)break;if(b<t-.3||LIVE.duckDone.has(a))continue;LIVE.duckDone.add(a);const A=Math.max(now,a+LIVE.map-.2),B=Math.max(now,b+LIVE.map+.15);
@@ -2224,7 +2226,9 @@ if(document.documentElement.classList.contains('ws')){
  setInterval(()=>{txPaint();tlPaint()},700);(function loop(){phPaint();requestAnimationFrame(loop)})()}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 /* ============ v6.5 APK skin (phone app only): neon-navy "Dubbed" layout — tool rail, chip row, 9:16 preview, All-Video queue, Merge dialog, Auto Run settings ============ */
-const APKS=NATIVE||!!window.__APKSKIN;
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#stUpd,#stKiri');if(!b)return;try{closeSheet()}catch(x){}if(b.id==='stUpd')updCheck(true);else kiriSheet()});
+/* v9.5: Android APK uses the original website layout again (the neon skin stays only on the Windows PC app) */
+const APKS=(NATIVE&&PC)||!!window.__APKSKIN;
 if(APKS){window.__apk=true;const R=document.documentElement;R.classList.add('apk');if(PC||R.classList.contains('pc')){R.classList.remove('pc');R.classList.add('apkpc')}
  document.head.insertAdjacentHTML('beforeend',`<style id="apkCss">
 html.apk{--cy:#22d3ee;--gr:#34d399;--nv:#0b1330;--nv2:#111c44;--bl:#2f6bff}
@@ -2565,6 +2569,10 @@ async function updCheck(manual){if(!window.DubNative||!DubNative.info)return;let
  else if(DubNative.hotSave&&vcmp(m.app,APP_VER)>0&&vcmp(nv,win?m.minWin:m.minApk)>=0)kind='hot';
  if(!kind){if(manual)toast('✅ អ្នកកំពុងប្រើកំណែថ្មីបំផុត v'+APP_VER,3000);updBadge(false);return}
  UPD.kind=kind;UPD.ver=kind==='hot'?m.app:plat.ver;updBadge(true);
+ /* v9.5 AUTO UPDATE: when the app opens and nothing is loaded or running, the new version downloads and installs by itself (signature still checked).
+    APK: the new APK downloads by itself, Android then shows "Install". While a video is open or being processed it waits — only the red signal shows. */
+ if(!manual&&LS.get('updAuto',true)!==false&&(kind==='hot'||(kind==='native'&&!win&&DubNative.apkUpdate))){const idle=()=>!S.clips.length&&!(typeof AUTO!=='undefined'&&AUTO.run)&&!AGO&&!P.exporting&&!UPD.busy;
+  if(idle()){updSheet();const h=document.querySelector('#sheetBody h4');if(h)h.insertAdjacentHTML('afterend','<div class="note" style="color:#fca5a5;margin:-4px 0 8px">⚡ កំពុង Update ដោយស្វ័យប្រវត្តិ...</div>');updRun();return}}
  if(manual||LS.get('updSkip','')!==UPD.ver)updSheet()}
 /* v9.2: 🔴 red signal everywhere while an update waits — red pulsing 🆕 button, red bar under the header, red dot on 🔄 Update in the menu */
 function updBadge(on){let b=$('#updBtn'),bar=$('#updBar');document.documentElement.classList.toggle('upd-red',!!on);if(!on){if(b)b.remove();if(bar)bar.remove();return}
