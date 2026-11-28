@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.1';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.2';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -3685,7 +3685,8 @@ async function manualOpen(fs){if(!fs||!fs.length)return;if(AGO||AUTO_ST||(typeof
 const GMP={part:120,wait:null};
 const srtTm=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000)%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
 function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time.
-Keep EXACTLY the same SRT: the same numbers and the same timestamps, one subtitle for each number — replace ONLY the Chinese text with Khmer. Do not skip, merge or add subtitles. Reply with the Khmer SRT only (no notes).
+Keep EXACTLY the same SRT: the same numbers and the same timestamps, one subtitle for each number — replace ONLY the Chinese text with Khmer. Do not skip, merge or add subtitles.
+IMPORTANT OUTPUT FORMAT: put the WHOLE Khmer SRT inside ONE single code block that starts with ```srt and ends with ``` (so it has a Copy button). Write nothing before or after the code block.
 
 `+list.map((s,i)=>`${from+i+1}\n${srtTm(s.start)} --> ${srtTm(s.end)}\n${(prepSrc(s.src)||s.src).replace(/\s*\n\s*/g,' ')}`).join('\n\n')+'\n'}
 function gemParse(t,L){const kd=x=>x.replace(/[០-៩]/g,d=>'០១២៣៤៥៦៧៨៩'.indexOf(d));t=kd(String(t));
@@ -3705,7 +3706,7 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
   $('#gmRead').onclick=async()=>{if(!S.clips.length)return toast('ដាក់វីដេអូជាមុនសិន');closeSheet();await autoSubTr({noTr:true,quiet:true});if(S.subs.length)gemSheet()};return}
  const parts=[];for(let i=0;i<L.length;i+=GMP.part)parts.push([i,L.slice(i,i+GMP.part)]);const done=()=>L.filter(s=>s.km&&/[ក-៿]/.test(s.km)).length;
  sheet(`<h4>🤖 Gemini — Copy SRT ចិន → Paste SRT ខ្មែរ</h4>
-  <div class="note" style="line-height:1.7">① ចុច <b>📋 Copy</b> → ② ចុច <b>🌐 បើក Gemini</b> ហើយ Paste (Ctrl+V) → Enter<br>③ ពេល Gemini ឆ្លើយរួច ចុច Copy ចម្លើយទាំងមូល → ④ Paste ក្នុងប្រអប់ខាងក្រោម → ⑤ <b>🔊 បង្កើតសំឡេងខ្មែរ</b>${parts.length>1?`<br>ℹ Sub វែង — ចែកជា ${parts.length} ផ្នែក: ធ្វើម្ដងមួយផ្នែក (Paste ផ្នែកនីមួយៗតាមលំដាប់ក៏បាន)`:''}</div>
+  <div class="note" style="line-height:1.7">① ចុច <b>📋 Copy</b> → ② ចុច <b>🌐 បើក Gemini</b> ហើយ Paste (Ctrl+V) → Enter<br>③ Gemini ឆ្លើយក្នុង <b>ប្រអប់មួយ</b> → ចុចប៊ូតុង <b>📋 Copy</b> នៅជ្រុងខាងលើស្ដាំនៃប្រអប់នោះ → ④ Paste ក្នុងប្រអប់ខាងក្រោម → ⑤ <b>🔊 បង្កើតសំឡេងខ្មែរ</b>${parts.length>1?`<br>ℹ Sub វែង — ចែកជា ${parts.length} ផ្នែក: ធ្វើម្ដងមួយផ្នែក (Paste ផ្នែកនីមួយៗតាមលំដាប់ក៏បាន)`:''}</div>
   <div class="row" style="flex-wrap:wrap;gap:6px">${parts.map(([i,p],k)=>`<button class="btn" data-gp="${k}">📋 Copy SRT ចិន${parts.length>1?` ${k+1}/${parts.length} (${i+1}–${i+p.length})`:` (${L.length} បន្ទាត់)`}</button>`).join('')}<button class="btn g" id="gmOpen">🌐 បើក Gemini</button><button class="btn g" id="gmZh">⬇ ទាញយក SRT ចិន</button><button class="btn g" id="gmFile">📂 បើក .srt ខ្មែរ</button></div>
   <textarea id="gmIn" rows="7" placeholder="Paste SRT ខ្មែរពី Gemini នៅទីនេះ…&#10;1&#10;00:00:01,000 --> 00:00:03,000&#10;អត្ថបទខ្មែរ…" style="width:100%;margin-top:10px;box-sizing:border-box;font-size:14px"></textarea>
   <div class="note" id="gmInfo">✅ មានខ្មែររួច ${done()}/${L.length} បន្ទាត់</div>
