@@ -21,13 +21,13 @@
   ],
   "must": false
  },
- "app": "9.3",
+ "app": "9.4",
  "page": "web/app-native.html",
  "notes": [
-  "⚡ អាន Sub ផ្ទាល់ពីឯកសារវីដេអូ (មិនចាំបាច់ចាក់វីដេអូ) — លឿនជាងមុនច្រើន សម្រាប់រឿងវែងៗ",
-  "▶ វិធីថ្មី៖ ដាក់វីដេអូ → មើល/ស្ដាប់សិន → ចុច ✨ Auto បកប្រែ",
-  "📱 បន្តធ្វើការ ទោះចេញពី App (Android/PC)"
+  "⚡ បង្កើតសំឡេងលឿនជាងមុន ~40% — ទាយល្បឿននិយាយត្រូវតាំងពីដំបូង (ស្នើ Microsoft តែម្ដង/បន្ទាត់)",
+  "⚡ បកប្រែភ្លាមៗពេលកំពុងអាន Sub — មិនចាំអានចប់",
+  "⚡ អាន Sub ផ្ទាល់ពីឯកសារវីដេអូ"
  ],
- "sig": "iOFTsz1ahaB+4gQwM6UPsbpkTr0WwZy5oVDXHHTd09LZnEsvcUsZDTWfOnPf1u6OY5eSHOXfa3D9DlNk0FSzsw==",
- "sha": "882d372ec06ea589ed86df014d0bfccaae174195d188f398c5e9d4a870c2c797"
+ "sig": "30TEIveRpV9OUYWxT18mkAYF3s6e2E3s/EtngbjV7qAP+o9aCEbDDyJd/m26vlldOn5wsn9O4bQP5RHr6fYKcQ==",
+ "sha": "2edf24e08ee59376df8522a44a19851d285c46c77fc1d33365c7aba3aa5a7e3f"
 }
