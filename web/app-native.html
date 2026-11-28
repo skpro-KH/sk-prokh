@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.6';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.7';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -934,15 +934,26 @@ const cv=$('#cv'),ctx=cv.getContext('2d');
 function seekEl(el,t){return new Promise(r=>{t=clamp(t,0,(el.duration||1e9)-0.001);if(Math.abs(el.currentTime-t)<0.005&&el.readyState>=2)return r();let d=false;const f=()=>{if(d)return;d=true;el.removeEventListener('seeked',f);r()};el.addEventListener('seeked',f);el.currentTime=t;setTimeout(f,2500)})}
 /* v9.6: when a phone video does not open — sniff what it really is, retry once with the right type, and say WHY (codec / container / size / cloud file) */
 async function mediaSniff(f){const o={size:f.size||0,type:f.type||'',ext:((f.name||'').match(/\.([a-z0-9]{2,5})$/i)||[])[1]||''};try{const u=new Uint8Array(await f.slice(0,64).arrayBuffer());o.read=u.length>0;const a=String.fromCharCode(...u.slice(4,12));
+  o.hex=[...u.slice(0,12)].map(x=>x.toString(16).padStart(2,'0')).join('');const t4=String.fromCharCode(...u.slice(4,8)),br=String.fromCharCode(...u.slice(8,12));
+  if(t4==='ftyp'&&/^(heic|heix|mif1|msf1|avif|hevc)/.test(br)){o.box='heic';return o}
+  if(u[0]===0xff&&u[1]===0xd8){o.box='jpg';return o}if(u[0]===0x89&&u[1]===0x50){o.box='png';return o}if(String.fromCharCode(...u.slice(0,3))==='GIF'){o.box='gif';return o}if(String.fromCharCode(...u.slice(0,4))==='RIFF'&&String.fromCharCode(...u.slice(8,12))==='WEBP'){o.box='webp';return o}
+  if(['moov','mdat','free','wide','skip','uuid','pnot'].includes(t4)){o.box='mov';try{const ix=await mp4VIndex({file:f});if(ix){o.codec=ix.codec;o.w=ix.w;o.h=ix.h}}catch(e){}return o}
   o.box=/^ftyp/.test(a)?'mp4':u[0]===0x1a&&u[1]===0x45&&u[2]===0xdf&&u[3]===0xa3?'mkv':String.fromCharCode(...u.slice(0,4))==='RIFF'?'avi':u[0]===0x47&&u[188]===0x47?'ts':String.fromCharCode(...u.slice(0,3))==='FLV'?'flv':u[0]===0x30&&u[1]===0x26?'wmv':'?';
   if(o.box==='mp4'){try{const ix=await mp4VIndex({file:f});if(ix){o.codec=ix.codec;o.w=ix.w;o.h=ix.h}}catch(e){}}}catch(e){o.read=false}return o}
 function mediaWhy(o,code){const mb=o.size?(o.size/1048576).toFixed(0)+' MB':'?',k=(o.codec||'').slice(0,4);
  if(o.read===false||!o.size)return 'អានឯកសារមិនបាន — ប្រហែលជាវីដេអូនៅលើ Cloud (Google Photos) មិនទាន់ទាញចូលទូរសព្ទ។ សូមបើកវានៅ Gallery/Photos ហើយចុច Download សិន រួចដាក់ម្ដងទៀត';
  if(/^(hvc1|hev1)/.test(k))return `វីដេអូនេះជា HEVC/H.265 (${o.w}×${o.h}, ${mb}) — ទូរសព្ទនេះចាក់ក្នុង App មិនបាន។ សូមបំប្លែងទៅ MP4 H.264 (ឧ. CapCut → Export) រួចដាក់ម្ដងទៀត`;
  if(/^av01/.test(k))return `វីដេអូនេះជា AV1 (${mb}) — ទូរសព្ទនេះចាក់មិនបាន។ សូមបំប្លែងទៅ MP4 H.264`;
+ if(['jpg','png','gif','webp','heic'].includes(o.box))return `ឯកសារនេះជា រូបថត (${o.box.toUpperCase()}, ${mb}) មិនមែនវីដេអូទេ — សូមជ្រើសវីដេអូ (ក្នុង Gallery មើលរូបមានសញ្ញា ▶ និងរយៈពេល)`;
  if(['avi','flv','wmv','ts'].includes(o.box))return `ប្រភេទ .${o.box.toUpperCase()} មិនគាំទ្រ (${mb}) — សូមបំប្លែងទៅ MP4 H.264`;
- return `ចាក់មិនបាន (${o.box||'?'} ${o.codec||''} ${mb}, កូដ ${code||'?'}) — សូមបំប្លែងទៅ MP4 H.264 ហើយសាកម្ដងទៀត`}
+ return `ចាក់មិនបាន (${o.box||'?'} ${o.codec||''} ${mb}, កូដ ${code||'?'}, ${o.hex||''}) — សូមបំប្លែងទៅ MP4 H.264 ហើយសាកម្ដងទៀត`}
+/* Motion Photo (Samsung / Google): a JPEG/HEIC with a short MP4 glued at the end → take the MP4 part */
+async function motionVideo(f){const N=f.size,W=Math.min(N,64*1048576),st=N-W,u=new Uint8Array(await f.slice(st,N).arrayBuffer());
+ for(let i=4;i<u.length-12;i++){if(u[i]===0x66&&u[i+1]===0x74&&u[i+2]===0x79&&u[i+3]===0x70){const b=String.fromCharCode(u[i+4],u[i+5],u[i+6],u[i+7]);if(/^(isom|mp4[12]|mp42|avc1|iso[2-9]|qt  |3gp)/.test(b)&&!(st+i-4===0)){const at=st+i-4;return new File([f.slice(at)],(f.name||'motion').replace(/\.[^.]+$/,'')+'_video.mp4',{type:'video/mp4'})}}}return null}
 function loadMedia(f){return loadMedia0(f).catch(async e=>{const o=await mediaSniff(f);
+ if(o.box==='jpg'||o.box==='heic'){try{const v=await motionVideo(f);if(v)return await loadMedia0(v)}catch(e3){}}
+ if(o.read&&(o.box==='mov'||o.box==='?')){try{const u=new Uint8Array(await f.slice(0,Math.min(f.size,1048576)).arrayBuffer());for(let i=8;i<u.length-8;i++)if(u[i]===0x66&&u[i+1]===0x74&&u[i+2]===0x79&&u[i+3]===0x70){return await loadMedia0(new File([f.slice(i-4)],(f.name||'video')+'.mp4',{type:'video/mp4'}))}}catch(e2){}
+  try{return await loadMedia0(new File([f],(f.name||'video')+'.mp4',{type:'video/mp4'}))}catch(e2){}}
  if(o.read&&(o.box==='mp4'||o.box==='mkv')&&!/^video\//.test(f.type||'')){try{return await loadMedia0(new File([f],(f.name||'video')+(o.ext?'':'.'+o.box),{type:o.box==='mp4'?'video/mp4':'video/x-matroska'}))}catch(e2){}}
  throw Error('មិនអាចបើកវីដេអូនេះ — '+mediaWhy(o,e.code))})}
 function loadMedia0(f){return new Promise((res,rej)=>{const el=document.createElement('video');el.preload='auto';el.playsInline=true;el.muted=true;el.setAttribute('playsinline','');el.setAttribute('muted','');el.src=URL.createObjectURL(f);$('#vbin').appendChild(el);

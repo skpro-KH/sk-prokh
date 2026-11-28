@@ -21,13 +21,12 @@
   ],
   "must": false
  },
- "app": "9.6",
+ "app": "9.7",
  "page": "web/app-native.html",
  "notes": [
-  "🎬 វីដេអូបើកមិនបាន — App សាកវិធីទី 2 ដោយខ្លួនឯង ហើយប្រាប់មូលហេតុច្បាស់ (HEVC / AVI / Cloud ...)",
-  "🎯 សំឡេងនៅត្រឹមកន្លែង Sub",
-  "⚡ Update ដោយស្វ័យប្រវត្តិ"
+  "🎬 បើកវីដេអូបានច្រើនប្រភេទជាងមុន៖ Motion Photo (រូបមានវីដេអូ), MOV, វីដេអូមានទិន្នន័យខាងមុខ",
+  "ℹ ប្រាប់ច្បាស់ពេលជ្រើស រូបថត ជំនួសវីដេអូ"
  ],
- "sig": "wUpGsWScezLry6Nc3fo1g7xQpyV8YLbbSRXw0LnmURZd3C/wJ0otBEgdoqUL++cpidOQR8F7fqRBSE1FywjE1g==",
- "sha": "bc2ccee262ec9126c6d40f27194dd6629ad2cead8092b29f76166af7d3b8a173"
+ "sig": "nd9p2xcsSR6iqr6z1K7Ka7l5vNb4duB0Vl2YAP5Y5TLgdqgpTNi/GgYJYx4w0XSwu0mK8KTI3SFiof38pokUeQ==",
+ "sha": "7d5aa6809a3be81b26a4197f59a23c78692eaab540985ca46d33db8ef2fa224e"
 }
