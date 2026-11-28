@@ -21,12 +21,13 @@
   ],
   "must": false
  },
- "app": "9.8",
+ "app": "9.9",
  "page": "web/app-native.html",
  "notes": [
-  "⚡ អានជាមុន៖ ពេលវីដេអូមួយកំពុងបង្កើតសំឡេង/Export → វីដេអូបន្ទាប់អាន Sub & បកប្រែរួចជាមុន (ដាក់ច្រើនវីដេអូក្នុង Auto ទើបលឿន)",
-  "🎬 បើក Motion Photo / MOV បាន"
+  "🤖 ថ្មី៖ បកប្រែជាមួយ Gemini — Copy Sub ចិន (មាន Prompt ស្រាប់) → Paste ក្នុង Gemini → Paste ខ្មែរត្រឡប់មកវិញ → បង្កើតសំឡេង",
+  "⚙ Auto Run៖ ជ្រើស «បកប្រែដោយ Gemini» → App រង់ចាំអ្នក Paste រាល់វីដេអូ",
+  "⚡ អាន Sub ជាមុនសម្រាប់វីដេអូបន្ទាប់"
  ],
- "sig": "jDt+Yj+SiKkNKAdHba/Ca3aaJXD3DwKo0ohgl71CNCZydG+yes22/o18eEoYa8qBcF0zHsnOw5bw9R5UbtS+wQ==",
- "sha": "5725283222cc433ccd467937127be55c59dc240dab7d4fe0280eb5efb5e78242"
+ "sig": "SEgFjz724xPMEJED4BE9830fIt+UzCAk4do7XC5Jjx1GVtd5Mzx4uCZ9la4IR0pHSP7nwVLAT5H4NqZKm5T2OQ==",
+ "sha": "2671e4c65266b6cc0c36a0adae11b29481bbce26372b352957430dd1e0136f69"
 }
