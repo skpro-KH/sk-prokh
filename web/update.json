@@ -21,12 +21,12 @@
   ],
   "must": false
  },
- "app": "10.0",
+ "app": "10.1",
  "page": "web/app-native.html",
  "notes": [
-  "🤖 Gemini ជា SRT៖ ដាក់វីដេអូ → App អាន Sub ចិន → Copy SRT ចិន → Gemini → Paste SRT ខ្មែរ (ឬបើក .srt) → បង្កើតសំឡេង",
-  "🤖 ប៊ូតុង Gemini នៅរបារឧបករណ៍ខាងឆ្វេង"
+  "🤖 របៀបដោយដៃ (លំនាំដើម)៖ ដាក់វីដេអូ → អាន Sub ចិនតែប៉ុណ្ណោះ → Copy/ទាញយក SRT ចិន → បកប្រែក្នុង Gemini → Paste SRT ខ្មែរ → បង្កើតសំឡេង → ស្ដាប់ → ទាញយកពេលចង់",
+  "⚙ ប្ដូររបៀប Gemini ដោយដៃ / Auto ក្នុងការកំណត់"
  ],
- "sig": "Wp+p2noGJB5QpkWZwizYk1j7tYe9WvzcqXj8AqaU0P5MNSCDrf4jYaz84zVSG5T5JeaNwHbDUAu7exTxSr0aog==",
- "sha": "9c0a24f6fadd4f56ce40144dd8e5516c86a10ce344895b332c66ee5cf453cafc"
+ "sig": "WLUJJMIaFTPTeHflRV+2fRkLfkYgjKtlM1t+pRYZens5KEtT5dibmsDB/4ISrBR1DBwEp7CGdwz0++OAZd7lVw==",
+ "sha": "8886dfedf6707b2c3537dc0324458cdb21fff3d742743a98ec053564019605d4"
 }

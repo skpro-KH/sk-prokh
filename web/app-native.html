@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.0';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.1';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -918,7 +918,7 @@ function kiriSheet(){const vs=g=>KIRI_V.filter(v=>v[2]===g).map(([n,l])=>`<butto
   q('#kiTest').onclick=async()=>{if(!KIRI.key)return toast('🔑 ដាក់ API Key សិន',2500);busy.on('🎙 Kiri...',null);try{const a1=await kiriTTS('ឯងហ៊ានក្បត់ខ្ញុំមែនទេ?',KIRI.m,0);const a2=await kiriTTS('ខ្ញុំមិនបានធ្វើអ្វីខុសទេ។',KIRI.f,0);busy.off();await play(a1);setTimeout(()=>play(a2),1800)}catch(e){busy.off();toast('✕ '+(e.message||e),5000)}}})}
 async function ttsFetch(text,voice,rate,pitch){{const kv=kiriVoice(voice);if(kv)return kiriTTS(text,kv,rate)}if(NATIVE&&!srv()){let e;for(let a=0;a<3;a++){const w=natLast+180-Date.now();natLast=Math.max(Date.now(),natLast+180);if(w>0)await sleep(w);try{return await nativeTTS(text,voice,rate,pitch)}catch(x){e=x;if(busy.cancel)throw x;if(a<2)await sleep(500*(a+1)+Math.random()*300)}}throw e}let last;for(let a=0;a<3;a++){try{const r=await fetch(srv()+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice,rate,pitch}),signal:sigT(40000)});
   if(r.ok)return await r.arrayBuffer();let m=r.status;try{m=(await r.json()).error||m}catch(e){}last=Error('សំឡេង: '+m)}catch(e){last=e}await sleep(600*(a+1))}throw last}
-$('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>${NATIVE?`<div class="row" style="margin-bottom:8px"><button class="btn${document.documentElement.classList.contains('upd-red')?' r':''}" id="stUpd" style="flex:1">🔄 ពិនិត្យ Update · v${APP_VER}</button></div>`:''}
+$('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>${NATIVE?`<div class="row" style="margin-bottom:8px"><button class="btn${document.documentElement.classList.contains('upd-red')?' r':''}" id="stUpd" style="flex:1">🔄 ពិនិត្យ Update · v${APP_VER}</button><button class="btn g" id="stMan" style="flex:1">${MANUAL()?'🤖 របៀប៖ Gemini ដោយដៃ':'✨ របៀប៖ Auto'}</button></div>`:''}
  <div class="item"><div class="t"><div>🔐 License · ${LIC.info?licExpTxt(LIC.info):'—'}</div><div class="note" style="margin:0">Device ID: ${DEV_SHORT||'—'}</div></div><button class="btn g s" onclick="closeSheet();document.getElementById('lic').classList.add('on')">ប្ដូរ Key</button></div>
  <div class="row"><button class="btn g s" onclick="openUrl(TG_URL)">✈ Telegram @wang_linkh</button></div>
  <div class="row"><button class="btn g s" onclick="closeSheet();setTimeout(kiriSheet,250)">🎙 Kiri TTS (API Key)</button></div>
@@ -971,7 +971,7 @@ const total=()=>S.clips.reduce((a,c)=>a+(c.out-c.in),0);
 const offsetOf=i=>S.clips.slice(0,i).reduce((a,c)=>a+(c.out-c.in),0);
 function locate(t){let acc=0;for(let i=0;i<S.clips.length;i++){const c=S.clips[i],L=c.out-c.in;if(t<acc+L||i===S.clips.length-1)return{i,c,local:clamp(t-acc,0,L),off:acc};acc+=L}return null}
 $('#empty').onclick=()=>$('#vidFile').click();$('#addVid').onclick=()=>$('#vidFile').click();
-$('#vidFile').onchange=async e=>{const f=[...e.target.files];e.target.value='';await addFiles(f);if(typeof FLOW!=='undefined'&&FLOW.go&&!window.__apk&&S.clips.length&&!S.subs.length)setTimeout(()=>autoGo(FLOW.kind),700)};
+$('#vidFile').onchange=async e=>{const f=[...e.target.files];e.target.value='';if(MANUAL()&&!Q.auto)return manualOpen(f);await addFiles(f);if(typeof FLOW!=='undefined'&&FLOW.go&&!window.__apk&&S.clips.length&&!S.subs.length)setTimeout(()=>autoGo(FLOW.kind),700)};
 function renderClips(){const b=$('#clipList');if(!S.clips.length){b.innerHTML='<div class="note" style="margin:0 0 10px">— មិនទាន់មានវីដេអូ —</div>';return}
  b.innerHTML=S.clips.map((c,i)=>`<div class="item" data-i="${i}" style="animation-delay:${i*.05}s"><img src="${c.m.thumb}"><div class="t"><div>${i+1}. ${esc(c.m.name)}</div><div class="note" style="margin:0">${fmt(c.in)} → ${fmt(c.out)}${c.q?` · <b>${QST[c.q]||''}</b>`:''}</div></div>
   <button class="ibtn" data-a="up">↑</button><button class="ibtn" data-a="del">✕</button></div>`).join('');
@@ -2161,7 +2161,7 @@ let AUPT=0;function auPaint(force){const n=performance.now();if(!force&&n-AUPT<3
 $('#auList').addEventListener('click',e=>{const bt=e.target.closest('button[data-a]');if(!bt)return;const it=AUTO.list[+bt.closest('.au-it').dataset.i];if(!it)return;const a=bt.dataset.a;
  if(a==='open'&&it.out)DubNative.open(it.out.uri,'video/mp4');if(a==='share'&&it.out)DubNative.share(it.out.uri,'video/mp4');if(a==='retry'){it.st='wait';it.msg='';it.pct=0;if(!AUTO.run)autoRun()}if(a==='del'){AUTO.list.splice(AUTO.list.indexOf(it),1)}auPaint(true)});
 $('#auAdd').onclick=()=>$('#auFile').click();
-$('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+$('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;if(MANUAL())return manualOpen(fs);
  if(fs.length>1&&(await ask(`<b>🔗 បញ្ចូលវីដេអូទាំង ${fs.length} ជាមួយគ្នា (Merge)?</b><div class="note" style="margin-top:6px">${fs.map((f,i)=>`${i+1}. ${esc(f.name)}`).join('<br>')}</div><div class="note">• <b>Merge</b> = ភ្ជាប់ជាវីដេអូតែមួយ<br>• <b>ម្ដងមួយៗ</b> = បកប្រែ & ទាញយកដាច់ពីគ្នា</div>`,'🔗 Merge ចូលគ្នា','ម្ដងមួយៗ')))
   AUTO.list.push({name:fs.map(f=>f.name.replace(/\.[^.]+$/,'')).join(' + ').slice(0,60),files:fs,st:'wait',pct:0});
  else fs.forEach(f=>AUTO.list.push({name:f.name.replace(/\.[^.]+$/,''),files:[f],st:'wait',pct:0}));
@@ -2252,7 +2252,7 @@ if(document.documentElement.classList.contains('ws')){
  setInterval(()=>{txPaint();tlPaint()},700);(function loop(){phPaint();requestAnimationFrame(loop)})()}
 if(NATIVE&&!PC){$('#navAuto').style.display='';auPaint(true)}
 /* ============ v6.5 APK skin (phone app only): neon-navy "Dubbed" layout — tool rail, chip row, 9:16 preview, All-Video queue, Merge dialog, Auto Run settings ============ */
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#stUpd,#stKiri');if(!b)return;try{closeSheet()}catch(x){}if(b.id==='stUpd')updCheck(true);else kiriSheet()});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#stUpd,#stKiri,#stMan');if(!b)return;if(b.id==='stMan'){LS.set('manualGem',!MANUAL());b.textContent=MANUAL()?'🤖 របៀប៖ Gemini ដោយដៃ':'✨ របៀប៖ Auto';toast(MANUAL()?'🤖 ដាក់វីដេអូ → អាន Sub ចិនតែប៉ុណ្ណោះ':'✨ ដាក់វីដេអូ → Auto ទាំងអស់',3000);return}try{closeSheet()}catch(x){}if(b.id==='stUpd')updCheck(true);else kiriSheet()});
 /* v9.5: Android APK uses the original website layout again (the neon skin stays only on the Windows PC app) */
 const APKS=(NATIVE&&PC)||!!window.__APKSKIN;
 if(APKS){window.__apk=true;const R=document.documentElement;R.classList.add('apk');if(PC||R.classList.contains('pc')){R.classList.remove('pc');R.classList.add('apkpc')}
@@ -2675,7 +2675,7 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
    if(start){if(!AUTO.list.some(x=>x.st==='wait'))return toast('📄 សូមជ្រើសវីដេអូសិន',3000);autoRun()}}})}
 if(APKS){
  $('#auSet').onclick=()=>akCfg(false);
- $('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;let mg=false;if(fs.length>1){mg=await akMerge(fs);if(mg===null)return}
+ $('#auFile').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;if(MANUAL())return manualOpen(fs);let mg=false;if(fs.length>1){mg=await akMerge(fs);if(mg===null)return}
   const first=AUTO.list.length;if(mg)AUTO.list.push({name:fs.map(f=>f.name.replace(/\.[^.]+$/,'')).join(' + ').slice(0,60),files:fs,st:'wait',pct:0});else fs.forEach(f=>AUTO.list.push({name:f.name.replace(/\.[^.]+$/,''),files:[f],st:'wait',pct:0}));
   GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}auPaint(true);buzz(20);toast(`បានបញ្ចូលវីដេអូចំនួន ${fs.length} ទៅក្នុងបញ្ជីបកប្រែ (សរុប ${AUTO.list.length})!`,3500);
   if(!AUTO.run){if(AUTO.cfg.go!==false){setTimeout(()=>autoRun(),400);return}await akPreview(AUTO.list[first]);GP_USER=true;try{goPage('pg-auto')}finally{GP_USER=false}toast('▶ មើល/ស្ដាប់វីដេអូសិន · រួចចុច ✨ Auto បកប្រែ',4500)}};
@@ -3674,6 +3674,14 @@ if(!LS.get('mig41',false)){LS.set('mig41',true);S.asr.eng='ocr';if(S.mix.mode!==
 let AUTO_ST=false;
 /* v9.9 🤖 GEMINI COPY → PASTE: the app reads the Sub (original language) and gives a ready-made, numbered prompt; the user pastes it into
    Gemini, copies Gemini's Khmer answer back here, and the app makes the Khmer voice from it. Works for any length (split in parts). */
+/* v10.1 MANUAL (default): add a video → the app ONLY reads the Chinese Sub. You copy / download the Chinese SRT, translate it yourself in Gemini,
+   paste the Khmer SRT back → 🔊 make the voice → listen → ⬇ download when YOU want. Nothing else runs by itself. */
+const MANUAL=()=>LS.get('manualGem',true)!==false;
+async function manualOpen(fs){if(!fs||!fs.length)return;if(AGO||AUTO_ST||(typeof AUTO!=='undefined'&&AUTO.run))return toast('⏳ កំពុងធ្វើការ — រង់ចាំបន្តិច');
+ if(S.clips.length&&(S.subs.length||fs.length))auReset();GP_USER=true;try{goPage('pg-vid')}catch(e){}finally{GP_USER=false}
+ await addFiles(fs);if(!S.clips.length)return;await autoSubTr({noTr:true,quiet:true});
+ if(!S.subs.length)return toast('⚠ រក Sub ចិនលើវីដេអូមិនឃើញ — អាចកែប្រអប់ 📖 ហើយចុច 🤖 Sub ម្ដងទៀត',5000);
+ await seek(0);toast(`✅ អាន Sub ចិនរួច ${S.subs.length} បន្ទាត់ — Copy SRT ទៅ Gemini`,3500);gemSheet()}
 const GMP={part:120,wait:null};
 const srtTm=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000)%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
 function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time.
@@ -3698,7 +3706,7 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
  const parts=[];for(let i=0;i<L.length;i+=GMP.part)parts.push([i,L.slice(i,i+GMP.part)]);const done=()=>L.filter(s=>s.km&&/[ក-៿]/.test(s.km)).length;
  sheet(`<h4>🤖 Gemini — Copy SRT ចិន → Paste SRT ខ្មែរ</h4>
   <div class="note" style="line-height:1.7">① ចុច <b>📋 Copy</b> → ② ចុច <b>🌐 បើក Gemini</b> ហើយ Paste (Ctrl+V) → Enter<br>③ ពេល Gemini ឆ្លើយរួច ចុច Copy ចម្លើយទាំងមូល → ④ Paste ក្នុងប្រអប់ខាងក្រោម → ⑤ <b>🔊 បង្កើតសំឡេងខ្មែរ</b>${parts.length>1?`<br>ℹ Sub វែង — ចែកជា ${parts.length} ផ្នែក: ធ្វើម្ដងមួយផ្នែក (Paste ផ្នែកនីមួយៗតាមលំដាប់ក៏បាន)`:''}</div>
-  <div class="row" style="flex-wrap:wrap;gap:6px">${parts.map(([i,p],k)=>`<button class="btn" data-gp="${k}">📋 Copy SRT ចិន${parts.length>1?` ${k+1}/${parts.length} (${i+1}–${i+p.length})`:` (${L.length} បន្ទាត់)`}</button>`).join('')}<button class="btn g" id="gmOpen">🌐 បើក Gemini</button><button class="btn g" id="gmFile">📂 បើក .srt ខ្មែរ</button></div>
+  <div class="row" style="flex-wrap:wrap;gap:6px">${parts.map(([i,p],k)=>`<button class="btn" data-gp="${k}">📋 Copy SRT ចិន${parts.length>1?` ${k+1}/${parts.length} (${i+1}–${i+p.length})`:` (${L.length} បន្ទាត់)`}</button>`).join('')}<button class="btn g" id="gmOpen">🌐 បើក Gemini</button><button class="btn g" id="gmZh">⬇ ទាញយក SRT ចិន</button><button class="btn g" id="gmFile">📂 បើក .srt ខ្មែរ</button></div>
   <textarea id="gmIn" rows="7" placeholder="Paste SRT ខ្មែរពី Gemini នៅទីនេះ…&#10;1&#10;00:00:01,000 --> 00:00:03,000&#10;អត្ថបទខ្មែរ…" style="width:100%;margin-top:10px;box-sizing:border-box;font-size:14px"></textarea>
   <div class="note" id="gmInfo">✅ មានខ្មែររួច ${done()}/${L.length} បន្ទាត់</div>
   <div class="row" style="gap:6px"><button class="btn" id="gmApply" style="flex:1">✅ ដាក់ការបកប្រែ</button><button class="btn r" id="gmVoice" style="flex:1"${done()?'':' disabled'}>🔊 បង្កើតសំឡេងខ្មែរ</button></div>`);
@@ -3708,8 +3716,8 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
   if(!m.size){toast('✕ រក SRT មិនឃើញ — Copy ចម្លើយ Gemini ទាំងមូល (មានលេខ និងម៉ោង -->)',4500);return 0}
   subChanged();try{renderSubs()}catch(e){}const miss=L.map((s,i)=>(!s.km||!/[ក-៿]/.test(s.km))?i+1:0).filter(Boolean);
   $('#gmInfo').innerHTML=`✅ ដាក់ ${n} បន្ទាត់ · មានខ្មែររួច ${L.length-miss.length}/${L.length}`+(miss.length?`<br>⚠ នៅខ្វះ: ${miss.slice(0,25).join(', ')}${miss.length>25?' …':''} ${miss.length<=L.length/2?'— ខ្វះតិចតួច: App នឹងបកប្រែដោយ Google ពេលបង្កើតសំឡេង':''}`:' 🎉');$('#gmVoice').disabled=false;$('#gmIn').value='';buzz(20);return n};
- $('#gmApply').onclick=apply;$('#gmFile').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.srt,.txt,text/plain';i.onchange=async()=>{const f=i.files[0];if(!f)return;$('#gmIn').value=await f.text();apply()};i.click()};$('#gmIn').addEventListener('paste',()=>setTimeout(()=>{if($('#gmIn').value.trim().length>10)apply()},60));
- $('#gmVoice').onclick=async()=>{if($('#gmIn').value.trim())apply();closeSheet();if(GMP.wait){const w=GMP.wait;GMP.wait=null;w();return}const ok=await genAll();if(ok!==false){toast('✅ សំឡេងខ្មែររួច — ចុច ▶ ស្ដាប់ ឬ ⬇ ទាញយក',4000);try{showAct()}catch(e){}}}}
+ $('#gmApply').onclick=apply;$('#gmZh').onclick=()=>{const nm=((S.clips[0]&&S.clips[0].m.name)||'video').replace(/\.[^.]+$/,'');shareOrDownload(new File([L.map((x,i)=>`${i+1}\n${srtTm(x.start)} --> ${srtTm(x.end)}\n${(prepSrc(x.src)||x.src).replace(/\s*\n\s*/g,' ')}\n`).join('\n')],nm+'_chinese.srt',{type:'text/plain'}))};$('#gmFile').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.srt,.txt,text/plain';i.onchange=async()=>{const f=i.files[0];if(!f)return;$('#gmIn').value=await f.text();apply()};i.click()};$('#gmIn').addEventListener('paste',()=>setTimeout(()=>{if($('#gmIn').value.trim().length>10)apply()},60));
+ $('#gmVoice').onclick=async()=>{if($('#gmIn').value.trim())apply();closeSheet();if(GMP.wait){const w=GMP.wait;GMP.wait=null;w();return}try{castPick(FLOW.cast||'simple');setMode(FLOW.orig||'mute');subChanged()}catch(e){}const ok=await genAll();if(ok!==false){await seek(0);toast('✅ សំឡេងខ្មែររួច — ចុច ▶ ស្ដាប់ ហើយ ⬇ ទាញយក ពេលចង់',5000);try{showAct()}catch(e){}}}}
 function gemWait(it){return new Promise(res=>{GMP.wait=res;if(it)it.msg='⏸ រង់ចាំ Gemini — Copy Sub → Paste ខ្មែរ (ចុច 🤖 Gemini)';auPaint();gemSheet()})}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#gemBtn'))gemSheet()});
 async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.length)return;AUTO_ST=true;try{await sleep(500);
