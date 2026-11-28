@@ -456,7 +456,7 @@ html.upd-red [data-m="upd"] i{position:relative}html.upd-red [data-m="upd"] i::a
   </div>
   <div class="player">
     <div class="stage-row">
-    <div class="rail" id="railL"><button data-r="add"><b>＋</b><span>វីដេអូ</span></button><button data-r="sub"><b>🤖</b><span>Sub</span></button><button data-r="voice"><b>🔊</b><span>សំឡេង</span></button><button data-r="dl"><b>⬇</b><span>ទាញយក</span></button></div>
+    <div class="rail" id="railL"><button data-r="add"><b>＋</b><span>វីដេអូ</span></button><button data-r="sub"><b>🤖</b><span>Sub</span></button><button data-r="gem"><b>🤖</b><span>Gemini</span></button><button data-r="voice"><b>🔊</b><span>សំឡេង</span></button><button data-r="dl"><b>⬇</b><span>ទាញយក</span></button></div>
     <div class="stage-wrap" id="stageWrap">
       <div class="stage"><canvas id="cv" width="720" height="1280"></canvas><div id="ovl"></div></div>
       <div class="vbar" id="vbar"><button id="vPlay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button><span id="vNow">0:00</span><input type="range" id="vSeek" min="0" max="1000" value="0" step="1"><span id="vAll">0:00</span></div>
@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.9';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.0';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -1562,7 +1562,7 @@ function bigPlayPaint(){const w=$('#stageWrap');if(!w)return;w.classList.toggle(
 $('#vPlay').onclick=e=>{e.stopPropagation();if(!S.clips.length)return;buzz();P.playing?pause():play()};
 $('#vSeek').addEventListener('pointerdown',()=>VSEEK=true);$('#vSeek').addEventListener('input',e=>{const T=total();if(!T)return;$('#vNow').textContent=mmss(e.target.value/1000*T);seek(e.target.value/1000*T)});
 window.addEventListener('pointerup',()=>{VSEEK=false},true);$('#vSeek').addEventListener('change',()=>{VSEEK=false});
-$('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
+$('#railL').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;if(r==='gem')return gemSheet();
  if(r==='add')return $('#vidFile').click();if(!S.clips.length&&r!=='add'){toast('សូមដាក់វីដេអូសិន');return $('#vidFile').click()}
  if(r==='sub'){goPage('pg-sub');if(!S.subs.length&&!AUTO_ST)autoSubTr();return}if(r==='voice')return goPage('pg-voice');if(r==='dl'){goPage('pg-exp');return showAct()}};
 $('#railR').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz();const r=b.dataset.r;
@@ -3675,14 +3675,20 @@ let AUTO_ST=false;
 /* v9.9 🤖 GEMINI COPY → PASTE: the app reads the Sub (original language) and gives a ready-made, numbered prompt; the user pastes it into
    Gemini, copies Gemini's Khmer answer back here, and the app makes the Khmer voice from it. Works for any length (split in parts). */
 const GMP={part:120,wait:null};
-function gemPrompt(list,from){return `Translate these Chinese drama subtitle lines into natural spoken Khmer for voice dubbing (the way Chinese series are dubbed on Cambodian TV). Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer. Each line must be speakable in its time [seconds].
-Reply ONLY with the same numbers, one line each, in this exact format:
-N. Khmer text
-Do not skip, merge or add lines. No Chinese, no notes, no explanations.
+const srtTm=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000)%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
+function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time.
+Keep EXACTLY the same SRT: the same numbers and the same timestamps, one subtitle for each number — replace ONLY the Chinese text with Khmer. Do not skip, merge or add subtitles. Reply with the Khmer SRT only (no notes).
 
-`+list.map((s,i)=>`${from+i+1}. [${Math.max(.5,s.end-s.start).toFixed(1)}s] ${(prepSrc(s.src)||s.src).replace(/\s*\n\s*/g,' ')}`).join('\n')}
-function gemParse(t){const m=new Map();let last=null;const kd=x=>x.replace(/[០-៩]/g,d=>'០១២៣៤៥៦៧៨៩'.indexOf(d));
- for(const raw of String(t).replace(/\r/g,'').split('\n')){const l=kd(raw.trim()).replace(/^[-*•>\s]+/,'');if(!l||/^```/.test(l))continue;const x=l.match(/^\**\s*(\d{1,5})\s*\**\s*[\.\)\:：、\-–]\s*(?:\[[^\]]*\]\s*)?(.*)$/);
+`+list.map((s,i)=>`${from+i+1}\n${srtTm(s.start)} --> ${srtTm(s.end)}\n${(prepSrc(s.src)||s.src).replace(/\s*\n\s*/g,' ')}`).join('\n\n')+'\n'}
+function gemParse(t,L){const kd=x=>x.replace(/[០-៩]/g,d=>'០១២៣៤៥៦៧៨៩'.indexOf(d));t=kd(String(t));
+ if(/-->/.test(t)){const m=new Map(),ln=t.replace(/\r/g,'').split('\n');let num=null,cur=null;
+  const put=()=>{if(cur&&cur.txt.trim()){let k=cur.num;if(L&&(!k||!L[k-1]||Math.abs(L[k-1].start-cur.st)>1.5)){let bi=-1,bd=1;L.forEach((s,i)=>{const d=Math.abs(s.start-cur.st);if(d<bd){bd=d;bi=i}});if(bi>=0)k=bi+1}if(k)m.set(k,cur.txt.replace(/<[^>]+>|\*+/g,'').trim())}cur=null};
+  for(const raw of ln){const l=raw.trim();if(/^```/.test(l))continue;const tm=l.match(/(\d+:\d+:\d+[,.]\d+)\s*-->\s*(\d+:\d+:\d+[,.]\d+)/);
+   if(tm){put();cur={num,st:parseT(tm[1]),txt:''};num=null;continue}
+   if(/^\d{1,5}$/.test(l)){if(cur&&cur.txt)put();num=+l;continue}
+   if(!l){if(cur&&cur.txt)put();continue}if(cur)cur.txt+=(cur.txt?' ':'')+l}put();return m}
+ const m=new Map();let last=null;
+ for(const raw of t.replace(/\r/g,'').split('\n')){const l=raw.trim().replace(/^[-*•>\s]+/,'');if(!l||/^```/.test(l))continue;const x=l.match(/^\**\s*(\d{1,5})\s*\**\s*[\.\)\:：、\-–]\s*(?:\[[^\]]*\]\s*)?(.*)$/);
   if(x){last=+x[1];m.set(last,x[2].replace(/\*+/g,'').trim())}else if(last!=null&&/[ក-៿]/.test(l))m.set(last,(m.get(last)+' '+l.replace(/\*+/g,'')).trim())}return m}
 async function gemCopy(t){try{if(window.DubNative&&DubNative.copy){DubNative.copy(t);return true}}catch(e){}try{await navigator.clipboard.writeText(t);return true}catch(e){}
  try{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;left:-9999px';document.body.appendChild(a);a.select();const ok=document.execCommand('copy');a.remove();return ok}catch(e){return false}}
@@ -3690,21 +3696,21 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
  if(!L.length){sheet(`<h4>🤖 បកប្រែជាមួយ Gemini</h4><div class="note">មិនទាន់មាន Sub ភាសាដើមទេ។ ដាក់វីដេអូ រួចចុចអាន Sub ជាមុន (App មិនបកប្រែ) ហើយប្រើ Gemini បកប្រែ។</div><button class="btn" id="gmRead" style="width:100%">🔤 អាន Sub ភាសាដើម</button>`);
   $('#gmRead').onclick=async()=>{if(!S.clips.length)return toast('ដាក់វីដេអូជាមុនសិន');closeSheet();await autoSubTr({noTr:true,quiet:true});if(S.subs.length)gemSheet()};return}
  const parts=[];for(let i=0;i<L.length;i+=GMP.part)parts.push([i,L.slice(i,i+GMP.part)]);const done=()=>L.filter(s=>s.km&&/[ក-៿]/.test(s.km)).length;
- sheet(`<h4>🤖 បកប្រែជាមួយ Gemini (Copy → Paste)</h4>
+ sheet(`<h4>🤖 Gemini — Copy SRT ចិន → Paste SRT ខ្មែរ</h4>
   <div class="note" style="line-height:1.7">① ចុច <b>📋 Copy</b> → ② ចុច <b>🌐 បើក Gemini</b> ហើយ Paste (Ctrl+V) → Enter<br>③ ពេល Gemini ឆ្លើយរួច ចុច Copy ចម្លើយទាំងមូល → ④ Paste ក្នុងប្រអប់ខាងក្រោម → ⑤ <b>🔊 បង្កើតសំឡេងខ្មែរ</b>${parts.length>1?`<br>ℹ Sub វែង — ចែកជា ${parts.length} ផ្នែក: ធ្វើម្ដងមួយផ្នែក (Paste ផ្នែកនីមួយៗតាមលំដាប់ក៏បាន)`:''}</div>
-  <div class="row" style="flex-wrap:wrap;gap:6px">${parts.map(([i,p],k)=>`<button class="btn" data-gp="${k}">📋 Copy${parts.length>1?` ${k+1}/${parts.length} (${i+1}–${i+p.length})`:` (${L.length} បន្ទាត់)`}</button>`).join('')}<button class="btn g" id="gmOpen">🌐 បើក Gemini</button></div>
-  <textarea id="gmIn" rows="7" placeholder="Paste ចម្លើយពី Gemini នៅទីនេះ…&#10;1. ...&#10;2. ..." style="width:100%;margin-top:10px;box-sizing:border-box;font-size:14px"></textarea>
+  <div class="row" style="flex-wrap:wrap;gap:6px">${parts.map(([i,p],k)=>`<button class="btn" data-gp="${k}">📋 Copy SRT ចិន${parts.length>1?` ${k+1}/${parts.length} (${i+1}–${i+p.length})`:` (${L.length} បន្ទាត់)`}</button>`).join('')}<button class="btn g" id="gmOpen">🌐 បើក Gemini</button><button class="btn g" id="gmFile">📂 បើក .srt ខ្មែរ</button></div>
+  <textarea id="gmIn" rows="7" placeholder="Paste SRT ខ្មែរពី Gemini នៅទីនេះ…&#10;1&#10;00:00:01,000 --> 00:00:03,000&#10;អត្ថបទខ្មែរ…" style="width:100%;margin-top:10px;box-sizing:border-box;font-size:14px"></textarea>
   <div class="note" id="gmInfo">✅ មានខ្មែររួច ${done()}/${L.length} បន្ទាត់</div>
   <div class="row" style="gap:6px"><button class="btn" id="gmApply" style="flex:1">✅ ដាក់ការបកប្រែ</button><button class="btn r" id="gmVoice" style="flex:1"${done()?'':' disabled'}>🔊 បង្កើតសំឡេងខ្មែរ</button></div>`);
  $$('[data-gp]').forEach(b=>b.onclick=async()=>{const[i,p]=parts[+b.dataset.gp];const ok=await gemCopy(gemPrompt(p,i));toast(ok?`📋 Copy រួច (${p.length} បន្ទាត់) — ទៅ Paste ក្នុង Gemini`:'✕ Copy មិនបាន',3000);if(ok)b.textContent='✓ '+b.textContent.replace(/^✓ /,'')});
  $('#gmOpen').onclick=()=>{const u='https://gemini.google.com/app';try{DubNative.openUrl?DubNative.openUrl(u):window.open(u,'_blank','noopener')}catch(e){window.open(u,'_blank')}};
- const apply=()=>{const m=gemParse($('#gmIn').value);let n=0;m.forEach((t,k)=>{const sb=L[k-1];if(sb&&t&&/[ក-៿]/.test(t)){sb.km=postKm(t,sb);sb.err='';n++}});
-  if(!m.size){toast('✕ រកលេខរៀងមិនឃើញ — Copy ចម្លើយ Gemini ទាំងមូល (មានលេខ 1. 2. ...)',4500);return 0}
+ const apply=()=>{const m=gemParse($('#gmIn').value,L);let n=0;m.forEach((t,k)=>{const sb=L[k-1];if(sb&&t&&/[ក-៿]/.test(t)){sb.km=postKm(t,sb);sb.err='';n++}});
+  if(!m.size){toast('✕ រក SRT មិនឃើញ — Copy ចម្លើយ Gemini ទាំងមូល (មានលេខ និងម៉ោង -->)',4500);return 0}
   subChanged();try{renderSubs()}catch(e){}const miss=L.map((s,i)=>(!s.km||!/[ក-៿]/.test(s.km))?i+1:0).filter(Boolean);
   $('#gmInfo').innerHTML=`✅ ដាក់ ${n} បន្ទាត់ · មានខ្មែររួច ${L.length-miss.length}/${L.length}`+(miss.length?`<br>⚠ នៅខ្វះ: ${miss.slice(0,25).join(', ')}${miss.length>25?' …':''} ${miss.length<=L.length/2?'— ខ្វះតិចតួច: App នឹងបកប្រែដោយ Google ពេលបង្កើតសំឡេង':''}`:' 🎉');$('#gmVoice').disabled=false;$('#gmIn').value='';buzz(20);return n};
- $('#gmApply').onclick=apply;$('#gmIn').addEventListener('paste',()=>setTimeout(()=>{if($('#gmIn').value.trim().length>10)apply()},60));
+ $('#gmApply').onclick=apply;$('#gmFile').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.srt,.txt,text/plain';i.onchange=async()=>{const f=i.files[0];if(!f)return;$('#gmIn').value=await f.text();apply()};i.click()};$('#gmIn').addEventListener('paste',()=>setTimeout(()=>{if($('#gmIn').value.trim().length>10)apply()},60));
  $('#gmVoice').onclick=async()=>{if($('#gmIn').value.trim())apply();closeSheet();if(GMP.wait){const w=GMP.wait;GMP.wait=null;w();return}const ok=await genAll();if(ok!==false){toast('✅ សំឡេងខ្មែររួច — ចុច ▶ ស្ដាប់ ឬ ⬇ ទាញយក',4000);try{showAct()}catch(e){}}}}
-function gemWait(it){return new Promise(res=>{GMP.wait=res;it.msg='⏸ រង់ចាំ Gemini — Copy Sub → Paste ខ្មែរ (ចុច 🤖 Gemini)';auPaint();gemSheet()})}
+function gemWait(it){return new Promise(res=>{GMP.wait=res;if(it)it.msg='⏸ រង់ចាំ Gemini — Copy Sub → Paste ខ្មែរ (ចុច 🤖 Gemini)';auPaint();gemSheet()})}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#gemBtn'))gemSheet()});
 async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.length)return;AUTO_ST=true;try{await sleep(500);
   const prev=S.asr.eng;S.asr.eng='ocr';PRETR.on=!o.noTr&&S.tr.cloud===false&&S.tr.eng!=='gemini';const ok=await runASR().finally(()=>{PRETR.on=false});S.asr.eng=prev==='auto'?'ocr':prev;if(!ok||!S.subs.length)return;
@@ -3713,6 +3719,7 @@ async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.l
 /* v6.7: one tap — read Sub → translate (or write a recap) → Khmer voice (Piseth / Sreymom only) → original sound off → play */
 const FLOW=Object.assign({kind:'dub',cast:'simple',orig:'mute',auto:true,clean:true,go:true},LS.get('flow',{}));
 /* v9.3: new way — add video → watch / listen first → tap ✨ Auto បកប្រែ (nothing starts by itself) */
+if(!LS.get('v100tr',false)){LS.set('v100tr',true);AUTO.cfg.tr='gemini';FLOW.tr='gemini';LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 if(!LS.get('v93go',false)){LS.set('v93go',true);FLOW.go=false;AUTO.cfg.go=false;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 if(!LS.get('cleanMig68',false)){LS.set('cleanMig68',true);FLOW.clean=true;AUTO.cfg.clean=true;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 /* v6.8 "clean video": the output is the original picture, full frame, nothing drawn on it — only the Khmer voice changes */
@@ -3744,7 +3751,9 @@ function procTick(){const on=(typeof AUTO!=='undefined'&&AUTO.run)||AGO;let ov=$
 setInterval(procTick,300);
 async function autoGo(kind){if(AGO||AUTO_ST||Q.run)return;if(!S.clips.length){toast('សូមដាក់វីដេអូសិន');return $(window.__apk?'#auFile':'#vidFile').click()}
  kind=kind||FLOW.kind;FLOW.kind=kind;LS.set('flow',FLOW);AGO=true;try{pause();
-  if(!S.subs.some(s=>s.src)&&!(S.recap&&S.recapSrc)){await autoSubTr({noTr:kind==='recap',quiet:true});if(!S.subs.length)return}
+  const gm=kind!=='recap'&&(FLOW.tr||AUTO.cfg.tr)==='gemini';
+  if(!S.subs.some(s=>s.src)&&!(S.recap&&S.recapSrc)){await autoSubTr({noTr:kind==='recap'||gm,quiet:true});if(!S.subs.length)return}
+  if(gm&&S.subs.some(x=>x.src&&!(x.km&&/[ក-៿]/.test(x.km)))){await new Promise(r=>{GMP.wait=r;gemSheet()})}
   if(kind==='recap'){if(!S.recap){await makeRecap();if(!S.recap)return}}
   else{if(S.recap)backToDub();const todo=S.subs.filter(x=>x.src&&!x.km);if(todo.length&&!(await translate(todo)))return}
   castPick(FLOW.cast);setMode(FLOW.orig);if(FLOW.clean)await cleanOut();subChanged();

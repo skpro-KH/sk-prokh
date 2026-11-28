@@ -21,13 +21,12 @@
   ],
   "must": false
  },
- "app": "9.9",
+ "app": "10.0",
  "page": "web/app-native.html",
  "notes": [
-  "🤖 ថ្មី៖ បកប្រែជាមួយ Gemini — Copy Sub ចិន (មាន Prompt ស្រាប់) → Paste ក្នុង Gemini → Paste ខ្មែរត្រឡប់មកវិញ → បង្កើតសំឡេង",
-  "⚙ Auto Run៖ ជ្រើស «បកប្រែដោយ Gemini» → App រង់ចាំអ្នក Paste រាល់វីដេអូ",
-  "⚡ អាន Sub ជាមុនសម្រាប់វីដេអូបន្ទាប់"
+  "🤖 Gemini ជា SRT៖ ដាក់វីដេអូ → App អាន Sub ចិន → Copy SRT ចិន → Gemini → Paste SRT ខ្មែរ (ឬបើក .srt) → បង្កើតសំឡេង",
+  "🤖 ប៊ូតុង Gemini នៅរបារឧបករណ៍ខាងឆ្វេង"
  ],
- "sig": "SEgFjz724xPMEJED4BE9830fIt+UzCAk4do7XC5Jjx1GVtd5Mzx4uCZ9la4IR0pHSP7nwVLAT5H4NqZKm5T2OQ==",
- "sha": "2671e4c65266b6cc0c36a0adae11b29481bbce26372b352957430dd1e0136f69"
+ "sig": "Wp+p2noGJB5QpkWZwizYk1j7tYe9WvzcqXj8AqaU0P5MNSCDrf4jYaz84zVSG5T5JeaNwHbDUAu7exTxSr0aog==",
+ "sha": "9c0a24f6fadd4f56ce40144dd8e5516c86a10ce344895b332c66ee5cf453cafc"
 }
