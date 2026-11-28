@@ -21,12 +21,12 @@
   ],
   "must": false
  },
- "app": "9.0",
+ "app": "9.1",
  "page": "web/app-native.html",
  "notes": [
-  "⚡ អាន Sub លឿនជាងមុនជិត 2 ដង — វីដេអូមិនឈប់រង់ចាំរាល់បន្ទាត់ទៀតទេ",
-  "⚡ ល្បឿនអាន Sub ថ្មី 3x (ទូរសព្ទខ្សោយបន្ថយដោយខ្លួនឯង មិនខ្វះបន្ទាត់)"
+  "🔄 ជួសជុល Update មិនលោត — App ទាញកំណែថ្មីបំផុតភ្លាមៗ មិនចាំ Cache GitHub",
+  "⚡ អាន Sub លឿនជាងមុនជិត 2 ដង (3x)"
  ],
- "sig": "cKJUPeRcQP/wAUZkrgJg4j578Lt29yjJeshbakFiSKYY9s26Odvo/D75TxuL9N6FiQHuk7mFYJ5znBPmnapotw==",
- "sha": "3df7816a786bcae714116cab0d91b8056aa05ff4b9adcf1a9d92924b45c25234"
+ "sig": "0V0BgyEQSzmidSSwZNGkCtHDy4xTYbVmwrVSqZ2H5T7nAhobYcqgZf2iTR0Ife4rDoc+556dgWQiyXI7u8ix1w==",
+ "sha": "b452c9cc69c86129ee5911f2bd244322e5df9e19f851a307518feef00c36cf99"
 }
