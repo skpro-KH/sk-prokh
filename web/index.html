@@ -418,6 +418,17 @@ html.pc :is(.wsb,.wsr button,.ws-ph button,.btn,.chip):active{transform:scale(.9
 #kbBand::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,250,220,.95),transparent) no-repeat;background-size:18% 100%;mix-blend-mode:screen;animation:kbShine 3.2s ease-in-out infinite}
 @keyframes kbMove{to{background-position-x:192px}}@keyframes kbShine{from{background-position:-20% 0}to{background-position:120% 0}}
 @media (prefers-reduced-motion:reduce){#kbBand,#kbBand::after{animation:none}}
+
+/* v9.2 red update signal */
+html.upd-red #updBtn{background:linear-gradient(180deg,#ef4444,#b91c1c)!important;color:#fff!important;border-color:#fecaca!important;animation:updPulse 1.3s ease-out infinite}
+@keyframes updPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.85)}70%{box-shadow:0 0 0 12px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+#updBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 62px);z-index:60;display:flex;align-items:center;gap:8px;max-width:94vw;padding:9px 16px;border-radius:999px;border:1.5px solid #fecaca;background:linear-gradient(90deg,#b91c1c,#ef4444,#b91c1c);background-size:200% 100%;color:#fff;font:inherit;font-size:13px;line-height:1.3;box-shadow:0 6px 22px rgba(185,28,28,.55);cursor:pointer;animation:updBar 2.4s linear infinite;white-space:nowrap}
+#updBar span:last-child{opacity:.92;overflow:hidden;text-overflow:ellipsis}
+#updBar .dot{width:10px;height:10px;border-radius:50%;background:#fff;flex:none;animation:updPulse 1.3s ease-out infinite}
+@keyframes updBar{to{background-position:-200% 0}}
+html.upd-red [data-m="upd"]{border-color:#ef4444!important;box-shadow:0 0 0 1px #ef4444 inset,0 0 14px rgba(239,68,68,.45)!important}
+html.upd-red [data-m="upd"] i{position:relative}html.upd-red [data-m="upd"] i::after{content:'';position:absolute;right:-4px;top:-2px;width:10px;height:10px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #0b1640;animation:updPulse 1.3s ease-out infinite}
+@media (prefers-reduced-motion:reduce){html.upd-red #updBtn,#updBar,#updBar .dot{animation:none}}
 </style>
 </head>
 <body>
@@ -722,7 +733,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.1';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.2';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -988,7 +999,9 @@ function joinShort(){if(S.mix.join!==true)return 0;/* v7.6: off — every subtit
  if(n){subChanged()}return n}
 /* v8.7: one line may never wait more than 75 s — it is put aside and tried again in the next round, so the list never sticks at 31/32 */
 function lineCap(x){return Promise.race([genLine(x),new Promise((_,rej)=>setTimeout(()=>rej(Error('យូរពេក (timeout)')),75000))])}
-async function genAll(){const left=S.subs.filter(needsTr);if(left.length){toast(`🌐 បកប្រែ ${left.length} បន្ទាត់ដែលនៅសល់ជាមុនសិន...`);if(!(await translate(left)))return false}
+/* v9.2: before voicing, EVERY line that has original text but no Khmer yet (Internet hiccup, empty answer) is translated again — no silent gap in the video */
+const noKm=s=>!!(s.src&&s.src.trim())&&(!s.km||!s.km.trim()||needsTr(s)||!/[ក-៿]/.test(s.km));
+async function genAll(){for(let r=0;r<3&&!busy.cancel;r++){const left=S.subs.filter(noKm);if(!left.length)break;toast(`🌐 បកប្រែ ${left.length} បន្ទាត់ដែលនៅសល់ជាមុនសិន...`);if(r)await sleep(2000*r);await translate(left);if(busy.cancel)return false}
  const dd=dedupeSubs();if(dd)toast(`🧹 ដកបន្ទាត់ស្ទួន ${dd} — កុំឲ្យសំឡេងជាន់គ្នា`,2500);
  const jn=joinShort();if(jn)toast(`🔗 រួម ${jn} បន្ទាត់ខ្លីៗ ជាប្រយោគតែមួយ — និយាយរលូនជាងមុន`,3000);
  S.subs.forEach(x=>{if(!speakable(ttsText(x.km)))x.err=''});const list=S.subs.filter(x=>!hasBuf(x));if(!list.length){if(!S.subs.some(x=>x.km))toast('សូមបកប្រែសិន');else toast('✓ សំឡេងទាំងអស់រួចរាល់');return S.subs.some(x=>x.km)}
@@ -2138,7 +2151,7 @@ function auReset(){pause();S.media.forEach(m=>{try{m.el.pause();URL.revokeObject
 async function autoOne(it){const c=AUTO.cfg,step=(m,p)=>{it.msg=m;if(p!=null)it.pct=p;auPaint()};
  it.phase='open';auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error('បើកវីដេអូមិនបាន');
  S.asr.eng=c.src;if(c.lang)S.asr.lang=c.lang==='auto'?'auto':c.lang;S.asr.gender=c.voice==='detect';S.style.show=!!c.burn&&!c.clean;S.mix.dub=c.dub;S.mix.orig=c.bgm;S.out.res=c.res;S.out.fps=c.fps;setMode(c.orig);save();layout();
- if(c.clean)await cleanOut();else if(c.erase&&!S.erase.on){try{await eraseToggle(true)}catch(e){}}else if(!c.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}
+ if(c.clean)await cleanOut();else if(c.erase&&!S.erase.on){try{await eraseToggle(true)}catch(e){}}else if(!c.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}if(!c.clean)applySize();
  it.phase='sub';step(c.kind==='recap'?'🔤 កំពុងអាន Sub ចិន...':'🔤 កំពុងអាន Sub & បកប្រែ...',.05);await autoSubTr({noTr:c.kind==='recap',quiet:true});if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.subs.length)throw Error('រក Sub មិនឃើញ');
  if(c.kind==='recap'){step('📖 AI កំពុងសរសេរសម្រាយរឿង...',.3);await makeRecap();if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.recap)throw Error('សម្រាយរឿងមិនបាន');castPick(c.voice==='f'?'srm':'pis')}
  else if(c.voice!=='detect'){const id=c.voice==='f'?'p2':'p1';S.subs.forEach(s=>s.sp=id)}only2();setMode(c.orig||'mute');S.speakers.forEach(p=>p.rate=c.rate);renderSpeakers();subChanged();
@@ -2538,7 +2551,11 @@ async function updCheck(manual){if(!window.DubNative||!DubNative.info)return;let
  if(!kind){if(manual)toast('✅ អ្នកកំពុងប្រើកំណែថ្មីបំផុត v'+APP_VER,3000);updBadge(false);return}
  UPD.kind=kind;UPD.ver=kind==='hot'?m.app:plat.ver;updBadge(true);
  if(manual||LS.get('updSkip','')!==UPD.ver)updSheet()}
-function updBadge(on){let b=$('#updBtn');if(!on){if(b)b.remove();return}if(!b){$('#setBtn').insertAdjacentHTML('beforebegin','<button class="ibtn" id="updBtn" title="Update">🆕</button>');b=$('#updBtn');b.onclick=()=>updSheet()}}
+/* v9.2: 🔴 red signal everywhere while an update waits — red pulsing 🆕 button, red bar under the header, red dot on 🔄 Update in the menu */
+function updBadge(on){let b=$('#updBtn'),bar=$('#updBar');document.documentElement.classList.toggle('upd-red',!!on);if(!on){if(b)b.remove();if(bar)bar.remove();return}
+ if(!b){$('#setBtn').insertAdjacentHTML('beforebegin','<button class="ibtn" id="updBtn" title="Update">🆕</button>');b=$('#updBtn');b.onclick=()=>updSheet()}
+ if(!bar){document.body.insertAdjacentHTML('beforeend',`<button id="updBar" type="button"><span class="dot"></span><b>មាន Update ថ្មី v${esc(UPD.ver||'')}</b><span>ចុចទីនេះដើម្បី Update ឥឡូវ →</span></button>`);bar=$('#updBar');bar.onclick=()=>updSheet()}
+ else bar.querySelector('b').textContent='មាន Update ថ្មី v'+(UPD.ver||'')}
 function updSheet(){const m=UPD.m||{},ni=natInfo(),win=!!ni.pc,notes=(UPD.kind==='hot'?m.notes:((win?m.win:m.apk)||{}).notes||m.notes)||[];
  sheet(`<div class="ak-mg"><span class="ic" style="background:linear-gradient(135deg,#22d3ee,#2563eb)">🆕</span><div><h4>មានកំណែថ្មី v${esc(UPD.ver)}</h4><small>អ្នកកំពុងប្រើ v${APP_VER}${UPD.kind==='hot'?' · Update ក្នុង App ភ្លាមៗ (មិនបាច់ដំឡើងថ្មី)':''}</small></div></div>
  <div class="ak-ls" style="max-height:38vh;line-height:1.75">${(Array.isArray(notes)?notes:[notes]).map(n=>`<div>• ${esc(n)}</div>`).join('')||'<div>• កែលម្អ និងជួសជុល</div>'}</div>
@@ -2588,6 +2605,10 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   <div class="ak-tg" id="kSaveT"><span style="font-size:20px">✨</span><div>💾 Auto Save វីដេអូទៅ Photos (រក្សាទុកស្វ័យប្រវត្តិ)<small>ពេលបកប្រែចប់វីដេអូនីមួយៗ វានឹង Save ចូល Photos / Gallery ភ្លាមៗ</small></div><span class="ak-sw${c.save!==false?' on':''}" id="kSave"></span></div>
   <label class="k">🔈 សំឡេងដើមវីដេអូ:</label><select id="kOrig">${o('mute','🔇 បិទសំឡេងដើម (លឺតែសំឡេងខ្មែរ)',c.orig)}${o('ai','🎵 ទុកភ្លេង — លុបសំឡេងចិន (AI Separate)',c.orig)}</select>
   <label class="k">🎞 គុណភាព:</label><select id="kRes">${o('720_30','720p · 30fps (លឿន)',c.res+'_'+c.fps)}${o('1080_30','1080p · 30fps (ច្បាស់)',c.res+'_'+c.fps)}${o('720_60','720p · 60fps (រលូន)',c.res+'_'+c.fps)}${o('1080_60','1080p · 60fps',c.res+'_'+c.fps)}${o('540_30','540p · 30fps (តូច)',c.res+'_'+c.fps)}</select>
+  <label class="k">📐 ទំហំវីដេអូ (Frame):</label><select id="kAsp">${o('src','🎬 ដើម (ដូចវីដេអូដើម)',(c.size||{}).aspect||'src')}${o('9:16','📱 9:16 TikTok · Reels · Shorts',(c.size||{}).aspect)}${o('16:9','🖥 16:9 YouTube · Facebook',(c.size||{}).aspect)}${o('1:1','⬜ 1:1 ការ៉េ',(c.size||{}).aspect)}${o('4:5','📷 4:5 Facebook · Instagram',(c.size||{}).aspect)}</select>
+  <label class="k">🖼 បំពេញស៊ុម:</label><select id="kFit">${o('fill','ពេញស៊ុម (កាត់គែមខ្លះ)',(c.size||{}).fit||'fill')}${o('blurfill','ពេញ + Blur ពីក្រោយ (មិនកាត់)',(c.size||{}).fit)}${o('fit','ស៊ុមខ្មៅ (មិនកាត់)',(c.size||{}).fit)}</select>
+  <div class="ak-sl"><span>🔍 ពង្រីក (Zoom):</span><b id="kZoomV">${Math.round(((c.size||{}).zoom||1)*100)}%</b></div><input type="range" id="kZoom" min="1" max="1.5" step=".01" value="${(c.size||{}).zoom||1}" oninput="document.getElementById('kZoomV').textContent=Math.round(this.value*100)+'%'">
+  <div class="note" style="margin:-2px 0 8px">ℹ ប្ដូរទំហំ ឬ Zoom → App បង្កើតរូបភាពថ្មី (Export យូរជាង «ដើម» បន្តិច)</div>
   <div class="ak-sl"><span>⚡ ល្បឿនសម្លេង (TTS):</span><b id="kRateV"></b></div><input type="range" id="kRate" min="-20" max="50" step="5" value="${c.rate}">
   <div class="ak-sl"><span>🎵 សម្លេងភ្លេង (BGM):</span><b id="kBgmV"></b></div><input type="range" id="kBgm" min="0" max="1.5" step=".01" value="${c.bgm}">
   <div class="ak-sl"><span>📢 សម្លេងតួអង្គ (Voice):</span><b id="kDubV"></b></div><input type="range" id="kDub" min=".5" max="2" step=".01" value="${c.dub}">
@@ -2599,7 +2620,7 @@ function akCfg(start){const c=AUTO.cfg,i=LIC.info||{},o=(v,l,cur)=>`<option valu
   const lab=()=>{const r=+q('#kRate').value;q('#kRateV').textContent=(1+r/100).toFixed(2)+'x ('+(r>=0?'+':'')+r+'% លឿន)';q('#kBgmV').textContent=Math.round(q('#kBgm').value*100)+'%';const d=Math.round(q('#kDub').value*100);q('#kDubV').textContent=d+'%'+(d>150?' (ខ្លាំងបំផុត)':'')};['#kRate','#kBgm','#kDub'].forEach(s=>q(s).oninput=lab);lab();
   q('#kTr').onchange=e=>{if(e.target.value==='gemini'&&!aiKey()){e.target.value='free';toast('🔑 ដាក់ API Key សិន: 👤 ខ្ញុំ → API Key',3500)}};
   q('#kNo').onclick=closeSheet;
-  q('#kOk').onclick=()=>{const[res,fps]=q('#kRes').value.split('_').map(Number);Object.assign(c,{go,clean:cl,kind:q('#kKind').value,src:q('#kSrc').value,lang:q('#kLang').value,voice:vc,burn:q('#kBurn').checked,erase:q('#kErase').checked,save:sv,orig:q('#kOrig').value,res,fps,rate:+q('#kRate').value,bgm:+q('#kBgm').value,dub:+q('#kDub').value});
+  q('#kOk').onclick=()=>{const[res,fps]=q('#kRes').value.split('_').map(Number);Object.assign(c,{go,clean:cl,kind:q('#kKind').value,src:q('#kSrc').value,lang:q('#kLang').value,voice:vc,burn:q('#kBurn').checked,erase:q('#kErase').checked,save:sv,orig:q('#kOrig').value,res,fps,rate:+q('#kRate').value,bgm:+q('#kBgm').value,dub:+q('#kDub').value,size:{aspect:q('#kAsp').value,fit:q('#kFit').value,zoom:+q('#kZoom').value}});
    S.tr.eng='free';S.tr.cloud=false;try{trChipsPaint()}catch(e){}LS.set('autoCfg',c);save();closeSheet();buzz(20);toast('✓ រក្សាទុកការកំណត់ Auto Run');akChipPaint();
    if(start){if(!AUTO.list.some(x=>x.st==='wait'))return toast('📄 សូមជ្រើសវីដេអូសិន',3000);autoRun()}}})}
 if(APKS){
@@ -2793,8 +2814,9 @@ async function ocrScan0(only){await ocrInit();const GV=gvOn();
     /* v9.0: look at the picture at most every 80 ms of video (was every decoded frame, often twice) — subtitles never change faster than that */
     /* v9.0: weak phone that shows fewer than 6 frames per video-second → slow down by itself (never below 2x) so no line is missed */
     if(!el.paused&&el.playbackRate>2){const w=step.w||(step.w={t:t,f:fr,n:performance.now()});if(t-w.t>=2){const fps=(fr-w.f)/(t-w.t);if(fps<6){el.playbackRate=Math.max(2,el.playbackRate-1)}step.w={t:t,f:fr,n:performance.now()}}else if(t<w.t)step.w=null}
-    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);const on=mk.cnt>cw*ch*.004;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
-     if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.45){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
+    if(t!==lastT){lastT=t;fr++;cx.drawImage(el,reg.x,reg.y,reg.w,reg.h,0,0,cw,ch);const mk=subMask(cx.getImageData(0,0,cw,ch),S.ocr.color);/* v9.2: lower limits — a one-character line (嗯, 好) was taken for "no subtitle", and two different lines back-to-back looked like one line (the 2nd was never read or voiced) */
+     const on=mk.cnt>cw*ch*.0016;const sig=on?subSig(mk):null;const mid=pst==null?st:(pst+st)/2;pst=st;
+     if(!on){if(cur){finish(cur,mid);cur=null}}else if(!cur||sigDiff(cur.sig,sig)>.08){if(cur)finish(cur,mid);cur={start:mid,sig,n:0,snap:null}}else if(cur.n<4)cur.sig=sig;
      if(cur){cur.n++;if(cur.n===2||cur.n===6||cur.n===10||cur.n===16||(cur.n===1&&!cur.snap)){const lines=subLines(mk);if(lines.length){const sc=document.createElement('canvas');sc.width=cw;sc.height=ch;sc.getContext('2d').drawImage(cc,0,0);
        const sn={canvas:sc,lines};if(cur.n===1||!cur.snap)cur.snap=[sn];else if(cur.n===2&&cur.snap.length===1&&cur.snap[0].first)cur.snap=[sn];else cur.snap.push(sn);if(cur.n===1)sn.first=true}}}
      const nw=performance.now();if(nw-(step.dt||0)>260&&!bgHidden()){step.dt=nw;P.t=st;draw();ui()}busy.set(`🔤 កំពុងអាន Subtitle លើវីដេអូ ${fmt(st)} / ${fmt(T)}\n${segs.length} បន្ទាត់`,st/T)}
@@ -3545,7 +3567,9 @@ async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.l
 const FLOW=Object.assign({kind:'dub',cast:'simple',orig:'mute',auto:true,clean:true,go:true},LS.get('flow',{}));
 if(!LS.get('cleanMig68',false)){LS.set('cleanMig68',true);FLOW.clean=true;AUTO.cfg.clean=true;LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 /* v6.8 "clean video": the output is the original picture, full frame, nothing drawn on it — only the Khmer voice changes */
-async function cleanOut(){S.out.res='src';S.out.fps='src';S.out.fit='fit';if(S.fx){S.fx.preset='none';S.fx.zoom=1;S.fx.bright=1;S.fx.contrast=1;S.fx.sat=1;S.fx.flip=false;S.fx.vignette=false}S.style.show=false;S.box.on=false;if(S.mq)S.mq.on=false;if(S.ov)S.ov.on=false;if(S.logo)S.logo.on=false;S.out.aspect='src';if(S.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}save();try{layout();draw()}catch(e){}try{akChipPaint()}catch(e){}}
+/* v9.2: 📐 video size chosen in ⚙ Auto settings (frame 9:16 / 16:9 / 1:1 / 4:5, how to fill, zoom) — kept even with "Clean video" */
+function applySize(){const z=(AUTO.cfg&&AUTO.cfg.size)||{};const a=z.aspect||'src',zm=clamp(+z.zoom||1,1,2);if(a==='src'&&zm===1)return;S.out.aspect=a;S.out.fit=a==='src'?'fit':(z.fit||'fill');if(S.fx)S.fx.zoom=zm;if(S.out.res==='src')S.out.res=+(AUTO.cfg.res)||720;save();try{layout();draw()}catch(e){}}
+async function cleanOut(){S.out.res='src';S.out.fps='src';S.out.fit='fit';if(S.fx){S.fx.preset='none';S.fx.zoom=1;S.fx.bright=1;S.fx.contrast=1;S.fx.sat=1;S.fx.flip=false;S.fx.vignette=false}S.style.show=false;S.box.on=false;if(S.mq)S.mq.on=false;if(S.ov)S.ov.on=false;if(S.logo)S.logo.on=false;S.out.aspect='src';if(S.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}save();try{layout();draw()}catch(e){}applySize();try{akChipPaint()}catch(e){}}
 if(!LS.get('flowMig67',false)){LS.set('flowMig67',true);FLOW.orig='mute';AUTO.cfg.orig='mute';LS.set('autoCfg',AUTO.cfg);LS.set('flow',FLOW)}
 function only2(){S.speakers.forEach(p=>{if(p.voice!==PIS&&p.voice!==SRM)p.voice=(p.g==='f'||/ស្រី|female/.test(p.name||''))?SRM:PIS})}
 function castPick(cast){if(S.recap){const nar=S.speakers.find(p=>p.role==='narrator');if(nar){nar.voice=cast==='srm'?SRM:PIS;nar.name=cast==='srm'?'📖 ស្រីមុំ (និទាន)':'📖 ពិសិដ្ឋ (និទាន)'}renderSpeakers();return}

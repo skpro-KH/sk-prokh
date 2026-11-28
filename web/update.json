@@ -21,12 +21,13 @@
   ],
   "must": false
  },
- "app": "9.1",
+ "app": "9.2",
  "page": "web/app-native.html",
  "notes": [
-  "🔄 ជួសជុល Update មិនលោត — App ទាញកំណែថ្មីបំផុតភ្លាមៗ មិនចាំ Cache GitHub",
-  "⚡ អាន Sub លឿនជាងមុនជិត 2 ដង (3x)"
+  "✅ បកប្រែ & បញ្ចូលសំឡេងគ្រប់បន្ទាត់ — រកឃើញបន្ទាត់ជាប់គ្នា និងពាក្យខ្លីៗ (ពីមុនបាត់)",
+  "📐 ថ្មី៖ ប្ដូរទំហំវីដេអូ 9:16 · 16:9 · 1:1 · 4:5 + Zoom (⚙ ការកំណត់ Auto)",
+  "🔴 សញ្ញាក្រហមពេលមាន Update ថ្មី"
  ],
- "sig": "0V0BgyEQSzmidSSwZNGkCtHDy4xTYbVmwrVSqZ2H5T7nAhobYcqgZf2iTR0Ife4rDoc+556dgWQiyXI7u8ix1w==",
- "sha": "b452c9cc69c86129ee5911f2bd244322e5df9e19f851a307518feef00c36cf99"
+ "sig": "RyrzG6aRKJwgR2TmmWYBMSS+csKDvTLEudKtqzShI6VrVr20CH9345uOw2ys5XyO12Nsx4xjWSsuJXKP5bj/Ow==",
+ "sha": "9567daed2a7d09a1594ec6efe99a259b26de0ff8707c1208721c8e99e55dd706"
 }
