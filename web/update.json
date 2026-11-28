@@ -21,12 +21,13 @@
   ],
   "must": false
  },
- "app": "10.3",
+ "app": "10.4",
  "page": "web/app-native.html",
  "notes": [
-  "🔧 ជួសជុល v10.2",
-  "📋 Gemini ឆ្លើយ SRT ខ្មែរក្នុងប្រអប់តែមួយ — ចុច Copy ម្ដងបានទាំងអស់"
+  "🔊 សំឡេងពីរោះជាងមុន — និយាយគ្រប់បន្ទាត់ដល់ចប់ មិនកាត់ដាច់ទៀត",
+  "🔊 មិនពន្លឿនខ្លាំងទៀត (អតិបរមា +30% ពីមុន +85%) · មិនប្ដូរល្បឿនចាក់ (សំឡេងមិនស្រួច)",
+  "🤖 Gemini៖ ប្រាប់ឲ្យបកខ្លីល្មមនឹងពេល (~12 អក្សរ/វិនាទី)"
  ],
- "sig": "lGkGDwnwbZySDXtAC1GBUuBU+jQxCzscI0VKAmOjQ4cGg9SH8xGWz2c++qPQwruB6Rg/kIXlNVhsd44pv3iNlg==",
- "sha": "2fa33907d8af8026a26699407f4edd1416ed9d040916863832b47cb21e3f7edd"
+ "sig": "F7xnd0eARIy9CBlK/o/FZWVsiR2SnOzLtaPzewa9V8jLztG2qpyMeozvs+kR1NaPgI4iP/0yGzcJy2cK1xvsgg==",
+ "sha": "db1260b24fafd646461867957618dcaf24ec4e6aaeb059831aff068ad094db52"
 }

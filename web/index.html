@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.3';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.4';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -998,7 +998,7 @@ function ttsText(t){return cleanTags(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u
 const speakable=t=>/[\p{L}\p{N}]/u.test(t||'');
 const needsTr=s=>!!s.km&&CJK.test(s.km)&&!hasKh(s.km);
 function lineParams(s){const sp=spOf(s);const j=S.mix.jit?{p:hashN(s.id)%30-8,r:hashN(s.id+'r')%9}:{p:0,r:0};const st=SPEAK[s.sty||sp.sty||'normal']||SPEAK.normal,em=S.mix.emo!==false?emoOf(s.km):{r:0,p:0,v:1};
- return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,kv:kiriVoice(sp.voice),vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
+ return{text:ttsText(s.km),voice:sp.voice,rate:clamp((sp.rate|0)+j.r+st[1]+em.r,-45,70),pitch:clamp((sp.pitch|0)+j.p+st[2]+em.p,-50,55),vol:+(st[3]*em.v).toFixed(2),fx:st[4]||'',slot:+roomOf(s).toFixed(2),max:S.mix.maxRate,nat:S.mix.fast===true?0:1,kv:kiriVoice(sp.voice),vm:sp.vm||'off',mk:sp.vm==='match'?(sp.prof?sp.prof.f0+':'+(sp.prof.bands||[]).join(','):'np'):sp.vm==='real'?(sp.ref||'nr'):''}}
 function roomOf(s){const d=Math.max(.4,s.end-s.start);if(S.mix.sync!==false){const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const gap=n?n.start-s.end:.8;return Math.max(.4,Math.min(d+Math.min(.8,Math.max(.12,gap)),n?n.start-s.start-.04:d+.8))}if(S.mix.smart===false)return d;const i=S.subs.indexOf(s),n=i>=0?S.subs[i+1]:null;const lim=n?n.start-s.start-.08:Math.min(d+1.5,(total()||1e9)-s.start);return Math.max(d,Math.min(d+1.5,lim))}
 const lineKey=s=>s.hum?'hum:'+s.hum:JSON.stringify(lineParams(s));
 const hasBuf=s=>!speakable(ttsText(s.km))||spOf(s).voice==='phone'||!!(s.buf&&s.key===lineKey(s));
@@ -1011,16 +1011,17 @@ async function genLine(s){if(s.hum)return;const q=lineParams(s);if(!speakable(q.
    try{return await ttsBuf(q.text,q.voice,rate,pitch)}catch(e){if(busy.cancel)throw e;
     try{return await ttsBuf(q.text,q.voice,clamp(rate,-20,40),0)}catch(e2){if(busy.cancel)throw e2;const plain=q.text.replace(/[^\p{L}\p{M}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();if(plain&&plain!==q.text)return ttsBuf(plain,q.voice,clamp(rate,-20,40),0);throw e2}}};
  /* v9.4: guess the right speed BEFORE asking Microsoft (from how long the earlier lines of this voice took) — most lines now need 1 request instead of 2 */
- const units=Math.max(1,String(q.text).replace(/\s/g,'').length),E=TTSEST[q.voice];let rate=q.rate;
- if(E&&E.n>=3&&q.vm!=='real'&&!q.kv){const pred=E.v*units/(1+rate/100);const HM=Math.max(q.max,85);
+ /* v10.4 NATURAL: a line is never sped up more than +30 % (was +85 %: rushed, high voice) — a long line may run into the pause after it instead */
+ const NATMAX=S.mix.fast===true?85:30;const units=Math.max(1,String(q.text).replace(/\s/g,'').length),E=TTSEST[q.voice];let rate=q.rate;
+ if(E&&E.n>=3&&q.vm!=='real'&&!q.kv){const pred=E.v*units/(1+rate/100);const HM=NATMAX;
   if(pred>q.slot*1.03)rate=Math.min(HM,Math.max(rate,Math.ceil(((1+rate/100)*pred/q.slot-1)*100)+4));
-  else if(S.mix.sync!==false&&pred<q.slot*.82&&q.slot-pred>.3){const want=q.slot*.94;rate=Math.max(q.rate-25,Math.min(q.rate,Math.round(((1+q.rate/100)*pred/want-1)*100)))}}
+  else if(S.mix.sync!==false&&pred<q.slot*.82&&q.slot-pred>.3){const want=q.slot*.94;rate=Math.max(q.rate-15,Math.min(q.rate,Math.round(((1+q.rate/100)*pred/want-1)*100)))}}
  let ur=rate,t=trimSilence(await synth(rate));const est=()=>{const v=t.duration*(1+ur/100)/units;if(isFinite(v)&&v>0){const e=TTSEST[q.voice]||(TTSEST[q.voice]={v,n:0});e.v=e.n?e.v*.8+v*.2:v;e.n++}};est();
  /* v7.2: fit the slot — up to 3 tries, a long line may go up to +85 % so the Khmer stays with the picture and the subtitle */
- const HMAX=Math.max(q.max,85);let r0=rate;
+ const HMAX=NATMAX;let r0=rate;
  if(q.vm!=='real'&&t.duration>q.slot*1.03&&rate<HMAX){for(let k=0;k<(q.kv?1:3)&&t.duration>q.slot*1.03&&r0<HMAX;k++){const need=Math.ceil(((1+r0/100)*t.duration/q.slot-1)*100)+3;r0=Math.min(HMAX,Math.max(r0+6,need));try{t=trimSilence(await synth(r0));ur=r0;est()}catch(e){if(busy.cancel)throw e;break}}}
  /* v5.1 sync: Khmer ends together with the Chinese — a line that is much shorter is spoken a bit slower (max −18 %) so both voices take the same time */
- else if(S.mix.sync!==false&&q.vm!=='real'&&t.duration<q.slot*.82&&q.slot-t.duration>.3&&rate>=q.rate-24){const want=q.slot*.94,need=Math.round(((1+rate/100)*t.duration/want-1)*100);const r2=Math.max(q.rate-25,Math.min(rate-3,need));if(r2<rate){try{t=trimSilence(await synth(r2));ur=r2;est()}catch(e){}}}
+ else if(S.mix.sync!==false&&q.vm!=='real'&&t.duration<q.slot*.82&&q.slot-t.duration>.3&&rate>=q.rate-14){const want=q.slot*.94,need=Math.round(((1+rate/100)*t.duration/want-1)*100);const r2=Math.max(q.rate-15,Math.min(rate-3,need));if(r2<rate){try{t=trimSilence(await synth(r2));ur=r2;est()}catch(e){}}}
  if(gains)t=await eqMatch(t,gains);if(q.fx)t=await applyFx(t,q.fx);s.buf=t;s.key=key;s.norm=peakNorm(t)*(q.vol||1);MIX.dirty=true}
 function dedupeSubs(){sortSubs();let n=0;const norm=t=>String(t||'').replace(/[\s\p{P}]/gu,'');
  for(let i=1;i<S.subs.length;){const a=S.subs[i-1],b=S.subs[i];const ov=b.start<a.end-.05,same=!!norm(a.src)&&norm(a.src)===norm(b.src);/* v7.8: only the same ORIGINAL line read twice — two different lines that happen to translate the same are both spoken */
@@ -1088,8 +1089,10 @@ let HREC=null;$('#humRec').onclick=async()=>{if(HREC){HREC.stop();return}try{con
  r.start();$('#humRec').textContent='⏹ ឈប់ថត';$('#humRec').classList.remove('g');toast('🎙 កំពុងថត... និយាយតាមលំដាប់បន្ទាត់ Sub (ឈប់បន្តិចរវាងប្រយោគ)',4000)}catch(e){toast('✕ មិនអាចប្រើ Mic: '+(e.message||e),5000)}};
 humPaint();
 /* v7.0: Khmer lines NEVER talk over each other — a line waits until the previous one has finished; a late or long line is sped up a little to catch up */
-function schedule(){let prevEnd=-1;sortSubs();const L=S.subs.filter(s=>s.buf&&s.key===lineKey(s));const strict=S.mix.strict!==false;return L.map((s,i)=>{const slot=Math.max(.3,roomOf(s));let rate=1,dur=s.buf.duration;
+function schedule(){let prevEnd=-1;sortSubs();const L=S.subs.filter(s=>s.buf&&s.key===lineKey(s));const strict=S.mix.strict===true;return L.map((s,i)=>{const slot=Math.max(.3,roomOf(s));let rate=1,dur=s.buf.duration;
  /* v9.5 STRICT (default): the voice lives exactly where its subtitle is — starts when the Sub appears (never pushed later), must end before the next Sub; still too long after speeding up → cut with a soft fade */
+ /* v10.4 FULL (default): every line is spoken to the END — never cut, never pitch-shifted; a long line only delays the next one a little (caught up in the next pause) */
+ if(!strict){const at=Math.max(s.start,prevEnd+.06);dur=s.buf.duration;prevEnd=at+dur;s._cut=false;s._at=at;s._en=at+dur;return{s,at,rate:1,dur}}
  if(strict){const at=s.start,nx=L[i+1],room=Math.max(.3,Math.min(slot,nx?nx.start-at-.05:slot));if(dur>room*1.02){rate=Math.min(1.15,dur/room);dur/=rate}s._cut=dur>room+.01;if(s._cut)dur=room;s._at=at;s._en=at+dur;return{s,at,rate,dur}}
  const at=Math.max(s.start,prevEnd+.08),late=at-s.start,nx=L[i+1],room=Math.max(.3,Math.min(slot,nx?nx.start-at-.06:slot+1));
  if(dur>room*1.02){rate=Math.min(late>.25?1.18:S.mix.sync!==false?1.12:1.06,dur/room);dur/=rate}prevEnd=at+dur;s._at=at;s._en=at+dur;return{s,at,rate,dur}})}
@@ -3684,7 +3687,7 @@ async function manualOpen(fs){if(!fs||!fs.length)return;if(AGO||AUTO_ST||(typeof
  await seek(0);toast(`✅ អាន Sub ចិនរួច ${S.subs.length} បន្ទាត់ — Copy SRT ទៅ Gemini`,3500);gemSheet()}
 const GMP={part:120,wait:null};
 const srtTm=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000)%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
-function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time.
+function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time: about 12 Khmer letters per second of the subtitle (a 2-second line ≈ 24 letters) — if the Chinese is long, say it shorter with the SAME meaning, so the voice can speak it at normal speed without being cut.
 Keep EXACTLY the same SRT: the same numbers and the same timestamps, one subtitle for each number — replace ONLY the Chinese text with Khmer. Do not skip, merge or add subtitles.
 IMPORTANT OUTPUT FORMAT: put the WHOLE Khmer SRT inside ONE single code block that starts with \`\`\`srt and ends with \`\`\` (so it has a Copy button). Write nothing before or after the code block.
 
