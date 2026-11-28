@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.5';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='9.6';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -932,14 +932,27 @@ $('#setBtn').onclick=()=>sheet(`<h4>⚙ ការកំណត់</h4>${NATIVE?`<
 /* ============ media & clips ============ */
 const cv=$('#cv'),ctx=cv.getContext('2d');
 function seekEl(el,t){return new Promise(r=>{t=clamp(t,0,(el.duration||1e9)-0.001);if(Math.abs(el.currentTime-t)<0.005&&el.readyState>=2)return r();let d=false;const f=()=>{if(d)return;d=true;el.removeEventListener('seeked',f);r()};el.addEventListener('seeked',f);el.currentTime=t;setTimeout(f,2500)})}
-function loadMedia(f){return new Promise((res,rej)=>{const el=document.createElement('video');el.preload='auto';el.playsInline=true;el.muted=true;el.setAttribute('playsinline','');el.setAttribute('muted','');el.src=URL.createObjectURL(f);$('#vbin').appendChild(el);
+/* v9.6: when a phone video does not open — sniff what it really is, retry once with the right type, and say WHY (codec / container / size / cloud file) */
+async function mediaSniff(f){const o={size:f.size||0,type:f.type||'',ext:((f.name||'').match(/\.([a-z0-9]{2,5})$/i)||[])[1]||''};try{const u=new Uint8Array(await f.slice(0,64).arrayBuffer());o.read=u.length>0;const a=String.fromCharCode(...u.slice(4,12));
+  o.box=/^ftyp/.test(a)?'mp4':u[0]===0x1a&&u[1]===0x45&&u[2]===0xdf&&u[3]===0xa3?'mkv':String.fromCharCode(...u.slice(0,4))==='RIFF'?'avi':u[0]===0x47&&u[188]===0x47?'ts':String.fromCharCode(...u.slice(0,3))==='FLV'?'flv':u[0]===0x30&&u[1]===0x26?'wmv':'?';
+  if(o.box==='mp4'){try{const ix=await mp4VIndex({file:f});if(ix){o.codec=ix.codec;o.w=ix.w;o.h=ix.h}}catch(e){}}}catch(e){o.read=false}return o}
+function mediaWhy(o,code){const mb=o.size?(o.size/1048576).toFixed(0)+' MB':'?',k=(o.codec||'').slice(0,4);
+ if(o.read===false||!o.size)return 'អានឯកសារមិនបាន — ប្រហែលជាវីដេអូនៅលើ Cloud (Google Photos) មិនទាន់ទាញចូលទូរសព្ទ។ សូមបើកវានៅ Gallery/Photos ហើយចុច Download សិន រួចដាក់ម្ដងទៀត';
+ if(/^(hvc1|hev1)/.test(k))return `វីដេអូនេះជា HEVC/H.265 (${o.w}×${o.h}, ${mb}) — ទូរសព្ទនេះចាក់ក្នុង App មិនបាន។ សូមបំប្លែងទៅ MP4 H.264 (ឧ. CapCut → Export) រួចដាក់ម្ដងទៀត`;
+ if(/^av01/.test(k))return `វីដេអូនេះជា AV1 (${mb}) — ទូរសព្ទនេះចាក់មិនបាន។ សូមបំប្លែងទៅ MP4 H.264`;
+ if(['avi','flv','wmv','ts'].includes(o.box))return `ប្រភេទ .${o.box.toUpperCase()} មិនគាំទ្រ (${mb}) — សូមបំប្លែងទៅ MP4 H.264`;
+ return `ចាក់មិនបាន (${o.box||'?'} ${o.codec||''} ${mb}, កូដ ${code||'?'}) — សូមបំប្លែងទៅ MP4 H.264 ហើយសាកម្ដងទៀត`}
+function loadMedia(f){return loadMedia0(f).catch(async e=>{const o=await mediaSniff(f);
+ if(o.read&&(o.box==='mp4'||o.box==='mkv')&&!/^video\//.test(f.type||'')){try{return await loadMedia0(new File([f],(f.name||'video')+(o.ext?'':'.'+o.box),{type:o.box==='mp4'?'video/mp4':'video/x-matroska'}))}catch(e2){}}
+ throw Error('មិនអាចបើកវីដេអូនេះ — '+mediaWhy(o,e.code))})}
+function loadMedia0(f){return new Promise((res,rej)=>{const el=document.createElement('video');el.preload='auto';el.playsInline=true;el.muted=true;el.setAttribute('playsinline','');el.setAttribute('muted','');el.src=URL.createObjectURL(f);$('#vbin').appendChild(el);
  const done=async()=>{el.onloadeddata=null;let dur=el.duration;if(!isFinite(dur)){el.currentTime=1e7;await new Promise(r=>el.addEventListener('durationchange',r,{once:true}));dur=el.duration;el.currentTime=0}
   const m={id:uid(),file:f,el,dur,w:el.videoWidth||720,h:el.videoHeight||1280,thumb:'',name:f.name||'video'};
   S.media.push(m);res(m);setTimeout(()=>makeThumb(m),30);setTimeout(()=>{if(window.AudioDecoder&&m.ix===undefined)mp4Index(m.file).then(x=>m.ix=x,()=>m.ix=null)},1500)};
- el.onloadeddata=done;el.onerror=()=>rej(Error('មិនអាចបើកវីដេអូនេះ'));el.load()})}
+ el.onloadeddata=done;el.onerror=()=>{const er=Error('មិនអាចបើកវីដេអូនេះ');er.code=el.error&&el.error.code;try{el.remove();URL.revokeObjectURL(el.src)}catch(x){}rej(er)};el.load()})}
 function makeThumb(m){const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=m.el.src;v.style.cssText='position:fixed;left:-9999px;width:2px;height:2px';document.body.appendChild(v);
  v.onloadeddata=async()=>{try{await seekEl(v,Math.min(.8,m.dur/3));const c=document.createElement('canvas');c.width=120;c.height=Math.round(120*m.h/m.w)||68;c.getContext('2d').drawImage(v,0,0,c.width,c.height);m.thumb=c.toDataURL('image/jpeg',.6);renderClips();renderScrub()}catch(e){}v.remove()}}
-async function addFiles(files){const added=[];for(const f of files){if(busy.cancel&&files.length>1&&!Q.run)break;try{if(!Q.run)busy.on('កំពុងបើក '+(f.name||'វីដេអូ')+'...',null);const m=await loadMedia(f);const c={id:uid(),m,in:0,out:m.dur,q:Q.auto?'wait':''};S.clips.push(c);added.push(c)}catch(e){toast('✕ '+e.message)}finally{if(!Q.run)busy.off()}}
+async function addFiles(files){const added=[];addFiles.err='';for(const f of files){if(busy.cancel&&files.length>1&&!Q.run)break;try{if(!Q.run)busy.on('កំពុងបើក '+(f.name||'វីដេអូ')+'...',null);const m=await loadMedia(f);const c={id:uid(),m,in:0,out:m.dur,q:Q.auto?'wait':''};S.clips.push(c);added.push(c)}catch(e){toast('✕ '+e.message,9000);addFiles.err=e.message}finally{if(!Q.run)busy.off()}}
  if(!Q.auto&&!window.__apk&&added.length&&!S.subs.length)setTimeout(()=>{goPage('pg-sub');showAct()},300);
  if(Q.auto&&added.length){added.forEach(c=>Q.ids.push(c.id));if(Q.run){qPaint();toast(`➕ ថែម ${added.length} វីដេអូក្នុងជួរ — នឹងបកប្រែបន្តបន្ទាប់`,3000)}else setTimeout(qRun,50)}
  MIX.dirty=true;$('#empty').style.display=S.clips.length?'none':'';layout();renderClips();renderScrub();if(P.cur<0&&S.clips.length)await seek(0);else draw()}
@@ -2166,7 +2179,7 @@ $('#auGo').onclick=()=>{if(AUTO.run){AUTO.stop=true;busy.cancel=true;try{busy.ct
 function auReset(){pause();S.media.forEach(m=>{try{m.el.pause();URL.revokeObjectURL(m.el.src);m.el.remove()}catch(e){}});S.media=[];S.clips=[];S.subs=[];P.cur=-1;P.t=0;MIX.buf=null;MIX.dirty=true;try{AICACHE.clear()}catch(e){}SEQ.key=null;
  S.speakers=[{id:'p1',name:'តួប្រុស',voice:'km-KH-PisethNeural',pitch:0,rate:0},{id:'p2',name:'តួស្រី',voice:'km-KH-SreymomNeural',pitch:0,rate:0}];clipsChanged();subChanged();renderSpeakers()}
 async function autoOne(it){const c=AUTO.cfg,step=(m,p)=>{it.msg=m;if(p!=null)it.pct=p;auPaint()};
- it.phase='open';auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error('បើកវីដេអូមិនបាន');
+ it.phase='open';auReset();step('🎬 កំពុងបើកវីដេអូ...',.02);const qa=Q.auto;Q.auto=false;try{await addFiles(it.files)}finally{Q.auto=qa}if(!S.clips.length)throw Error(addFiles.err||'បើកវីដេអូមិនបាន');
  S.asr.eng=c.src;if(c.lang)S.asr.lang=c.lang==='auto'?'auto':c.lang;S.asr.gender=c.voice==='detect';S.style.show=!!c.burn&&!c.clean;S.mix.dub=c.dub;S.mix.orig=c.bgm;S.out.res=c.res;S.out.fps=c.fps;setMode(c.orig);save();layout();
  if(c.clean)await cleanOut();else if(c.erase&&!S.erase.on){try{await eraseToggle(true)}catch(e){}}else if(!c.erase&&S.erase.on){try{await eraseToggle(false)}catch(e){}}if(!c.clean)applySize();
  it.phase='sub';step(c.kind==='recap'?'🔤 កំពុងអាន Sub ចិន...':'🔤 កំពុងអាន Sub & បកប្រែ...',.05);await autoSubTr({noTr:c.kind==='recap',quiet:true});if(AUTO.stop||busy.cancel)throw Error('បានឈប់');if(!S.subs.length)throw Error('រក Sub មិនឃើញ');

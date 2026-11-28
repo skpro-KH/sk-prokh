@@ -21,13 +21,13 @@
   ],
   "must": false
  },
- "app": "9.5",
+ "app": "9.6",
  "page": "web/app-native.html",
  "notes": [
-  "📱 APK Android ត្រឡប់មកប្រើ UI ដើមដូចគេហទំព័រវិញ",
-  "🎯 សំឡេងនៅត្រឹមកន្លែង Sub — ចាប់ផ្ដើមពេល Sub ចេញ មិនរុញក្រោយ មិនជាន់ Sub បន្ទាប់ (វែងពេក → កាត់ទន់ៗ)",
-  "⚡ Update ដោយស្វ័យប្រវត្តិ ពេលបើក App"
+  "🎬 វីដេអូបើកមិនបាន — App សាកវិធីទី 2 ដោយខ្លួនឯង ហើយប្រាប់មូលហេតុច្បាស់ (HEVC / AVI / Cloud ...)",
+  "🎯 សំឡេងនៅត្រឹមកន្លែង Sub",
+  "⚡ Update ដោយស្វ័យប្រវត្តិ"
  ],
- "sig": "h83OK+MZMeDlpPz/0lPgLakrqR37Kc6Pp/dsQxWWh4AKSX2t1rIdc9P/xIxqTKOP+90Gw0ONPUmVAb/VQjVnbw==",
- "sha": "bfa41b8db161af4fb77eaca2524d94525ef9c4409b4ab74ddf062512975b4f79"
+ "sig": "wUpGsWScezLry6Nc3fo1g7xQpyV8YLbbSRXw0LnmURZd3C/wJ0otBEgdoqUL++cpidOQR8F7fqRBSE1FywjE1g==",
+ "sha": "bc2ccee262ec9126c6d40f27194dd6629ad2cead8092b29f76166af7d3b8a173"
 }
