@@ -21,11 +21,12 @@
   ],
   "must": false
  },
- "app": "10.2",
+ "app": "10.3",
  "page": "web/app-native.html",
  "notes": [
+  "🔧 ជួសជុល v10.2",
   "📋 Gemini ឆ្លើយ SRT ខ្មែរក្នុងប្រអប់តែមួយ — ចុច Copy ម្ដងបានទាំងអស់"
  ],
- "sig": "4HHKk9YrIFTr6xKHqBw0065SVhPCMajx9mppb5viCUjzBZzmbTokYX9bJ7PQYdBCST9RVYrDhTt++nuq8z4BAg==",
- "sha": "8e266e94c99bdc072bb9c9be4ff31eb57b2c0be870708608cb4b46e4baf31e19"
+ "sig": "lGkGDwnwbZySDXtAC1GBUuBU+jQxCzscI0VKAmOjQ4cGg9SH8xGWz2c++qPQwruB6Rg/kIXlNVhsd44pv3iNlg==",
+ "sha": "2fa33907d8af8026a26699407f4edd1416ed9d040916863832b47cb21e3f7edd"
 }

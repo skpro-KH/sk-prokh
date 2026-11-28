@@ -737,7 +737,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.2';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.3';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -3686,7 +3686,7 @@ const GMP={part:120,wait:null};
 const srtTm=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60),ms=Math.round((t-Math.floor(t))*1000)%1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
 function gemPrompt(list,from){return `Translate this Chinese drama subtitle (SRT) into natural spoken Khmer for voice dubbing — the way Chinese series are dubbed on Cambodian TV. Translate the FULL meaning accurately, follow the story and who is talking, keep names the same every time, use short clear everyday Khmer that fits each line's time.
 Keep EXACTLY the same SRT: the same numbers and the same timestamps, one subtitle for each number — replace ONLY the Chinese text with Khmer. Do not skip, merge or add subtitles.
-IMPORTANT OUTPUT FORMAT: put the WHOLE Khmer SRT inside ONE single code block that starts with ```srt and ends with ``` (so it has a Copy button). Write nothing before or after the code block.
+IMPORTANT OUTPUT FORMAT: put the WHOLE Khmer SRT inside ONE single code block that starts with \`\`\`srt and ends with \`\`\` (so it has a Copy button). Write nothing before or after the code block.
 
 `+list.map((s,i)=>`${from+i+1}\n${srtTm(s.start)} --> ${srtTm(s.end)}\n${(prepSrc(s.src)||s.src).replace(/\s*\n\s*/g,' ')}`).join('\n\n')+'\n'}
 function gemParse(t,L){const kd=x=>x.replace(/[០-៩]/g,d=>'០១២៣៤៥៦៧៨៩'.indexOf(d));t=kd(String(t));
