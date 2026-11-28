@@ -21,13 +21,12 @@
   ],
   "must": false
  },
- "app": "10.4",
+ "app": "10.5",
  "page": "web/app-native.html",
  "notes": [
-  "🔊 សំឡេងពីរោះជាងមុន — និយាយគ្រប់បន្ទាត់ដល់ចប់ មិនកាត់ដាច់ទៀត",
-  "🔊 មិនពន្លឿនខ្លាំងទៀត (អតិបរមា +30% ពីមុន +85%) · មិនប្ដូរល្បឿនចាក់ (សំឡេងមិនស្រួច)",
-  "🤖 Gemini៖ ប្រាប់ឲ្យបកខ្លីល្មមនឹងពេល (~12 អក្សរ/វិនាទី)"
+  "🧭 របារជំហាន ①–⑥ ច្បាស់ៗ (ទូរសព្ទ & PC)៖ ដាក់វីដេអូ → Sub ចិន → Copy→Gemini → Paste ខ្មែរ → បង្កើតសំឡេង → ទាញយក",
+  "🔊 មិនបាត់ពាក្យ៖ មិនកាត់ចុងពាក្យខ្មែរ + ពិនិត្យសំឡេងដែល Microsoft ផ្ញើមកមិនពេញ ហើយសុំម្ដងទៀត"
  ],
- "sig": "F7xnd0eARIy9CBlK/o/FZWVsiR2SnOzLtaPzewa9V8jLztG2qpyMeozvs+kR1NaPgI4iP/0yGzcJy2cK1xvsgg==",
- "sha": "db1260b24fafd646461867957618dcaf24ec4e6aaeb059831aff068ad094db52"
+ "sig": "PUZH5PAR3EyEJTaGwoj3vBGTjQxOsWbmHrZuPye40WJWKmIZS5WZuJdpohSqR31Qa4Zpjhj11zaBj0JLLjwcGg==",
+ "sha": "8b29f690093821e928a15ba56a5bbe24f71f7914a78a09386d8f236c77fa2bed"
 }

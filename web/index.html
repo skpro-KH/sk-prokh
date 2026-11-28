@@ -433,6 +433,23 @@ html.upd-red [data-m="upd"] i{position:relative}html.upd-red [data-m="upd"] i::a
 /* v9.3 ready-to-start button */
 #akGo.ready{background:linear-gradient(90deg,#f59e0b,#f7c64b,#f59e0b)!important;background-size:200% 100%!important;color:#3a2200!important;font-weight:800;animation:akReady 1.6s ease-in-out infinite,updBar 2.4s linear infinite}
 @keyframes akReady{0%,100%{box-shadow:0 0 0 0 rgba(247,198,75,.7)}50%{box-shadow:0 0 0 10px rgba(247,198,75,0)}}
+
+/* v10.5 step bar */
+#stepBar{display:flex;align-items:stretch;gap:2px;margin:0 0 8px;padding:6px;border-radius:16px;background:rgba(10,18,50,.75);border:1px solid rgba(247,198,75,.35);overflow-x:auto;scrollbar-width:none}
+#stepBar::-webkit-scrollbar{display:none}
+#stepBar button{flex:1 0 auto;min-width:64px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 6px 5px;border-radius:12px;border:1px solid transparent;background:transparent;color:#c7d2fe;font:inherit;cursor:pointer;position:relative}
+#stepBar button em{font-style:normal;font-size:10px;width:18px;height:18px;line-height:18px;border-radius:50%;background:#1e2a5a;color:#a5b4fc;font-weight:800}
+#stepBar button i{font-style:normal;font-size:18px;line-height:1.1}
+#stepBar button b{font-size:11.5px;font-weight:700;white-space:nowrap}
+#stepBar button small{font-size:10px;color:#93c5fd}
+#stepBar button.ok{color:#bbf7d0}#stepBar button.ok em{background:#16a34a;color:#fff}
+#stepBar button.now{background:linear-gradient(180deg,rgba(247,198,75,.25),rgba(247,198,75,.08));border-color:#f7c64b;color:#fff;animation:akReady 1.6s ease-in-out infinite}
+#stepBar button.now em{background:#f7c64b;color:#3a2200}
+#stepBar .ar{align-self:center;color:#475569;font-size:16px}
+#stepBar.busy button.now{animation:none;opacity:.75}
+html.apkpc #stepBar{margin:0 0 10px;padding:8px}html.apkpc #stepBar button{min-width:96px;padding:8px}html.apkpc #stepBar button b{font-size:13px}html.apkpc #stepBar button i{font-size:22px}
+
+@media (max-width:820px){#updBar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}}
 </style>
 </head>
 <body>
@@ -454,7 +471,7 @@ html.upd-red [data-m="upd"] i{position:relative}html.upd-red [data-m="upd"] i::a
     <button class="ibtn" id="helpBtn" title="របៀបប្រើ">❓</button><button id="statPill" hidden title="អ្នកប្រើ SK ProKH"><span class="dot"></span><span id="stOn">0</span></button><button class="ibtn" id="palBtn" title="ពណ៌">🎨</button><button class="ibtn" id="themeBtn">◐</button>
     <button class="ibtn" id="setBtn">⚙</button>
   </div>
-  <div class="player">
+  <div class="player"><div id="stepBar" hidden></div>
     <div class="stage-row">
     <div class="rail" id="railL"><button data-r="add"><b>＋</b><span>វីដេអូ</span></button><button data-r="sub"><b>🤖</b><span>Sub</span></button><button data-r="gem"><b>🤖</b><span>Gemini</span></button><button data-r="voice"><b>🔊</b><span>សំឡេង</span></button><button data-r="dl"><b>⬇</b><span>ទាញយក</span></button></div>
     <div class="stage-wrap" id="stageWrap">
@@ -737,7 +754,7 @@ const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase(
 function secMsGec(unix){let t=unix+11644473600;t-=t%300;t*=1e9/100;const s=BigInt(Math.round(t)).toString()+TRUSTED_CLIENT_TOKEN;const data=new TextEncoder().encode(s);
  const dig=shaDigest(data);const[c1,c2]=cs64(data,dig);const cb=new Uint8Array(8);const cv=new DataView(cb.buffer);cv.setUint32(0,c1,true);cv.setUint32(4,c2,true);return hex(cb)+'-'+hex(dig)}
 
-const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.4';const SS=window.speechSynthesis||null;
+const NATIVE=!!window.DubNative;const PC=(()=>{try{return !!JSON.parse(window.DubNative.info()).pc}catch(e){return false}})();if(PC||(!window.DubNative&&matchMedia('(min-width:1000px) and (pointer:fine)').matches))document.documentElement.classList.add('pc');const APP_VER='10.5';const SS=window.speechSynthesis||null;
 let skew=0;const nCb=new Map();window.__dubTts=(id,b64,err,status,date)=>{const f=nCb.get(id);if(f){nCb.delete(id);f({b64,err,status,date})}};
 const muid=()=>[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const ridH=()=>crypto.randomUUID?crypto.randomUUID().replace(/-/g,''):muid().toLowerCase();
@@ -989,8 +1006,9 @@ async function mediaAudio(m){if(m.abuf!==undefined)return m.abuf;try{m.abuf=awai
 const MIX={buf:null,dirty:true};const BGM={buf:null,name:''};
 const TTSC=new Map();
 async function ttsBuf(text,voice,rate,pitch){const k=[text,voice,rate,pitch,kiriVoice(voice)].join('|');if(TTSC.has(k))return TTSC.get(k);const b=await decodeAB(await ttsFetch(text,voice,rate,pitch));TTSC.set(k,b);return b}
-function trimSilence(b){const d=b.getChannelData(0),sr=b.sampleRate,th=.012;let a=0,e=d.length-1;while(a<d.length&&Math.abs(d[a])<th)a++;while(e>a&&Math.abs(d[e])<th)e--;
- a=Math.max(0,a-Math.round(.06*sr));e=Math.min(d.length,e+Math.round(.12*sr));if(e-a<sr*.1)return b;const o=new OfflineAudioContext(1,1,sr).createBuffer(1,e-a,sr);o.copyToChannel(d.slice(a,e),0);return o}
+/* v10.5: never clip soft Khmer word endings — lower silence threshold, keep 0.25 s after the last sound */
+function trimSilence(b){const d=b.getChannelData(0),sr=b.sampleRate,th=.005;let a=0,e=d.length-1;while(a<d.length&&Math.abs(d[a])<th)a++;while(e>a&&Math.abs(d[e])<th)e--;
+ a=Math.max(0,a-Math.round(.06*sr));e=Math.min(d.length,e+Math.round(.25*sr));if(e-a<sr*.1)return b;const o=new OfflineAudioContext(1,1,sr).createBuffer(1,e-a,sr);o.copyToChannel(d.slice(a,e),0);return o}
 const peakNorm=b=>{const d=b.getChannelData(0);let p=0;for(let i=0;i<d.length;i+=2){const v=Math.abs(d[i]);if(v>p)p=v}return p>0?Math.min(4,.9/p):1};
 const hashN=str=>{let h=7;for(const c of String(str))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
 const CJK=/[\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/;
@@ -1016,7 +1034,9 @@ async function genLine(s){if(s.hum)return;const q=lineParams(s);if(!speakable(q.
  if(E&&E.n>=3&&q.vm!=='real'&&!q.kv){const pred=E.v*units/(1+rate/100);const HM=NATMAX;
   if(pred>q.slot*1.03)rate=Math.min(HM,Math.max(rate,Math.ceil(((1+rate/100)*pred/q.slot-1)*100)+4));
   else if(S.mix.sync!==false&&pred<q.slot*.82&&q.slot-pred>.3){const want=q.slot*.94;rate=Math.max(q.rate-15,Math.min(q.rate,Math.round(((1+q.rate/100)*pred/want-1)*100)))}}
- let ur=rate,t=trimSilence(await synth(rate));const est=()=>{const v=t.duration*(1+ur/100)/units;if(isFinite(v)&&v>0){const e=TTSEST[q.voice]||(TTSEST[q.voice]={v,n:0});e.v=e.n?e.v*.8+v*.2:v;e.n++}};est();
+ let ur=rate,t=trimSilence(await synth(rate));
+ /* v10.5: Microsoft sometimes sends back only PART of the audio (connection cut) — a line far shorter than expected is asked for again (max 2×) so no word is lost */
+ {const exp=()=>{const E2=TTSEST[q.voice];return E2&&E2.n>=4&&units>=6?E2.v*units/(1+ur/100):0};for(let k=0;k<2;k++){const x=exp();if(!x||t.duration>=x*.5)break;try{ur=ur+1;t=trimSilence(await synth(ur))}catch(e){if(busy.cancel)throw e;break}}}const est=()=>{const v=t.duration*(1+ur/100)/units;if(isFinite(v)&&v>0){const e=TTSEST[q.voice]||(TTSEST[q.voice]={v,n:0});e.v=e.n?e.v*.8+v*.2:v;e.n++}};est();
  /* v7.2: fit the slot — up to 3 tries, a long line may go up to +85 % so the Khmer stays with the picture and the subtitle */
  const HMAX=NATMAX;let r0=rate;
  if(q.vm!=='real'&&t.duration>q.slot*1.03&&rate<HMAX){for(let k=0;k<(q.kv?1:3)&&t.duration>q.slot*1.03&&r0<HMAX;k++){const need=Math.ceil(((1+r0/100)*t.duration/q.slot-1)*100)+3;r0=Math.min(HMAX,Math.max(r0+6,need));try{t=trimSilence(await synth(r0));ur=r0;est()}catch(e){if(busy.cancel)throw e;break}}}
@@ -3714,7 +3734,7 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
   <textarea id="gmIn" rows="7" placeholder="Paste SRT ខ្មែរពី Gemini នៅទីនេះ…&#10;1&#10;00:00:01,000 --> 00:00:03,000&#10;អត្ថបទខ្មែរ…" style="width:100%;margin-top:10px;box-sizing:border-box;font-size:14px"></textarea>
   <div class="note" id="gmInfo">✅ មានខ្មែររួច ${done()}/${L.length} បន្ទាត់</div>
   <div class="row" style="gap:6px"><button class="btn" id="gmApply" style="flex:1">✅ ដាក់ការបកប្រែ</button><button class="btn r" id="gmVoice" style="flex:1"${done()?'':' disabled'}>🔊 បង្កើតសំឡេងខ្មែរ</button></div>`);
- $$('[data-gp]').forEach(b=>b.onclick=async()=>{const[i,p]=parts[+b.dataset.gp];const ok=await gemCopy(gemPrompt(p,i));toast(ok?`📋 Copy រួច (${p.length} បន្ទាត់) — ទៅ Paste ក្នុង Gemini`:'✕ Copy មិនបាន',3000);if(ok)b.textContent='✓ '+b.textContent.replace(/^✓ /,'')});
+ $$('[data-gp]').forEach(b=>b.onclick=async()=>{const[i,p]=parts[+b.dataset.gp];const ok=await gemCopy(gemPrompt(p,i));if(ok)STEPX.copied=true;toast(ok?`📋 Copy រួច (${p.length} បន្ទាត់) — ទៅ Paste ក្នុង Gemini`:'✕ Copy មិនបាន',3000);if(ok)b.textContent='✓ '+b.textContent.replace(/^✓ /,'')});
  $('#gmOpen').onclick=()=>{const u='https://gemini.google.com/app';try{DubNative.openUrl?DubNative.openUrl(u):window.open(u,'_blank','noopener')}catch(e){window.open(u,'_blank')}};
  const apply=()=>{const m=gemParse($('#gmIn').value,L);let n=0;m.forEach((t,k)=>{const sb=L[k-1];if(sb&&t&&/[ក-៿]/.test(t)){sb.km=postKm(t,sb);sb.err='';n++}});
   if(!m.size){toast('✕ រក SRT មិនឃើញ — Copy ចម្លើយ Gemini ទាំងមូល (មានលេខ និងម៉ោង -->)',4500);return 0}
@@ -3724,6 +3744,24 @@ function gemSheet(){const L=S.subs.filter(s=>s.src&&s.src.trim());
  $('#gmVoice').onclick=async()=>{if($('#gmIn').value.trim())apply();closeSheet();if(GMP.wait){const w=GMP.wait;GMP.wait=null;w();return}try{castPick(FLOW.cast||'simple');setMode(FLOW.orig||'mute');subChanged()}catch(e){}const ok=await genAll();if(ok!==false){await seek(0);toast('✅ សំឡេងខ្មែររួច — ចុច ▶ ស្ដាប់ ហើយ ⬇ ទាញយក ពេលចង់',5000);try{showAct()}catch(e){}}}}
 function gemWait(it){return new Promise(res=>{GMP.wait=res;if(it)it.msg='⏸ រង់ចាំ Gemini — Copy Sub → Paste ខ្មែរ (ចុច 🤖 Gemini)';auPaint();gemSheet()})}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#gemBtn'))gemSheet()});
+/* v10.5 STEP BAR ①–⑥ (phone + PC): always shows where you are and what to tap next — each step is a button */
+const STEPX={copied:false,exported:false,clip:null};
+function stepState(){const L=S.subs.filter(x=>x.src&&x.src.trim()),n=L.length,km=L.filter(x=>x.km&&/[ក-៿]/.test(x.km)).length,sp=S.subs.filter(x=>speakable(ttsText(x.km||''))),vo=sp.filter(x=>hasBuf(x)).length;
+ const ck=S.clips[0]&&S.clips[0].m.file;if(ck!==STEPX.clip){STEPX.clip=ck;STEPX.copied=false;STEPX.exported=false}
+ const done=[!!S.clips.length,n>0,STEPX.copied||km>0,n>0&&km>=n*.9,sp.length>0&&vo===sp.length,STEPX.exported];
+ return{n,km,vo,sp:sp.length,done,cur:done.indexOf(false)}}
+function stepPaint(){const b=$('#stepBar');if(!b)return;if(!MANUAL()){b.hidden=true;return}b.hidden=false;const st=stepState(),busyNow=$('#busy')&&$('#busy').classList.contains('on');
+ const T=[['📥','ដាក់វីដេអូ',S.clips.length?'✓':''],['🔤','Sub ចិន',st.n?st.n+' បន្ទាត់':''],['📋','Copy → Gemini',st.done[2]?'✓':''],['📝','Paste ខ្មែរ',st.n?`${st.km}/${st.n}`:''],['🔊','បង្កើតសំឡេង',st.sp?`${st.vo}/${st.sp}`:''],['⬇','ទាញយក',STEPX.exported?'✓':'']];
+ const h=T.map(([i,t,c],k)=>`<button type="button" data-st="${k}" class="${st.done[k]?'ok':''}${k===st.cur?' now':''}"><em>${k+1}</em><i>${i}</i><b>${t}</b>${c?`<small>${c}</small>`:''}</button>`).join('<span class="ar">›</span>');
+ if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=h}b.classList.toggle('busy',!!busyNow)}
+document.addEventListener('click',async e=>{const x=e.target.closest&&e.target.closest('#stepBar [data-st]');if(!x)return;buzz();const k=+x.dataset.st;
+ if(k===0)return $(window.__apk?'#auFile':'#vidFile').click();if(!S.clips.length)return toast('① ដាក់វីដេអូជាមុនសិន');
+ if(k===1){if(!S.subs.some(s=>s.src))return manualOpen0();return gemSheet()}
+ if(k===2||k===3){gemSheet();if(k===3)setTimeout(()=>{const a=$('#gmIn');if(a)a.focus()},300);return}
+ if(k===4){if(!S.subs.some(s=>s.km&&/[ក-៿]/.test(s.km)))return toast('④ Paste SRT ខ្មែរពី Gemini ជាមុនសិន',3500);try{castPick(FLOW.cast||'simple');setMode(FLOW.orig||'mute');subChanged()}catch(e){}const ok=await genAll();if(ok!==false){await seek(0);toast('✅ សំឡេងខ្មែររួច — ចុច ▶ ស្ដាប់ ហើយ ⑥ ទាញយក',4500)}return}
+ if(k===5){const st=stepState();if(st.sp&&st.vo<st.sp&&!(await ask(`⚠ នៅ ${st.sp-st.vo} បន្ទាត់មិនទាន់មានសំឡេង — ទាញយកដដែល?`,'ទាញយក')))return;lastFile=null;await $('#expBtn').onclick();if(lastFile)STEPX.exported=true;stepPaint()}});
+async function manualOpen0(){await autoSubTr({noTr:true,quiet:true});if(S.subs.length){await seek(0);gemSheet()}else toast('⚠ រក Sub ចិនមិនឃើញ — អាចកែប្រអប់ 📖 ហើយសាកម្ដងទៀត',5000)}
+setInterval(stepPaint,700);
 async function autoSubTr(o){o=o||{};if(AUTO_ST||Q.run||!S.clips.length||S.subs.length)return;AUTO_ST=true;try{await sleep(500);
   const prev=S.asr.eng;S.asr.eng='ocr';PRETR.on=!o.noTr&&S.tr.cloud===false&&S.tr.eng!=='gemini';const ok=await runASR().finally(()=>{PRETR.on=false});S.asr.eng=prev==='auto'?'ocr':prev;if(!ok||!S.subs.length)return;
   if(o.noTr){toast('✅ អាន Sub រួច',2000);return}
